@@ -588,6 +588,7 @@ a { color: inherit; }
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: 0;
+  border-top-left-radius: 12px !important;
   padding-left: 12px;
   overflow: hidden;
 }
