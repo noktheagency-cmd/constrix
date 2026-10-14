@@ -1,0 +1,571 @@
+import { useEffect, useState, type FormEvent } from "react"
+import { DateField } from "../DateField"
+import { Link } from "react-router-dom"
+import { isAway, PERSON_STATUSES } from "../domain/places"
+import type { PersonStatus, Weather } from "../domain/types"
+import { TODAY } from "../domain/ops"
+import { dateAZ, hit, num } from "../format"
+import { Icon } from "../icons"
+import { usePrefs } from "../i18n"
+import { useStore } from "../store"
+import { Badge, Empty, Field, Meter, Modal, PageHead, RowMenu, Select, StockBar, Tabs, useTitle } from "../ui"
+import { PhaseTrack } from "./projectParts"
+
+const ASSET_TYPES = ["Kran", "Ekskavator", "Beton", "Nəqliyyat", "Anbar", "Dəzgah"]
+const emptyPerson = { id: "", name: "", role: "", crew: "", phone: "", status: "sahede" as PersonStatus }
+
+type Tab = "icmal" | "hesabat" | "hecm" | "briqada" | "texnika" | "material" | "qeyd"
+
+const blank = {
+  weather: "gunesli" as Weather,
+  crew: "",
+  note: "",
+  lines: {} as Record<string, string>,
+  assetId: "",
+  hours: "",
+  attendance: {} as Record<string, string>,
+  date: TODAY,
+}
+
+export default function Site() {
+  const { t } = usePrefs()
+  useTitle(t("page.site.title"))
+  const { query, projects, smetas, assets, people, materials, stocks, locations, requests, reports, journal, documents, saveDaily, addNote, createRequest, assignToSite, editCrew, releaseFromSite, pullAsset, editAsset, releaseAsset } = useStore()
+  const [projectId, setProjectId] = useState(projects.find((item) => item.status === "aktiv")?.id || projects[0]?.id || "")
+  const [tab, setTab] = useState<Tab>("icmal")
+  const [form, setForm] = useState(blank)
+  const [ask, setAsk] = useState<{ materialId: string; qty: string } | null>(null)
+  const [note, setNote] = useState<string | null>(null)
+  const [person, setPerson] = useState(emptyPerson)
+  const [personOpen, setPersonOpen] = useState(false)
+  const [assignId, setAssignId] = useState("")
+  const [assignCrew, setAssignCrew] = useState("")
+  const [machine, setMachine] = useState({ id: "", name: "", type: "Kran", hours: "", nextService: "", utilization: "" })
+  const [pullId, setPullId] = useState<string | null>(null)
+  const [error, setError] = useState("")
+
+  useEffect(() => {
+    if (projects.some((item) => item.id === projectId)) return
+    const next = projects.find((item) => item.status === "aktiv") || projects[0]
+    if (next) setProjectId(next.id)
+  }, [projects, projectId])
+
+  const project = projects.find((item) => item.id === projectId)
+  const smeta = smetas.find((item) => item.projectId === projectId)
+  const place = locations.find((item) => item.projectId === projectId)
+  const crew = people.filter((item) => item.site === project?.name)
+  const machines = assets.filter((item) => item.site === project?.name)
+  const pool = assets.filter((item) => item.site !== project?.name && item.status !== "servis")
+  const siteAssets = assets.filter((item) => item.status === "sahede" || item.status === "icarede")
+  const mineReports = reports.filter((item) => item.projectId === projectId)
+  const today = mineReports.find((item) => item.date === TODAY)
+  const mineRequests = requests.filter((item) => item.projectId === projectId)
+  const openRequests = mineRequests.filter((item) => item.status === "gozleyir" || item.status === "teklif" || item.status === "sifaris")
+  const piles = stocks.filter((item) => item.locationId === place?.id && item.qty > 0)
+  const notes = journal.filter((item) => item.site === project?.name)
+  const papers = documents.filter((item) => item.projectId === projectId)
+  const lines = (smeta?.lines || []).filter((line) => hit(query, line.code, line.name, project?.name))
+
+  function pickProject(next: string) {
+    setProjectId(next)
+    setForm(blank)
+    setError("")
+  }
+
+  function submit(event: FormEvent | { preventDefault: () => void }, send: boolean) {
+    event.preventDefault()
+    const reportLines = Object.entries(form.lines).filter(([, qty]) => Number(qty) > 0).map(([smetaLineId, qty]) => ({ smetaLineId, qty }))
+    const attendance = Object.entries(form.attendance).filter(([, hours]) => Number(hours) > 0).map(([personId, hours]) => ({ personId, hours }))
+    const message = saveDaily({
+      projectId,
+      date: form.date,
+      weather: form.weather,
+      crew: attendance.length || form.crew,
+      note: form.note,
+      lines: reportLines,
+      machines: form.assetId ? [{ assetId: form.assetId, hours: form.hours }] : [],
+      attendance,
+      submit: send,
+    })
+    setError(message)
+    if (!message) setForm(blank)
+  }
+
+  return (
+    <>
+      <PageHead kicker={t("page.site.kicker")} title={project?.name || t("page.site.title")} text={t("page.site.text")}>
+        {tab === "material" && (
+          <button type="button" className="btn" onClick={() => { setError(""); setAsk({ materialId: materials[0]?.id || "", qty: "" }) }}>
+            <Icon name="plus" /> Tələbnamə
+          </button>
+        )}
+        {tab === "qeyd" && (
+          <button type="button" className="btn" onClick={() => { setError(""); setNote("") }}>
+            <Icon name="plus" /> Qeyd
+          </button>
+        )}
+        {tab === "briqada" && (
+          <button type="button" className="btn" onClick={() => { setError(""); setPerson(emptyPerson); setAssignId(people.find((item) => item.site !== project?.name && !isAway(item.status))?.id || ""); setAssignCrew(""); setPersonOpen(true) }}>
+            <Icon name="plus" /> Təyin et
+          </button>
+        )}
+        {tab === "texnika" && (
+          <button type="button" className="btn" onClick={() => { setError(""); setPullId(pool[0]?.id || "") }}>
+            <Icon name="plus" /> Cəlb et
+          </button>
+        )}
+        {tab === "hesabat" && <Link to="/gundelik" className="btn ghost">Gündəliklər</Link>}
+      </PageHead>
+      <div className="toolbar">
+        <Tabs
+          value={tab}
+          onChange={(next) => { setTab(next as Tab); setError("") }}
+          options={[
+            { id: "icmal", label: "İcmal" },
+            { id: "hesabat", label: "Hesabat" },
+            { id: "hecm", label: "Həcm" },
+            { id: "briqada", label: "Briqada" },
+            { id: "texnika", label: "Texnika" },
+            { id: "material", label: "Material" },
+            { id: "qeyd", label: "Qeydlər" },
+          ]}
+        />
+        <div className="site-pick">
+          <Select value={projectId} onValueChange={pickProject} options={projects.map((item) => ({ value: item.id, label: item.name }))} />
+        </div>
+      </div>
+
+      {!project && <Empty title="Obyekt yoxdur" text="Layihə açıldıqda sahə burada görünür." />}
+
+      {project && tab === "icmal" && (
+        <>
+          <div className="site-stats">
+            <article className="site-stat">
+              <span>Gedişat</span>
+              <b>{project.progress}%</b>
+              <Meter value={project.progress} />
+            </article>
+            <article className="site-stat">
+              <span>Briqada</span>
+              <b>{crew.length}</b>
+              <span>{project.manager}</span>
+            </article>
+            <article className="site-stat">
+              <span>Texnika</span>
+              <b>{machines.length}</b>
+              <span>{project.phase}</span>
+            </article>
+            <article className="site-stat">
+              <span>Bu gün</span>
+              {today ? <Badge status={today.status} /> : <b>Açıq deyil</b>}
+              <span>{openRequests.length} açıq tələb</span>
+            </article>
+          </div>
+          <div className="site-grid">
+            <section className="panel pad">
+              <div className="panel-head"><h2>Mərhələ</h2><span className="muted">{project.address}, {project.city}</span></div>
+              <PhaseTrack projectId={project.id} phases={project.phases} />
+              <p className="block-title">Açıq həcm</p>
+              <div className="mini-list">
+                {(smeta?.lines || []).filter((line) => line.qty - line.doneQty > 0.05).slice(0, 5).map((line) => (
+                  <article key={line.id}>{line.code} {line.name} · qalıq {num(line.qty - line.doneQty, 1)} {line.unit}</article>
+                ))}
+              </div>
+            </section>
+            <section className="panel pad">
+              <div className="panel-head"><h2>Sənəd və qeyd</h2></div>
+              {papers.length === 0 && notes.length === 0 && <p className="muted">Bu obyektdə sənəd və qeyd yoxdur.</p>}
+              <div className="mini-list">
+                {papers.map((item) => (
+                  <article key={item.id}>{item.title}<div className="muted">{item.kind} · <Badge status={item.status} /></div></article>
+                ))}
+                {notes.slice(0, 4).map((item) => (
+                  <article key={item.id}><span className="mono">{item.time}</span> {item.text}</article>
+                ))}
+              </div>
+            </section>
+          </div>
+        </>
+      )}
+
+      {project && tab === "hesabat" && (
+        <form className="panel pad form" onSubmit={(event) => submit(event, false)}>
+          <div className="split">
+            <Field label="Tarix">
+              <DateField value={form.date} onChange={(date) => setForm({ ...form, date })} />
+            </Field>
+            <Field label="Hava">
+              <Select
+                value={form.weather}
+                onValueChange={(weather) => setForm({ ...form, weather: weather as Weather })}
+                options={[
+                  { value: "gunesli", label: t("weather.gunesli") },
+                  { value: "buludlu", label: t("weather.buludlu") },
+                  { value: "yagis", label: t("weather.yagis") },
+                  { value: "kulek", label: t("weather.kulek") },
+                ]}
+              />
+            </Field>
+            <Field label="Briqada, nəfər">
+              <input value={form.crew} onChange={(event) => setForm({ ...form, crew: event.target.value })} />
+            </Field>
+          </div>
+          {crew.length > 0 && (
+            <div className="stack">
+              <p className="block-title">Tabel</p>
+              {crew.map((person) => (
+                <label key={person.id} className="qty-line">
+                  <span>{person.name} · {person.role}</span>
+                  <input type="number" min="0" step="0.5" placeholder="Saat" value={form.attendance[person.id] || ""} onChange={(event) => setForm({ ...form, attendance: { ...form.attendance, [person.id]: event.target.value } })} />
+                </label>
+              ))}
+            </div>
+          )}
+          {smeta && (
+            <div className="stack">
+              <p className="block-title">Həcm</p>
+              {smeta.lines.map((line) => (
+                <label key={line.id} className="qty-line">
+                  <span>{line.code} {line.name} · qalıq {num(Math.max(0, line.qty - line.doneQty), 1)} {line.unit}</span>
+                  <input type="number" min="0" step="0.1" placeholder="Həcm" value={form.lines[line.id] || ""} onChange={(event) => setForm({ ...form, lines: { ...form.lines, [line.id]: event.target.value } })} />
+                </label>
+              ))}
+            </div>
+          )}
+          <div className="split">
+            <Field label="Texnika">
+              <Select value={form.assetId} onValueChange={(assetId) => setForm({ ...form, assetId })} options={[{ value: "", label: t("none") }, ...siteAssets.map((item) => ({ value: item.id, label: item.name }))]} />
+            </Field>
+            <Field label="Moto-saat">
+              <input type="number" min="0" step="0.5" value={form.hours} onChange={(event) => setForm({ ...form, hours: event.target.value })} />
+            </Field>
+          </div>
+          <Field label="Qeyd">
+            <textarea value={form.note} onChange={(event) => setForm({ ...form, note: event.target.value })} />
+          </Field>
+          {error && <p className="form-error">{error}</p>}
+          <div className="form-actions">
+            <button type="button" className="btn ghost" onClick={(event) => submit(event, true)}>Təsdiqə göndər</button>
+            <button className="btn" type="submit">Saxla</button>
+          </div>
+          {mineReports.length > 0 && (
+            <>
+              <p className="block-title">Bu obyektin gündəlikləri</p>
+              <div className="mini-list">
+                {mineReports.map((item) => (
+                  <article key={item.id}>{item.id} · {dateAZ(item.date)} · {t(`weather.${item.weather}`)} · {item.author} <Badge status={item.status} /></article>
+                ))}
+              </div>
+            </>
+          )}
+        </form>
+      )}
+
+      {project && tab === "hecm" && (
+        <div className="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>İş</th>
+                <th className="num">Plan</th>
+                <th className="num">Görülən</th>
+                <th className="num">Qalıq</th>
+              </tr>
+            </thead>
+            <tbody>
+              {lines.map((line) => (
+                <tr key={line.id}>
+                  <td><b>{line.code} {line.name}</b><div className="muted">{line.unit}</div></td>
+                  <td className="num">{num(line.qty, 1)}</td>
+                  <td className="num">{num(line.doneQty, 1)}</td>
+                  <td className="num">{num(Math.max(0, line.qty - line.doneQty), 1)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {lines.length === 0 && <Empty title="Həcm yoxdur" text="Bu obyektin smetası boşdur." />}
+        </div>
+      )}
+
+      {project && tab === "briqada" && (
+        <div className="table-wrap">
+          <table>
+            <thead>
+              <tr><th>İşçi</th><th>Briqada</th><th>Telefon</th><th>Vəziyyət</th><th></th></tr>
+            </thead>
+            <tbody>
+              {crew.filter((item) => hit(query, item.name, item.role, item.crew)).map((item) => (
+                <tr key={item.id}>
+                  <td><b>{item.name}</b><div className="muted">{item.role}</div></td>
+                  <td>{item.crew}</td>
+                  <td className="mono">{item.phone}</td>
+                  <td><Badge status={item.status} /></td>
+                  <td>
+                    <RowMenu
+                      items={[
+                        { id: "edit", label: "Redaktə", onClick: () => { setError(""); setPerson({ id: item.id, name: item.name, role: item.role, crew: item.crew === "—" ? "" : item.crew, phone: item.phone === "—" ? "" : item.phone, status: item.status }); setPersonOpen(true) } },
+                        { id: "delete", label: "Sahədən çıxar", onClick: () => setError(releaseFromSite(item.id)) },
+                      ]}
+                    />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {crew.length === 0 && <Empty title="Briqada boşdur" text="HRM işçilərindən bu obyektə təyin edin." />}
+        </div>
+      )}
+
+      {project && tab === "texnika" && (
+        <div className="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Texnika</th><th className="num">Moto-saat</th><th>Servis</th><th className="num">Yüklənmə</th><th>Vəziyyət</th><th></th></tr>
+            </thead>
+            <tbody>
+              {machines.filter((item) => hit(query, item.name, item.type)).map((item) => (
+                <tr key={item.id}>
+                  <td><b>{item.name}</b><div className="muted">{item.type}</div></td>
+                  <td className="num">{num(item.hours, 0)}</td>
+                  <td>{dateAZ(item.nextService)}</td>
+                  <td className="num">{item.utilization}%</td>
+                  <td><Badge status={item.status} /></td>
+                  <td>
+                    <RowMenu
+                      items={[
+                        { id: "edit", label: "Redaktə", onClick: () => { setError(""); setMachine({ id: item.id, name: item.name, type: item.type, hours: String(item.hours), nextService: item.nextService, utilization: String(item.utilization) }) } },
+                        { id: "delete", label: "Sil", onClick: () => setError(releaseAsset(item.id)) },
+                      ]}
+                    />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {machines.length === 0 && <Empty title="Texnika yoxdur" text="Bu obyektə bağlanmış maşın yoxdur." />}
+        </div>
+      )}
+
+      {project && tab === "material" && (
+        <div className="site-grid">
+          <section className="panel pad">
+            <div className="panel-head"><h2>Sahə anbarı</h2><span className="muted">{place?.name || "Anbar yoxdur"}</span></div>
+            <div className="mini-list">
+              {piles.map((row) => {
+                const material = materials.find((item) => item.id === row.materialId)
+                return (
+                  <article key={row.materialId}>
+                    <div className="split"><b>{material?.name || row.materialId}</b><span>{num(row.qty, 1)} {material?.unit}</span></div>
+                    {material && <StockBar qty={row.qty} min={material.min} />}
+                  </article>
+                )
+              })}
+            </div>
+            {piles.length === 0 && <p className="muted">Sahə anbarında qalıq yoxdur.</p>}
+          </section>
+          <section className="panel pad">
+            <div className="panel-head"><h2>Tələblər</h2></div>
+            <div className="mini-list">
+              {mineRequests.filter((item) => hit(query, item.material, item.id, item.text)).map((item) => (
+                <article key={item.id}>{item.material} · {num(item.qty, 1)} {item.unit}<div className="muted">{item.id} · <Badge status={item.status} /></div></article>
+              ))}
+            </div>
+            {mineRequests.length === 0 && <p className="muted">Bu obyektin tələbi yoxdur.</p>}
+          </section>
+        </div>
+      )}
+
+      {project && tab === "qeyd" && (
+        <div className="table-wrap">
+          <table>
+            <thead><tr><th>Vaxt</th><th>Qeyd</th></tr></thead>
+            <tbody>
+              {notes.filter((item) => hit(query, item.text)).map((item) => (
+                <tr key={item.id}><td className="mono">{item.time}</td><td>{item.text}</td></tr>
+              ))}
+            </tbody>
+          </table>
+          {notes.length === 0 && <Empty title="Qeyd yoxdur" text="Sahədən qısa qeyd yazın." />}
+        </div>
+      )}
+
+      {ask && (
+        <Modal title="Tələbnamə" onClose={() => setAsk(null)}>
+          <form
+            className="form"
+            onSubmit={(event) => {
+              event.preventDefault()
+              const message = createRequest({ projectId, materialId: ask.materialId, qty: ask.qty })
+              setError(message)
+              if (!message) setAsk(null)
+            }}
+          >
+            <Field label="Material">
+              <Select value={ask.materialId} onValueChange={(materialId) => setAsk({ ...ask, materialId })} options={materials.map((item) => ({ value: item.id, label: item.name }))} />
+            </Field>
+            <Field label="Miqdar">
+              <input type="number" min="0" step="0.1" value={ask.qty} onChange={(event) => setAsk({ ...ask, qty: event.target.value })} />
+            </Field>
+            {error && <p className="form-error">{error}</p>}
+            <div className="form-actions"><button className="btn" type="submit">Aç</button></div>
+          </form>
+        </Modal>
+      )}
+
+      {note !== null && (
+        <Modal title="Yeni qeyd" onClose={() => setNote(null)}>
+          <form
+            className="form"
+            onSubmit={(event) => {
+              event.preventDefault()
+              const message = addNote(project?.name || "", note)
+              setError(message)
+              if (!message) setNote(null)
+            }}
+          >
+            <Field label="Qeyd">
+              <textarea value={note} onChange={(event) => setNote(event.target.value)} />
+            </Field>
+            {error && <p className="form-error">{error}</p>}
+            <div className="form-actions"><button className="btn" type="submit">Saxla</button></div>
+          </form>
+        </Modal>
+      )}
+
+      {personOpen && !person.id && (
+        <Modal title="Briqadaya təyin" onClose={() => setPersonOpen(false)}>
+          <form
+            className="form"
+            onSubmit={(event) => {
+              event.preventDefault()
+              const message = assignToSite(assignId, project?.name || "", assignCrew)
+              setError(message)
+              if (!message) setPersonOpen(false)
+            }}
+          >
+            {people.filter((item) => item.site !== project?.name && !isAway(item.status)).length === 0 && (
+              <p className="muted">HRM-də bu sahədən kənar işçi yoxdur. Məzuniyyətdə olan gəlmir.</p>
+            )}
+            <Field label="İşçi">
+              <Select
+                value={assignId}
+                onValueChange={setAssignId}
+                options={people.filter((item) => item.site !== project?.name && !isAway(item.status)).map((item) => ({ value: item.id, label: `${item.name} · ${item.role}` }))}
+              />
+            </Field>
+            <Field label="Briqada">
+              <input value={assignCrew} onChange={(event) => setAssignCrew(event.target.value)} />
+            </Field>
+            {error && <p className="form-error">{error}</p>}
+            <div className="form-actions">
+              <button className="btn" type="submit" disabled={!assignId}>Təyin et</button>
+            </div>
+          </form>
+        </Modal>
+      )}
+
+      {personOpen && person.id && (
+        <Modal title="İşçini yaz" onClose={() => setPersonOpen(false)}>
+          <form
+            className="form"
+            onSubmit={(event) => {
+              event.preventDefault()
+              const message = editCrew(person.id, project?.name || "", person)
+              setError(message)
+              if (!message) setPersonOpen(false)
+            }}
+          >
+            <Field label="Ad">
+              <input value={person.name} onChange={(event) => setPerson({ ...person, name: event.target.value })} />
+            </Field>
+            <Field label="Vəzifə">
+              <input value={person.role} onChange={(event) => setPerson({ ...person, role: event.target.value })} />
+            </Field>
+            <Field label="Briqada">
+              <input value={person.crew} onChange={(event) => setPerson({ ...person, crew: event.target.value })} />
+            </Field>
+            <Field label="Telefon">
+              <input value={person.phone} onChange={(event) => setPerson({ ...person, phone: event.target.value })} />
+            </Field>
+            <Field label="Vəziyyət">
+              <Select
+                value={person.status}
+                onValueChange={(status) => setPerson({ ...person, status: status as PersonStatus })}
+                options={PERSON_STATUSES.map((id) => ({ value: id, label: t(`status.${id}`) }))}
+              />
+            </Field>
+            {error && <p className="form-error">{error}</p>}
+            <div className="form-actions"><button className="btn" type="submit">Saxla</button></div>
+          </form>
+        </Modal>
+      )}
+
+      {pullId !== null && (
+        <Modal title="Texnika cəlb et" onClose={() => setPullId(null)}>
+          <form
+            className="form"
+            onSubmit={(event) => {
+              event.preventDefault()
+              const message = pullAsset(pullId, project?.name || "")
+              setError(message)
+              if (!message) setPullId(null)
+            }}
+          >
+            {pool.length === 0 && <p className="muted">Parkda cəlb olunacaq texnika yoxdur. Servisdəki maşın gəlmir.</p>}
+            {pool.length > 0 && (
+              <Field label="Aktivlər parkı">
+                <Select
+                  value={pullId}
+                  onValueChange={setPullId}
+                  options={pool.map((item) => ({ value: item.id, label: `${item.name} · ${item.site}` }))}
+                />
+              </Field>
+            )}
+            {error && <p className="form-error">{error}</p>}
+            <div className="form-actions">
+              <button className="btn" type="submit" disabled={!pullId}>Cəlb et</button>
+            </div>
+          </form>
+        </Modal>
+      )}
+
+      {machine.id && (
+        <Modal title="Texnikanı yaz" onClose={() => setMachine({ ...machine, id: "" })}>
+          <form
+            className="form"
+            onSubmit={(event) => {
+              event.preventDefault()
+              const message = editAsset(machine.id, machine)
+              setError(message)
+              if (!message) setMachine({ ...machine, id: "" })
+            }}
+          >
+            <Field label="Ad">
+              <input value={machine.name} onChange={(event) => setMachine({ ...machine, name: event.target.value })} />
+            </Field>
+            <Field label="Növ">
+              <Select
+                value={machine.type}
+                onValueChange={(type) => setMachine({ ...machine, type })}
+                options={(ASSET_TYPES.includes(machine.type) ? ASSET_TYPES : [machine.type, ...ASSET_TYPES]).map((item) => ({ value: item, label: item }))}
+              />
+            </Field>
+            <div className="split">
+              <Field label="Moto-saat">
+                <input type="number" min="0" value={machine.hours} onChange={(event) => setMachine({ ...machine, hours: event.target.value })} />
+              </Field>
+              <Field label="Yüklənmə, %">
+                <input type="number" min="0" max="100" value={machine.utilization} onChange={(event) => setMachine({ ...machine, utilization: event.target.value })} />
+              </Field>
+            </div>
+            <Field label="Növbəti servis">
+              <DateField value={machine.nextService} onChange={(nextService) => setMachine({ ...machine, nextService })} />
+            </Field>
+            {error && <p className="form-error">{error}</p>}
+            <div className="form-actions"><button className="btn" type="submit">Saxla</button></div>
+          </form>
+        </Modal>
+      )}
+    </>
+  )
+}

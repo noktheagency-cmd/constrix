@@ -1,0 +1,2551 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "rhel-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum ProjectStatus {
+  aktiv
+  gecikir
+  tehvil
+  plan
+}
+
+model Client {
+  id        String    @id @default(cuid())
+  name      String    @unique
+  sector    String
+  contact   String
+  phone     String
+  email     String
+  city      String
+  since     String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  projects  Project[]
+}
+
+model Project {
+  id         String         @id @default(cuid())
+  name       String
+  clientName String
+  clientId   String?
+  district   String
+  city       String
+  address    String
+  phase      String
+  progress   Int            @default(0)
+  budget     Decimal        @db.Decimal(14, 2)
+  spent      Decimal        @db.Decimal(14, 2) @default(0)
+  start      String
+  end        String
+  manager    String
+  crew       Int            @default(0)
+  status     ProjectStatus
+  type       String
+  floors     Int
+  area       Decimal        @db.Decimal(12, 2)
+  note           String?
+  smetaId        String?
+  organizationId String?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  client         Client?        @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  organization   Organization?  @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  phases        ProjectPhase[]
+  notes         ProjectNote[]
+  projectFiles  ProjectFile[]
+  calcJobs      CalcJob[]
+  tenders       TenderCase[]
+  boqBooks      BoqBook[]
+  workSchedules WorkSchedule[]
+  cashPlans     CashPlan[]
+  orderFlows    OrderFlow[]
+  weatherProofs WeatherProof[]
+  defects        DefectAct[]
+  incidents      SiteIncident[]
+  photos          ProjectPhoto[]
+  phaseProcedures PhaseProcedure[]
+
+  @@index([clientId])
+  @@index([status])
+  @@index([organizationId])
+}
+
+model ProjectPhase {
+  id        String  @id @default(cuid())
+  projectId String
+  name      String
+  done      Boolean @default(false)
+  current   Boolean @default(false)
+  sort      Int
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId, sort])
+}
+
+model ProjectNote {
+  id        String  @id @default(cuid())
+  projectId String
+  date      String
+  text      String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+}
+
+model PhaseProcedure {
+  id        String  @id
+  projectId String
+  phase     String
+  sort      Int
+  name      String
+  detail    String
+  unit      String
+  qty       Decimal @db.Decimal(14, 3)
+  doneQty   Decimal @db.Decimal(14, 3)
+  doneOn    String  @default("")
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId, phase, sort])
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  role      String
+  title     String
+  initials  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Account {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  role         String
+  title        String
+  initials     String
+  userId       String                @unique
+  activeOrgId  String?
+  createdAt    DateTime              @default(now())
+  updatedAt    DateTime              @updatedAt
+  memberships  OrganizationMember[]
+}
+
+model Crew {
+  id        String   @id @default(cuid())
+  name      String
+  site      String
+  size      Int
+  lead      String
+  present   Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Lead {
+  id        String   @id @default(cuid())
+  name      String
+  company   String
+  value     Decimal  @db.Decimal(14, 2)
+  owner     String
+  heat      String
+  source    String
+  next      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Deal {
+  id        String   @id @default(cuid())
+  title     String
+  client    String
+  value     Decimal  @db.Decimal(14, 2)
+  stage     String
+  owner     String
+  close     String
+  projectId String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([stage])
+}
+
+model CrmTask {
+  id        String   @id @default(cuid())
+  title     String
+  kind      String
+  status    String
+  priority  String
+  owner     String
+  due       String
+  client    String
+  dealId    String   @default("")
+  leadId    String   @default("")
+  note      String   @default("")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model CrmFile {
+  id        String   @id @default(cuid())
+  title     String
+  number    String
+  kind      String
+  status    String
+  owner     String
+  date      String
+  due       String
+  client    String
+  dealId    String   @default("")
+  projectId String   @default("")
+  note      String   @default("")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model CrmActivity {
+  id        String   @id @default(cuid())
+  kind      String
+  title     String
+  at        String
+  owner     String
+  client    String
+  dealId    String   @default("")
+  leadId    String   @default("")
+  note      String   @default("")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Invoice {
+  id         String   @id @default(cuid())
+  client     String
+  project    String
+  amount     Decimal  @db.Decimal(14, 2)
+  issued     String
+  due        String
+  status     String
+  net        Decimal? @db.Decimal(14, 2)
+  vat        Decimal? @db.Decimal(14, 2)
+  actId      String?
+  advance    Decimal? @db.Decimal(14, 2)
+  retention  Decimal? @db.Decimal(14, 2)
+  workNet    Decimal? @db.Decimal(14, 2)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([status])
+}
+
+model Expense {
+  id          String   @id @default(cuid())
+  category    String
+  vendor      String
+  project     String
+  amount      Decimal  @db.Decimal(14, 2)
+  date        String
+  status      String?
+  smetaLineId String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Payable {
+  id        String   @id @default(cuid())
+  supplier  String
+  poId      String
+  amount    Decimal  @db.Decimal(14, 2)
+  status    String
+  date      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Supplier {
+  id        String   @id @default(cuid())
+  name      String
+  category  String
+  city      String
+  rating    String
+  terms     String
+  contact   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Quote {
+  id        String   @id @default(cuid())
+  requestId String
+  supplier  String
+  amount    Decimal  @db.Decimal(14, 2)
+  days      Int
+  status    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([requestId])
+}
+
+model Smeta {
+  id        String      @id @default(cuid())
+  projectId String
+  version   Int
+  status    String
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  lines     SmetaLine[]
+
+  @@index([projectId])
+}
+
+model SmetaLine {
+  id         String  @id @default(cuid())
+  smetaId    String
+  sort       Int
+  code       String
+  name       String
+  unit       String
+  qty        Decimal @db.Decimal(14, 3)
+  unitPrice  Decimal @db.Decimal(14, 2)
+  doneQty    Decimal @db.Decimal(14, 3)
+  billedQty  Decimal @db.Decimal(14, 3)
+  laborHours Decimal @db.Decimal(14, 2)
+  recipe     String  @default("")
+  smeta      Smeta   @relation(fields: [smetaId], references: [id], onDelete: Cascade)
+
+  @@index([smetaId, sort])
+}
+
+model Contract {
+  id            String             @id @default(cuid())
+  projectId     String
+  client        String
+  number        String
+  signed        String
+  value         Decimal            @db.Decimal(14, 2)
+  advancePct    Decimal            @db.Decimal(8, 2)
+  retentionPct  Decimal            @db.Decimal(8, 2)
+  vat           Decimal            @db.Decimal(8, 2)
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+  schedule      ContractSchedule[]
+
+  @@index([projectId])
+}
+
+model ContractSchedule {
+  id         String   @id @default(cuid())
+  contractId String
+  sort       Int
+  title      String
+  due        String
+  share      Decimal  @db.Decimal(8, 4)
+  status     String
+  contract   Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+
+  @@index([contractId, sort])
+}
+
+model Act {
+  id             String    @id @default(cuid())
+  number         String
+  projectId      String
+  project        String
+  client         String
+  contractNumber String
+  period         String
+  date           String
+  net            Decimal   @db.Decimal(14, 2)
+  vat            Decimal   @db.Decimal(14, 2)
+  gross          Decimal   @db.Decimal(14, 2)
+  status         String
+  invoiceId      String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  lines          ActLine[]
+
+  @@index([projectId])
+}
+
+model ActLine {
+  id            String  @id @default(cuid())
+  actId         String
+  sort          Int
+  smetaLineId   String
+  code          String
+  name          String
+  unit          String
+  unitPrice     Decimal @db.Decimal(14, 2)
+  qty           Decimal @db.Decimal(14, 3)
+  cumulativeQty Decimal @db.Decimal(14, 3)
+  act           Act     @relation(fields: [actId], references: [id], onDelete: Cascade)
+
+  @@index([actId, sort])
+}
+
+model Forma3 {
+  id              String       @id @default(cuid())
+  number          String
+  projectId       String
+  project         String
+  client          String
+  contractNumber  String
+  kind            String
+  period          String
+  date            String
+  smetaValue      Decimal      @db.Decimal(14, 2)
+  priorValue      Decimal      @db.Decimal(14, 2)
+  periodValue     Decimal      @db.Decimal(14, 2)
+  cumulativeValue Decimal      @db.Decimal(14, 2)
+  remainValue     Decimal      @db.Decimal(14, 2)
+  advanceBalance  Decimal      @db.Decimal(14, 2)
+  retention       Decimal      @db.Decimal(14, 2)
+  vat             Decimal      @db.Decimal(14, 2)
+  payable         Decimal      @db.Decimal(14, 2)
+  status          String
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  lines           Forma3Line[]
+
+  @@index([projectId])
+}
+
+model Forma3Line {
+  id              String  @id @default(cuid())
+  forma3Id        String
+  sort            Int
+  smetaLineId     String
+  code            String
+  name            String
+  unit            String
+  smetaQty        Decimal @db.Decimal(14, 3)
+  smetaValue      Decimal @db.Decimal(14, 2)
+  priorQty        Decimal @db.Decimal(14, 3)
+  priorValue      Decimal @db.Decimal(14, 2)
+  periodQty       Decimal @db.Decimal(14, 3)
+  periodValue     Decimal @db.Decimal(14, 2)
+  cumulativeQty   Decimal @db.Decimal(14, 3)
+  cumulativeValue Decimal @db.Decimal(14, 2)
+  remainQty       Decimal @db.Decimal(14, 3)
+  remainValue     Decimal @db.Decimal(14, 2)
+  forma3          Forma3  @relation(fields: [forma3Id], references: [id], onDelete: Cascade)
+
+  @@index([forma3Id, sort])
+}
+
+model DailyReport {
+  id          String             @id @default(cuid())
+  projectId   String
+  date        String
+  weather     String
+  note        String             @default("")
+  crew        Int
+  status      String
+  author      String
+  laborCost   Decimal?           @db.Decimal(14, 2)
+  machineCost Decimal?           @db.Decimal(14, 2)
+  payrollId   String?
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+  lines       ReportLine[]
+  machines    ReportMachine[]
+  attendance  ReportAttendance[]
+
+  @@index([projectId, date])
+}
+
+model ReportLine {
+  id          String      @id @default(cuid())
+  reportId    String
+  sort        Int
+  smetaLineId String
+  qty         Decimal     @db.Decimal(14, 3)
+  report      DailyReport @relation(fields: [reportId], references: [id], onDelete: Cascade)
+
+  @@index([reportId, sort])
+}
+
+model ReportMachine {
+  id       String      @id @default(cuid())
+  reportId String
+  sort     Int
+  assetId  String
+  hours    Decimal     @db.Decimal(14, 2)
+  report   DailyReport @relation(fields: [reportId], references: [id], onDelete: Cascade)
+
+  @@index([reportId, sort])
+}
+
+model ReportAttendance {
+  id       String      @id @default(cuid())
+  reportId String
+  sort     Int
+  personId String
+  hours    Decimal     @db.Decimal(14, 2)
+  report   DailyReport @relation(fields: [reportId], references: [id], onDelete: Cascade)
+
+  @@index([reportId, sort])
+}
+
+model Document {
+  id        String   @id @default(cuid())
+  projectId String
+  title     String
+  kind      String
+  status    String
+  date      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([projectId])
+}
+
+model ChangeOrder {
+  id           String       @id @default(cuid())
+  projectId    String
+  title        String
+  reason       String
+  status       String
+  author       String
+  date         String
+  smetaVersion Int?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  lines        ChangeLine[]
+
+  @@index([projectId])
+}
+
+model ChangeLine {
+  id          String      @id @default(cuid())
+  changeId    String
+  sort        Int
+  name        String
+  unit        String
+  qty         Decimal     @db.Decimal(14, 3)
+  unitPrice   Decimal     @db.Decimal(14, 2)
+  laborHours  Decimal     @db.Decimal(14, 2)
+  recipe      String      @default("")
+  changeOrder ChangeOrder @relation(fields: [changeId], references: [id], onDelete: Cascade)
+
+  @@index([changeId, sort])
+}
+
+model Location {
+  id        String   @id @default(cuid())
+  name      String
+  kind      String
+  projectId String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Material {
+  id        String   @id @default(cuid())
+  name      String
+  unit      String
+  qty       Decimal  @db.Decimal(14, 3)
+  min       Decimal  @db.Decimal(14, 3)
+  location  String
+  price     Decimal  @db.Decimal(14, 2)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Stock {
+  id         String   @id @default(cuid())
+  materialId String
+  locationId String
+  qty        Decimal  @db.Decimal(14, 3)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([materialId, locationId])
+}
+
+model Movement {
+  id          String   @id @default(cuid())
+  material    String
+  type        String
+  qty         Decimal  @db.Decimal(14, 3)
+  unit        String
+  project     String
+  date        String
+  by          String
+  materialId  String?
+  locationId  String?
+  smetaLineId String?
+  from        String?
+  note        String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Shipment {
+  id        String         @id @default(cuid())
+  stops     String[]
+  step      Int            @default(0)
+  date      String
+  by        String
+  note      String?
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  lines     ShipmentLine[]
+}
+
+model ShipmentLine {
+  id         String   @id @default(cuid())
+  shipmentId String
+  sort       Int
+  materialId String
+  material   String
+  qty        Decimal  @db.Decimal(14, 3)
+  unit       String
+  price      Decimal  @db.Decimal(14, 2)
+  amount     Decimal  @db.Decimal(14, 2)
+  shipment   Shipment @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+
+  @@index([shipmentId, sort])
+}
+
+model PurchaseOrder {
+  id          String   @id @default(cuid())
+  supplier    String
+  item        String
+  qty         Decimal  @db.Decimal(14, 3)
+  unit        String
+  amount      Decimal  @db.Decimal(14, 2)
+  status      String
+  eta         String
+  materialId  String?
+  receivedQty Decimal? @db.Decimal(14, 3)
+  requestId   String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model MaterialRequest {
+  id         String   @id @default(cuid())
+  projectId  String
+  project    String
+  materialId String
+  material   String
+  qty        Decimal  @db.Decimal(14, 3)
+  unit       String
+  status     String
+  author     String
+  date       String
+  text       String?
+  poId       String?
+  decidedBy  String?
+  decision   String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([projectId])
+}
+
+model Recipe {
+  id        String       @id @default(cuid())
+  product   String
+  unit      String
+  plantId   String
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  items     RecipeItem[]
+}
+
+model RecipeItem {
+  id         String  @id @default(cuid())
+  recipeId   String
+  sort       Int
+  materialId String
+  qty        Decimal @db.Decimal(14, 3)
+  recipe     Recipe  @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+
+  @@index([recipeId, sort])
+}
+
+model Plant {
+  id         String   @id @default(cuid())
+  name       String
+  place      String
+  shift      String
+  plan       Decimal  @db.Decimal(14, 3)
+  fact       Decimal  @db.Decimal(14, 3)
+  unit       String
+  kind       String
+  locationId String
+  planStatus String?
+  planBy     String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model WorkOrder {
+  id          String      @id @default(cuid())
+  plant       String
+  product     String
+  project     String
+  qty         Decimal     @db.Decimal(14, 3)
+  unit        String
+  status      String
+  due         String
+  startedBy   String?
+  closedBy    String?
+  sentBy      String?
+  cancelledBy String?
+  vehicle     String?
+  note        String?
+  cost        Decimal?    @db.Decimal(14, 2)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  issued      WorkIssue[]
+}
+
+model WorkIssue {
+  id         String    @id @default(cuid())
+  orderId    String
+  sort       Int
+  materialId String
+  name       String
+  qty        Decimal   @db.Decimal(14, 3)
+  unit       String
+  amount     Decimal   @db.Decimal(14, 2)
+  order      WorkOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId, sort])
+}
+
+model Asset {
+  id           String   @id @default(cuid())
+  name         String
+  type         String
+  site         String
+  status       String
+  hours        Decimal  @db.Decimal(14, 2)
+  nextService  String
+  utilization  Int
+  rate         Decimal? @db.Decimal(14, 2)
+  fuelPerHour  Decimal? @db.Decimal(14, 3)
+  plate        String?
+  year         Int?
+  ownership    String?
+  fuel         String?
+  meter        String?
+  odometer     Decimal? @db.Decimal(14, 2)
+  driverId     String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Driver {
+  id        String   @id @default(cuid())
+  name      String
+  phone     String
+  license   String
+  category  String
+  expires   String
+  status    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Trip {
+  id        String   @id @default(cuid())
+  assetId   String
+  driverId  String
+  project   String
+  from      String
+  to        String
+  cargo     String
+  km        Decimal  @db.Decimal(14, 2)
+  date      String
+  status    String
+  note      String   @default("")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model FuelFill {
+  id        String   @id @default(cuid())
+  assetId   String
+  liters    Decimal  @db.Decimal(14, 3)
+  reading   Decimal  @db.Decimal(14, 2)
+  amount    Decimal  @db.Decimal(14, 2)
+  project   String
+  date      String
+  by        String
+  note      String   @default("")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([assetId])
+}
+
+model FleetDoc {
+  id        String   @id @default(cuid())
+  assetId   String
+  kind      String
+  number    String
+  issuer    String
+  expires   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([assetId])
+}
+
+model Gear {
+  id        String   @id @default(cuid())
+  name      String
+  category  String
+  place     String
+  qty       Decimal  @db.Decimal(14, 3)
+  unit      String
+  status    String
+  home      String
+  nextCheck String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model GearEvent {
+  id        String   @id @default(cuid())
+  gearId    String
+  kind      String
+  note      String   @default("")
+  by        String
+  date      String
+  status    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([gearId])
+}
+
+model ServiceJob {
+  id         String   @id @default(cuid())
+  assetId    String
+  asset      String
+  project    String
+  status     String
+  opened     String
+  closed     String?
+  note       String   @default("")
+  materialId String?
+  qty        Decimal? @db.Decimal(14, 3)
+  cost       Decimal  @db.Decimal(14, 2)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([assetId])
+}
+
+model Person {
+  id           String   @id @default(cuid())
+  name         String
+  role         String
+  crew         String
+  site         String
+  placeKind    String
+  status       String
+  phone        String
+  email        String
+  departmentId String
+  pin          String
+  hired        String
+  salary       Decimal  @db.Decimal(14, 2)
+  card         String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([departmentId])
+}
+
+model Office {
+  id        String   @id @default(cuid())
+  name      String
+  city      String
+  address   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Department {
+  id        String   @id @default(cuid())
+  name      String
+  code      String
+  leadId    String
+  site      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Terminal {
+  id        String   @id @default(cuid())
+  name      String
+  code      String
+  site      String
+  status    String
+  lastSeen  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Attendance {
+  id         String   @id @default(cuid())
+  personId   String
+  date       String
+  inAt       String
+  outAt      String
+  mark       String
+  terminalId String
+  hours      Decimal  @db.Decimal(8, 2)
+  note       String   @default("")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([personId, date])
+}
+
+model LeaveRequest {
+  id        String   @id @default(cuid())
+  personId  String
+  kind      String
+  from      String
+  to        String
+  days      Decimal  @db.Decimal(8, 2)
+  status    String
+  note      String   @default("")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([personId])
+}
+
+model HrPayment {
+  id        String   @id @default(cuid())
+  personId  String
+  kind      String
+  amount    Decimal  @db.Decimal(14, 2)
+  date      String
+  status    String
+  note      String   @default("")
+  expenseId String   @default("")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([personId])
+}
+
+model HrMove {
+  id               String   @id @default(cuid())
+  personId         String
+  date             String
+  kind             String
+  fromSite         String
+  fromDepartmentId String
+  toSite           String
+  toDepartmentId   String
+  note             String   @default("")
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([personId])
+}
+
+model Payroll {
+  id        String        @id @default(cuid())
+  date      String
+  total     Decimal       @db.Decimal(14, 2)
+  status    String
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  lines     PayrollLine[]
+}
+
+model PayrollLine {
+  id        String  @id @default(cuid())
+  payrollId String
+  sort      Int
+  personId  String
+  name      String
+  hours     Decimal @db.Decimal(8, 2)
+  amount    Decimal @db.Decimal(14, 2)
+  payroll   Payroll @relation(fields: [payrollId], references: [id], onDelete: Cascade)
+
+  @@index([payrollId, sort])
+}
+
+model JournalEntry {
+  id        String   @id @default(cuid())
+  time      String
+  site      String
+  text      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model AuditEntry {
+  id        String   @id @default(cuid())
+  at        String
+  actor     String
+  role      String
+  action    String
+  detail    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ClosedPeriod {
+  id        String   @id @default(cuid())
+  value     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model SubCompany {
+  id        String   @id @default(cuid())
+  name      String
+  voen      String
+  city      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Complex {
+  id        String   @id @default(cuid())
+  companyId String
+  projectId String
+  name      String
+  city      String
+  district  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([companyId])
+}
+
+model Building {
+  id        String   @id @default(cuid())
+  companyId String
+  complexId String
+  projectId String
+  name      String
+  kind      String
+  floors    Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([complexId])
+}
+
+model Unit {
+  id         String   @id @default(cuid())
+  buildingId String
+  kind       String
+  number     String
+  floor      Int
+  area       Decimal  @db.Decimal(14, 2)
+  price      Decimal  @db.Decimal(14, 2)
+  status     String
+  buyerId    String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([buildingId])
+}
+
+model Buyer {
+  id        String   @id @default(cuid())
+  name      String
+  phone     String
+  email     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model SaleContract {
+  id        String            @id @default(cuid())
+  number    String
+  unitId    String
+  buyerId   String
+  date      String
+  price     Decimal           @db.Decimal(14, 2)
+  credit    String
+  status    String
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+  schedule  SaleInstallment[]
+
+  @@index([unitId])
+}
+
+model SaleInstallment {
+  id         String       @id @default(cuid())
+  contractId String
+  sort       Int
+  title      String
+  due        String
+  amount     Decimal      @db.Decimal(14, 2)
+  status     String
+  paidOn     String?
+  contract   SaleContract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+
+  @@index([contractId, sort])
+}
+
+enum OrgKind {
+  tikinti
+  memar
+  qapi
+  suse
+  pvc
+  fasad
+  dam
+  naves
+  hasar
+  material
+  montaj
+  logistika
+  admin
+}
+
+enum TradeKind {
+  qapi
+  suse
+  pvc
+  fasad
+  dam
+  naves
+  hasar
+  material
+}
+
+enum ProfitMode {
+  faiz
+  marja
+}
+
+enum OpeningKind {
+  sabit
+  doner
+  asqili
+  surusken
+}
+
+enum VehicleKind {
+  standart
+  suse
+}
+
+enum HaulFit {
+  uygun
+  tutum
+  olcu
+}
+
+enum OrderStage {
+  yeni
+  fayl
+  olcu
+  hesab
+  qiymet
+  teklif
+  tesdiq
+  istehsal
+  yoxlama
+  dasima
+  montaj
+  tehvil
+  zemanet
+}
+
+enum PlanKind {
+  abune
+  layihe
+  kabinet
+  komissiya
+  modul
+  korporativ
+}
+
+enum ChargeStatus {
+  gozleyir
+  qeyd
+}
+
+enum DisputeStatus {
+  aciq
+  bagli
+}
+
+enum FileScan {
+  temiz
+  redd
+}
+
+enum CostKind {
+  indirect
+  overhead
+  extra
+}
+
+enum FitStatus {
+  uygun
+  deyil
+  catismir
+  gozleyir
+  el
+}
+
+enum ApprovalStatus {
+  gozleyir
+  tesdiq
+  geri
+}
+
+enum BankLight {
+  gozleme
+  tesdiq
+  legv
+}
+
+enum GuaranteeKind {
+  istirak
+  icra
+  avans
+}
+
+enum AmountMode {
+  percent
+  fixed
+}
+
+enum FinancePartnerKind {
+  bank
+  faktorinq
+  sigorta
+  pos
+  kart
+}
+
+model Organization {
+  id             String           @id @default(cuid())
+  kind           OrgKind
+  name           String
+  voen           String           @default("")
+  phone          String           @default("")
+  email          String           @default("")
+  director       String           @default("")
+  legalAddress   String           @default("")
+  actualAddress  String           @default("")
+  capacity       String           @default("")
+  warehouse      String           @default("")
+  regions        String           @default("")
+  warranty       String           @default("")
+  reliability    Int?
+  code           String           @unique @default(cuid())
+  staffCount     Int?
+  directions     String           @default("")
+  permits        String           @default("")
+  equipmentPark  String           @default("")
+  turnoverNote   String           @default("")
+  bankDetails    String           @default("")
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  projects       Project[]
+  members        OrganizationMember[]
+  products       CatalogProduct[]
+  rules          TradeRule[]
+  files          ProjectFile[]
+  jobs           CalcJob[]
+  hauls          HaulQuote[]
+  flowsOwned     OrderFlow[]      @relation("FlowOwner")
+  flowsSupplied  OrderFlow[]      @relation("FlowSupplier")
+  flowsCarried   OrderFlow[]      @relation("FlowCarrier")
+  flowsInstalled OrderFlow[]      @relation("FlowInstaller")
+  charges         ServiceCharge[]
+  disputes        Dispute[]
+  subscription    OrgSubscription?
+  notices         Notice[]
+  inquiries       PriceInquiry[]   @relation("InquiryBuyer")
+  incomingRfqs    PriceInquiry[]   @relation("InquirySupplier")
+  bids            SupplierBid[]
+  laborTariffs    LaborTariff[]
+  machineTariffs  MachineTariff[]
+  talents         Talent[]
+  openings        JobOpening[]
+  chains          ApprovalChain[]
+  applications    FinanceApplication[]
+  consents        ShareConsent[]
+  officialChecks  OfficialInquiry[]
+  defects         DefectAct[]
+  incidents       SiteIncident[]
+  photos          ProjectPhoto[]
+  rentals         RentalOffer[]
+  lots            StockLot[]
+  warehousePolicy WarehousePolicy?
+  tenders         TenderCase[]
+  boqBooks        BoqBook[]
+  guarantees      GuaranteeCase[]
+  passports       MaterialPassport[]
+  templates       LegalTemplate[]
+  coopRequests    CoopRequest[]
+  schedules       WorkSchedule[]
+  cashPlans       CashPlan[]
+
+  @@index([kind])
+  @@index([voen])
+}
+
+model OrganizationMember {
+  id             String       @id @default(cuid())
+  organizationId String
+  accountId      String?
+  name           String
+  seatRole       String
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  account        Account?     @relation(fields: [accountId], references: [id], onDelete: SetNull)
+
+  @@unique([organizationId, accountId])
+  @@index([organizationId])
+  @@index([accountId])
+}
+
+model CatalogProduct {
+  id             String           @id @default(cuid())
+  organizationId String
+  name           String
+  code           String           @default("")
+  category       String
+  params         String           @default("")
+  colors         String           @default("")
+  sizes          String           @default("")
+  unit           String
+  price          Decimal          @db.Decimal(14, 2)
+  cost           Decimal?         @db.Decimal(14, 2)
+  validUntil     DateTime?        @db.Date
+  minQty         Decimal?         @db.Decimal(14, 3)
+  leadDays       Int?
+  deliveryPrice  Decimal?         @db.Decimal(14, 2)
+  installPrice   Decimal?         @db.Decimal(14, 2)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  organization   Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  breaks         PriceBreak[]
+  changes        PriceChange[]
+  jobLinks       CalcJobProduct[]
+
+  @@index([organizationId, category])
+}
+
+model PriceBreak {
+  id        String         @id @default(cuid())
+  productId String
+  minQty    Decimal        @default(0) @db.Decimal(14, 3)
+  size      String         @default("")
+  spec      String         @default("")
+  delivery  String         @default("")
+  price     Decimal        @db.Decimal(14, 2)
+  product   CatalogProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+}
+
+model PriceChange {
+  id        String         @id @default(cuid())
+  productId String
+  fromPrice Decimal?       @db.Decimal(14, 2)
+  toPrice   Decimal?       @db.Decimal(14, 2)
+  byName    String
+  at        DateTime       @default(now())
+  product   CatalogProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId, at])
+}
+
+model TradeRule {
+  id                String       @id @default(cuid())
+  organizationId    String
+  trade             TradeKind
+  system            String
+  confirmed         Boolean      @default(false)
+  kgPerM            Decimal?     @db.Decimal(14, 4)
+  wastePercent      Decimal?     @db.Decimal(8, 2)
+  glassDeductMm     Decimal?     @db.Decimal(14, 2)
+  glassWastePercent Decimal?     @db.Decimal(8, 2)
+  panelKgPerM2      Decimal?     @db.Decimal(14, 4)
+  coverPerM2        Decimal?     @db.Decimal(14, 4)
+  overlapMm         Decimal?     @db.Decimal(14, 2)
+  postSpacingM      Decimal?     @db.Decimal(14, 3)
+  unit              String       @default("")
+  labor             Decimal?     @db.Decimal(14, 2)
+  rawPrice          Decimal?     @db.Decimal(14, 2)
+  salePrice         Decimal?     @db.Decimal(14, 2)
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+  organization      Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  jobs              CalcJob[]
+
+  @@index([organizationId, trade])
+}
+
+model ProjectFile {
+  id             String         @id @default(cuid())
+  organizationId String
+  projectId      String?
+  name           String
+  ext            String
+  size           Int
+  scan           FileScan
+  scanNote       String         @default("")
+  createdAt      DateTime       @default(now())
+  organization   Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  project        Project?       @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  rows           ExtractedRow[]
+
+  @@index([organizationId])
+  @@index([projectId])
+}
+
+model ExtractedRow {
+  id        String      @id @default(cuid())
+  fileId    String
+  sort      Int
+  name      String
+  code      String      @default("")
+  qty       String      @default("")
+  width     String      @default("")
+  height    String      @default("")
+  profile   String      @default("")
+  glass     String      @default("")
+  hardware  String      @default("")
+  spec      String      @default("")
+  install   String      @default("")
+  flags     String[]
+  confirmed Boolean     @default(false)
+  file      ProjectFile @relation(fields: [fileId], references: [id], onDelete: Cascade)
+
+  @@index([fileId, sort])
+}
+
+model CalcJob {
+  id             String           @id @default(cuid())
+  organizationId String
+  projectId      String?
+  ruleId         String?
+  haulId         String?          @unique
+  trade          TradeKind
+  title          String
+  widthMm        Decimal?         @db.Decimal(14, 2)
+  heightMm       Decimal?         @db.Decimal(14, 2)
+  count          Decimal?         @db.Decimal(14, 3)
+  sections       Int              @default(1)
+  opening        OpeningKind      @default(doner)
+  color          String           @default("")
+  profileNote    String           @default("")
+  glassKind      String           @default("")
+  glassThickness String           @default("")
+  hardware       String           @default("")
+  installKind    String           @default("")
+  address        String           @default("")
+  profileUnit    String           @default("m")
+  profileRate    Decimal?         @db.Decimal(14, 4)
+  glassRate      Decimal?         @db.Decimal(14, 4)
+  hardwareRate   Decimal?         @db.Decimal(14, 4)
+  laborRate      Decimal?         @db.Decimal(14, 4)
+  installRate    Decimal?         @db.Decimal(14, 4)
+  packRate       Decimal?         @db.Decimal(14, 4)
+  transport      Decimal?         @db.Decimal(14, 2)
+  extra          Decimal?         @db.Decimal(14, 2)
+  vatPercent     Decimal          @default(18) @db.Decimal(8, 2)
+  profitPercent  Decimal          @default(10) @db.Decimal(8, 2)
+  profitMode     ProfitMode       @default(faiz)
+  glassConfirmed Boolean          @default(false)
+  lengthM        Decimal?         @db.Decimal(14, 3)
+  weightKg       Decimal?         @db.Decimal(14, 3)
+  wasteM         Decimal?         @db.Decimal(14, 3)
+  glassArea      Decimal?         @db.Decimal(14, 3)
+  cutArea        Decimal?         @db.Decimal(14, 3)
+  cost           Decimal?         @db.Decimal(14, 2)
+  profitAmount   Decimal?         @db.Decimal(14, 2)
+  vatAmount      Decimal?         @db.Decimal(14, 2)
+  sale           Decimal?         @db.Decimal(14, 2)
+  gross          Decimal?         @db.Decimal(14, 2)
+  blocked        Json             @default("[]")
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  organization   Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  project        Project?         @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  rule           TradeRule?       @relation(fields: [ruleId], references: [id], onDelete: SetNull)
+  haul           HaulQuote?       @relation(fields: [haulId], references: [id], onDelete: SetNull)
+  lines          CalcCostLine[]
+  products       CalcJobProduct[]
+  schedule       JobSchedule?
+  weatherHolds   JobWeatherHold[]
+  flow           OrderFlow?
+
+  @@index([organizationId, trade])
+  @@index([projectId])
+}
+
+model CalcCostLine {
+  id     String   @id @default(cuid())
+  jobId  String
+  sort   Int
+  name   String
+  unit   String
+  qty    Decimal? @db.Decimal(14, 3)
+  rate   Decimal? @db.Decimal(14, 4)
+  amount Decimal? @db.Decimal(14, 2)
+  note   String   @default("")
+  job    CalcJob  @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@index([jobId, sort])
+}
+
+model CalcJobProduct {
+  jobId     String
+  productId String
+  job       CalcJob        @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  product   CatalogProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@id([jobId, productId])
+}
+
+model JobSchedule {
+  id          String    @id @default(cuid())
+  jobId       String    @unique
+  produceDays Int       @default(0)
+  haulDays    Int       @default(0)
+  installDays Int       @default(0)
+  weatherDays Int       @default(0)
+  totalDays   Int       @default(0)
+  startOn     DateTime? @db.Date
+  endOn       DateTime? @db.Date
+  job         CalcJob   @relation(fields: [jobId], references: [id], onDelete: Cascade)
+}
+
+model HaulQuote {
+  id             String       @id @default(cuid())
+  organizationId String
+  fromPlace      String       @default("")
+  toPlace        String       @default("")
+  km             Decimal?     @db.Decimal(14, 2)
+  weightKg       Decimal?     @db.Decimal(14, 3)
+  volumeM3       Decimal?     @db.Decimal(14, 3)
+  glassWidthMm   Decimal?     @db.Decimal(14, 2)
+  glassHeightMm  Decimal?     @db.Decimal(14, 2)
+  vehicle        VehicleKind  @default(standart)
+  capacityKg     Decimal?     @db.Decimal(14, 3)
+  maxGlassMm     Decimal?     @db.Decimal(14, 2)
+  roundTrip      Boolean      @default(false)
+  loadCost       Decimal?     @db.Decimal(14, 2)
+  waitCost       Decimal?     @db.Decimal(14, 2)
+  extra          Decimal?     @db.Decimal(14, 2)
+  tariffPerKm    Decimal?     @db.Decimal(14, 4)
+  speedKmDay     Decimal?     @db.Decimal(14, 2)
+  days           Int?
+  fit            HaulFit      @default(uygun)
+  cost           Decimal?     @db.Decimal(14, 2)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  job            CalcJob?
+
+  @@index([organizationId])
+}
+
+model OrderFlow {
+  id             String        @id @default(cuid())
+  organizationId String
+  projectId      String?
+  jobId          String?       @unique
+  supplierId     String?
+  carrierId      String?
+  installerId    String?
+  title          String
+  stage          OrderStage    @default(yeni)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  organization   Organization  @relation("FlowOwner", fields: [organizationId], references: [id], onDelete: Cascade)
+  project        Project?      @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  job            CalcJob?      @relation(fields: [jobId], references: [id], onDelete: SetNull)
+  supplier       Organization? @relation("FlowSupplier", fields: [supplierId], references: [id], onDelete: SetNull)
+  carrier        Organization? @relation("FlowCarrier", fields: [carrierId], references: [id], onDelete: SetNull)
+  installer      Organization? @relation("FlowInstaller", fields: [installerId], references: [id], onDelete: SetNull)
+  events         OrderEvent[]
+
+  @@index([organizationId, stage])
+  @@index([projectId])
+}
+
+model OrderEvent {
+  id     String     @id @default(cuid())
+  flowId String
+  stage  OrderStage
+  person String
+  date   DateTime   @db.Date
+  note   String     @default("")
+  docs   String     @default("")
+  flow   OrderFlow  @relation(fields: [flowId], references: [id], onDelete: Cascade)
+
+  @@index([flowId, date])
+}
+
+model ServicePlan {
+  id      String          @id @default(cuid())
+  kind    PlanKind        @unique
+  name    String
+  amount  Decimal?        @db.Decimal(14, 2)
+  note    String          @default("")
+  charges ServiceCharge[]
+}
+
+model ServiceCharge {
+  id             String       @id @default(cuid())
+  organizationId String
+  planId         String
+  amount         Decimal?     @db.Decimal(14, 2)
+  invoice        String
+  status         ChargeStatus @default(gozleyir)
+  createdAt      DateTime     @default(now())
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  plan           ServicePlan  @relation(fields: [planId], references: [id], onDelete: Restrict)
+
+  @@index([organizationId])
+}
+
+model Dispute {
+  id             String        @id @default(cuid())
+  organizationId String
+  text           String
+  status         DisputeStatus @default(aciq)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, status])
+}
+
+model WeatherFeed {
+  id       String  @id @default("default")
+  provider String  @default("")
+  active   Boolean @default(false)
+  note     String  @default("")
+}
+
+model SafetyRule {
+  id      String   @id @default(cuid())
+  code    String   @unique
+  rainAt  Decimal? @db.Decimal(8, 2)
+  windAt  Decimal? @db.Decimal(8, 2)
+  pouring Boolean  @default(false)
+  stops   String
+  active  Boolean  @default(true)
+}
+
+model WeatherDay {
+  id          String           @id @default(cuid())
+  date        DateTime         @unique @db.Date
+  rainPercent Decimal          @db.Decimal(8, 2)
+  windMs      Decimal          @db.Decimal(8, 2)
+  pouring     Boolean          @default(false)
+  source      String
+  stops       String[]
+  note        String           @default("")
+  holds       JobWeatherHold[]
+}
+
+model JobWeatherHold {
+  jobId        String
+  weatherDayId String
+  reason       String
+  job          CalcJob    @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  day          WeatherDay @relation(fields: [weatherDayId], references: [id], onDelete: Cascade)
+
+  @@id([jobId, weatherDayId])
+}
+
+model WeatherProof {
+  id        String   @id @default(cuid())
+  projectId String?
+  date      DateTime @db.Date
+  rain      Decimal? @db.Decimal(8, 2)
+  wind      Decimal? @db.Decimal(8, 2)
+  pouring   Boolean  @default(false)
+  stop      String
+  officer   String
+  project   Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+
+  @@index([projectId, date])
+}
+
+model TenderCase {
+  id            String           @id @default(cuid())
+  organizationId String?
+  projectId     String?
+  number        String           @default("")
+  link          String           @default("")
+  buyer         String           @default("")
+  subject       String           @default("")
+  classCode     String           @default("")
+  classText     String           @default("")
+  price         Decimal?         @db.Decimal(14, 2)
+  deadline      DateTime?
+  bidMode       AmountMode       @default(fixed)
+  bidValue      Decimal?         @db.Decimal(14, 2)
+  sme           Boolean          @default(false)
+  discount      Decimal?         @db.Decimal(8, 2)
+  advance       Decimal?         @db.Decimal(8, 2)
+  task          String           @default("")
+  contractDraft String           @default("")
+  qualification String           @default("")
+  similar       String           @default("")
+  bondDays      Int?
+  performDays   Int?
+  opened        Boolean          @default(false)
+  confirmed     Boolean          @default(false)
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+  project       Project?         @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  organization  Organization?    @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  checks        TenderCheck[]
+  approvals     TenderApproval[]
+
+  @@index([projectId])
+  @@index([organizationId])
+}
+
+model TenderCheck {
+  id       String     @id @default(cuid())
+  tenderId String
+  name     String
+  fit      FitStatus  @default(catismir)
+  tender   TenderCase @relation(fields: [tenderId], references: [id], onDelete: Cascade)
+
+  @@index([tenderId])
+}
+
+model TenderApproval {
+  id       String         @id @default(cuid())
+  tenderId String
+  role     String
+  status   ApprovalStatus @default(gozleyir)
+  tender   TenderCase     @relation(fields: [tenderId], references: [id], onDelete: Cascade)
+
+  @@index([tenderId])
+}
+
+model BoqBook {
+  id             String       @id @default(cuid())
+  organizationId String?
+  projectId      String?
+  profit         Decimal      @default(10) @db.Decimal(8, 2)
+  profitMode     ProfitMode   @default(faiz)
+  vat            Decimal      @default(18) @db.Decimal(8, 2)
+  management     String       @default("")
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  project        Project?     @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  sheets     BoqSheet[]
+  lines      BoqLine[]
+  costs      BoqCost[]
+  duties     BoqDuty[]
+  staff      BoqStaff[]
+  gear       BoqGear[]
+
+  @@index([projectId])
+  @@index([organizationId])
+}
+
+model BoqSheet {
+  id     String  @id @default(cuid())
+  bookId String
+  sort   Int
+  name   String
+  book   BoqBook @relation(fields: [bookId], references: [id], onDelete: Cascade)
+
+  @@index([bookId, sort])
+}
+
+model BoqLine {
+  id        String  @id @default(cuid())
+  bookId    String
+  sheet     String
+  sort      Int
+  name      String
+  unit      String
+  qty       Decimal @db.Decimal(14, 3)
+  material  Decimal @default(0) @db.Decimal(14, 2)
+  labor     Decimal @default(0) @db.Decimal(14, 2)
+  laborOnly Boolean @default(false)
+  book      BoqBook @relation(fields: [bookId], references: [id], onDelete: Cascade)
+
+  @@index([bookId, sort])
+}
+
+model BoqCost {
+  id     String   @id @default(cuid())
+  bookId String
+  kind   CostKind
+  sort   Int
+  name   String
+  amount Decimal  @db.Decimal(14, 2)
+  book   BoqBook  @relation(fields: [bookId], references: [id], onDelete: Cascade)
+
+  @@index([bookId, kind])
+}
+
+model BoqDuty {
+  id     String  @id @default(cuid())
+  bookId String
+  work   String
+  party  String
+  book   BoqBook @relation(fields: [bookId], references: [id], onDelete: Cascade)
+
+  @@index([bookId])
+}
+
+model BoqStaff {
+  id     String  @id @default(cuid())
+  bookId String
+  role   String
+  count  Decimal @db.Decimal(14, 2)
+  book   BoqBook @relation(fields: [bookId], references: [id], onDelete: Cascade)
+
+  @@index([bookId])
+}
+
+model BoqGear {
+  id        String  @id @default(cuid())
+  bookId    String
+  name      String
+  count     Decimal @db.Decimal(14, 2)
+  insurance Decimal @default(0) @db.Decimal(14, 2)
+  book      BoqBook @relation(fields: [bookId], references: [id], onDelete: Cascade)
+
+  @@index([bookId])
+}
+
+model WorkSchedule {
+  id             String         @id @default(cuid())
+  organizationId String?
+  projectId      String?
+  bondDay        Int?
+  project        Project?       @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  organization   Organization?  @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  tasks          ScheduleTask[]
+
+  @@index([projectId])
+  @@index([organizationId])
+}
+
+model ScheduleTask {
+  id         String       @id @default(cuid())
+  scheduleId String
+  sort       Int
+  name       String
+  startDay   Int?
+  endDay     Int?
+  dependsOn  String       @default("")
+  actualEnd  Int?
+  schedule   WorkSchedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+
+  @@index([scheduleId, sort])
+}
+
+model CashPlan {
+  id             String   @id @default(cuid())
+  organizationId String?
+  projectId      String?  @unique
+  inflow    Decimal? @db.Decimal(14, 2)
+  advance   Decimal? @db.Decimal(14, 2)
+  equity    Decimal? @db.Decimal(14, 2)
+  loan      Decimal? @db.Decimal(14, 2)
+  days30    Decimal? @db.Decimal(14, 2)
+  days60    Decimal? @db.Decimal(14, 2)
+  days90       Decimal?      @db.Decimal(14, 2)
+  project      Project?      @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId])
+}
+
+model FinancePartner {
+  id         String              @id @default(cuid())
+  kind       FinancePartnerKind
+  name       String
+  note       String              @default("")
+  logo       String              @default("")
+  commission Decimal?            @db.Decimal(8, 2)
+  discount   Decimal?            @db.Decimal(8, 2)
+  light      BankLight           @default(gozleme)
+  proof      String              @default("")
+  proofDate  DateTime?           @db.Date
+  api          String              @default("bagli")
+  contact      String              @default("")
+  productsNote String              @default("")
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+  guarantees   GuaranteeCase[]
+  products     FinanceProduct[]
+  applications FinanceApplication[]
+  consents     ShareConsent[]
+}
+
+model GuaranteeCase {
+  id             String          @id @default(cuid())
+  organizationId String?
+  kind           GuaranteeKind
+  mode           AmountMode
+  amount         Decimal?        @db.Decimal(14, 2)
+  rate           Decimal?        @db.Decimal(8, 2)
+  offer          Decimal?        @db.Decimal(8, 2)
+  partnerId      String?
+  buyer          String          @default("")
+  title          String          @default("")
+  days           Int?
+  reviewed       Boolean         @default(false)
+  packed         Boolean         @default(false)
+  light          BankLight       @default(gozleme)
+  consentAt      DateTime?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  partner        FinancePartner? @relation(fields: [partnerId], references: [id], onDelete: SetNull)
+  organization   Organization?   @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+
+  @@index([partnerId])
+  @@index([organizationId])
+}
+
+model MaterialPassport {
+  id             String    @id @default(cuid())
+  organizationId String?
+  material       String
+  section     String
+  fit         FitStatus @default(el)
+  maker       String    @default("")
+  standard    String    @default("")
+  certificate String    @default("")
+  issuer      String    @default("")
+  validUntil  DateTime? @db.Date
+  batch        String        @default("")
+  origin       String        @default("")
+  protocol     String        @default("")
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId])
+}
+
+model LegalTemplate {
+  id             String    @id @default(cuid())
+  organizationId String?
+  name           String
+  kind      String
+  version   String    @default("")
+  updatedOn DateTime? @db.Date
+  legal     String    @default("Gözləyir")
+  party     String    @default("")
+  status       String        @default("Boş")
+  body         String        @default("")
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId])
+}
+
+model CoopRequest {
+  id             String        @id @default(cuid())
+  organizationId String?
+  company        String
+  note           String        @default("")
+  module         String        @default("")
+  owner          String        @default("")
+  result         String        @default("")
+  status         String        @default("Təhlil olunur")
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  findings       CoopFinding[]
+
+  @@index([organizationId])
+}
+
+enum SubStatus {
+  aktiv
+  gozleyir
+  dayandi
+  bitib
+}
+
+enum Tier {
+  baslangic
+  pesekar
+  korporativ
+}
+
+enum RfqStatus {
+  aciq
+  cavablandi
+  bagli
+}
+
+enum BidStatus {
+  gozleyir
+  verildi
+  secildi
+  imtina
+}
+
+enum TalentState {
+  layihede
+  elcatan
+  axtarir
+  elcatmaz
+  tesdiq
+}
+
+enum ProofSource {
+  isegoturen
+  muqavile
+  arayis
+  diplom
+  sertifikat
+  el
+}
+
+enum AppKind {
+  qarant
+  kredit
+  faktorinq
+  emekhaqqi
+  sigorta
+  pos
+  lizinq
+}
+
+enum AppStatus {
+  qaralama
+  teqdim
+  yoxlanir
+  elave
+  qiymet
+  ilkin
+  tesdiq_gozleyir
+  tesdiq
+  imtina
+  resmi
+  bagli
+}
+
+enum OfficialTopic {
+  qeydiyyat
+  voen
+  vergi_borcu
+  satinalma
+  muflis
+  selahiyyet
+}
+
+enum OfficialState {
+  gonderilmeyib
+  gonderilib
+  gozlenir
+  alindi
+  elave
+  texniki
+}
+
+enum NoticeKind {
+  tender
+  sertifikat
+  teminat
+  teklif
+  sened
+  abune
+  hava
+  odeme
+}
+
+enum ChainKind {
+  smeta
+  sifaris
+  anbar
+  elave
+}
+
+enum StepState {
+  gozleyir
+  tesdiq
+  geri
+}
+
+enum CostMethod {
+  orta
+  fifo
+}
+
+enum RateUnit {
+  saat
+  novbe
+  gun
+  ay
+  hecm
+}
+
+enum FinanceLine {
+  dovriyye
+  layihe
+  muqavile
+  material
+  qisa
+  avadanliq
+  lizinq
+  techizat
+  debitor
+  qarant
+  faktorinq
+  emekhaqqi
+  pos
+  sigorta
+}
+
+model Package {
+  id            String            @id
+  tier          Tier              @unique
+  name          String
+  smetaLimit    Int?
+  userLimit     Int?
+  features      String
+  amount        Decimal?          @db.Decimal(14, 2)
+  subscriptions OrgSubscription[]
+}
+
+model OrgSubscription {
+  id             String       @id @default(cuid())
+  organizationId String       @unique
+  packageId      String
+  status         SubStatus    @default(gozleyir)
+  startedOn      DateTime?    @db.Date
+  endsOn         DateTime?    @db.Date
+  warned         Boolean      @default(false)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  package        Package      @relation(fields: [packageId], references: [id], onDelete: Restrict)
+}
+
+model Notice {
+  id             String       @id @default(cuid())
+  organizationId String
+  kind           NoticeKind
+  text           String
+  dueOn          DateTime?    @db.Date
+  read           Boolean      @default(false)
+  createdAt      DateTime     @default(now())
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, read])
+}
+
+model PriceInquiry {
+  id             String        @id @default(cuid())
+  organizationId String
+  supplierId     String?
+  title          String
+  status         RfqStatus     @default(aciq)
+  note           String        @default("")
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  organization   Organization  @relation("InquiryBuyer", fields: [organizationId], references: [id], onDelete: Cascade)
+  supplier       Organization? @relation("InquirySupplier", fields: [supplierId], references: [id], onDelete: SetNull)
+  lines          InquiryLine[]
+  bids           SupplierBid[]
+
+  @@index([organizationId])
+  @@index([supplierId])
+}
+
+model InquiryLine {
+  id        String       @id @default(cuid())
+  inquiryId String
+  name      String
+  unit      String
+  qty       Decimal      @db.Decimal(14, 3)
+  spec      String       @default("")
+  inquiry   PriceInquiry @relation(fields: [inquiryId], references: [id], onDelete: Cascade)
+
+  @@index([inquiryId])
+}
+
+model SupplierBid {
+  id             String       @id @default(cuid())
+  inquiryId      String
+  organizationId String
+  unitPrice      Decimal?     @db.Decimal(14, 4)
+  qty            Decimal?     @db.Decimal(14, 3)
+  leadDays       Int?
+  delivery       Decimal?     @db.Decimal(14, 2)
+  payment        String       @default("")
+  validUntil     DateTime?    @db.Date
+  quality        String       @default("")
+  status         BidStatus    @default(gozleyir)
+  score          Decimal?     @db.Decimal(8, 2)
+  createdAt      DateTime     @default(now())
+  inquiry        PriceInquiry @relation(fields: [inquiryId], references: [id], onDelete: Cascade)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([inquiryId])
+  @@index([organizationId])
+}
+
+model LaborTariff {
+  id             String        @id @default(cuid())
+  organizationId String?
+  profession     String
+  region         String        @default("")
+  daily          Decimal?      @db.Decimal(14, 2)
+  monthly        Decimal?      @db.Decimal(14, 2)
+  perUnit        Decimal?      @db.Decimal(14, 4)
+  unit           String        @default("eded")
+  complexity     String        @default("")
+  experience     String        @default("")
+  updatedOn      DateTime      @db.Date
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, profession])
+}
+
+model MachineTariff {
+  id             String        @id @default(cuid())
+  organizationId String?
+  category       String
+  region         String        @default("")
+  rateUnit       RateUnit
+  rate           Decimal       @db.Decimal(14, 2)
+  fuel           Decimal?      @db.Decimal(14, 2)
+  operator       Boolean       @default(false)
+  delivery       Decimal?      @db.Decimal(14, 2)
+  minDays        Int?
+  updatedOn      DateTime      @db.Date
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, category])
+}
+
+model StandardMaterial {
+  id       String @id @default(cuid())
+  code     String @unique
+  name     String
+  category String
+  unit     String
+  spec     String @default("")
+}
+
+model Talent {
+  id             String        @id @default(cuid())
+  organizationId String?
+  name           String
+  profession     String
+  education      String        @default("")
+  skills         String        @default("")
+  regions        String        @default("")
+  startOn        DateTime?     @db.Date
+  phone          String        @default("")
+  email          String        @default("")
+  state          TalentState   @default(tesdiq)
+  expectPay      Decimal?      @db.Decimal(14, 2)
+  shareConsent   Boolean       @default(false)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  proofs         TalentProof[]
+
+  @@index([profession, state])
+  @@index([organizationId])
+}
+
+model TalentProof {
+  id        String      @id @default(cuid())
+  talentId  String
+  source    ProofSource
+  title     String
+  years     Decimal?    @db.Decimal(8, 2)
+  confirmed Boolean     @default(false)
+  note      String      @default("")
+  talent    Talent      @relation(fields: [talentId], references: [id], onDelete: Cascade)
+
+  @@index([talentId])
+}
+
+model JobOpening {
+  id             String       @id @default(cuid())
+  organizationId String
+  profession     String
+  minYears       Decimal?     @db.Decimal(8, 2)
+  region         String       @default("")
+  startOn        DateTime?    @db.Date
+  certificate    String       @default("")
+  note           String       @default("")
+  createdAt      DateTime     @default(now())
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, profession])
+}
+
+model ApprovalChain {
+  id             String         @id @default(cuid())
+  organizationId String
+  kind           ChainKind
+  subject        String
+  createdAt      DateTime       @default(now())
+  organization   Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  steps          ApprovalStep[]
+
+  @@index([organizationId])
+}
+
+model ApprovalStep {
+  id      String        @id @default(cuid())
+  chainId String
+  sort    Int
+  role    String
+  person  String        @default("")
+  state   StepState     @default(gozleyir)
+  at      DateTime?
+  note    String        @default("")
+  chain   ApprovalChain @relation(fields: [chainId], references: [id], onDelete: Cascade)
+
+  @@index([chainId, sort])
+}
+
+model FinanceProduct {
+  id          String             @id @default(cuid())
+  partnerId   String
+  line        FinanceLine
+  name        String
+  terms       String             @default("")
+  commission  Decimal?           @db.Decimal(8, 2)
+  rate        Decimal?           @db.Decimal(8, 2)
+  termDays    Int?
+  confirmed   Boolean            @default(false)
+  validUntil  DateTime?          @db.Date
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+  partner     FinancePartner     @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  discounts   MemberDiscount[]
+  applications FinanceApplication[]
+
+  @@index([partnerId, line])
+}
+
+model MemberDiscount {
+  id        String         @id @default(cuid())
+  productId String
+  name      String
+  percent   Decimal?       @db.Decimal(8, 2)
+  amount    Decimal?       @db.Decimal(14, 2)
+  startsOn  DateTime?      @db.Date
+  endsOn    DateTime?      @db.Date
+  confirmed Boolean        @default(false)
+  terms     String         @default("")
+  product   FinanceProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+}
+
+model FinanceApplication {
+  id             String            @id @default(cuid())
+  organizationId String
+  partnerId      String?
+  productId      String?
+  kind           AppKind
+  status         AppStatus         @default(qaralama)
+  amount         Decimal?          @db.Decimal(14, 2)
+  purpose        String            @default("")
+  payload        Json              @default("{}")
+  packed         Boolean           @default(false)
+  consentAt      DateTime?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  organization   Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  partner        FinancePartner?   @relation(fields: [partnerId], references: [id], onDelete: SetNull)
+  product        FinanceProduct?   @relation(fields: [productId], references: [id], onDelete: SetNull)
+  events         ApplicationEvent[]
+
+  @@index([organizationId, status])
+}
+
+model ApplicationEvent {
+  id            String             @id @default(cuid())
+  applicationId String
+  status        AppStatus
+  person        String
+  note          String             @default("")
+  at            DateTime           @default(now())
+  application   FinanceApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@index([applicationId, at])
+}
+
+model ShareConsent {
+  id             String          @id @default(cuid())
+  organizationId String
+  partnerId      String?
+  purpose        String
+  categories     String
+  givenAt        DateTime        @default(now())
+  withdrawnAt    DateTime?
+  organization   Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  partner        FinancePartner? @relation(fields: [partnerId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId])
+}
+
+model OfficialInquiry {
+  id             String        @id @default(cuid())
+  organizationId String
+  topic          OfficialTopic
+  state          OfficialState @default(gonderilmeyib)
+  channel        String        @default("sened")
+  source         String        @default("")
+  resultNote     String        @default("")
+  document       String        @default("")
+  asOf           DateTime?     @db.Date
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, topic])
+}
+
+model DefectAct {
+  id             String        @id @default(cuid())
+  organizationId String
+  projectId      String?
+  material       String
+  qty            Decimal?      @db.Decimal(14, 3)
+  reason         String
+  visual         String        @default("")
+  certificate    String        @default("")
+  person         String        @default("")
+  createdAt      DateTime      @default(now())
+  organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  project        Project?      @relation(fields: [projectId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId])
+}
+
+model SiteIncident {
+  id             String       @id @default(cuid())
+  organizationId String
+  projectId      String?
+  kind           String
+  text           String
+  on             DateTime     @db.Date
+  person         String       @default("")
+  createdAt      DateTime     @default(now())
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  project        Project?     @relation(fields: [projectId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId])
+}
+
+model ProjectPhoto {
+  id             String        @id @default(cuid())
+  organizationId String
+  projectId      String?
+  title          String
+  takenOn        DateTime?     @db.Date
+  note           String        @default("")
+  url            String        @default("")
+  createdAt      DateTime      @default(now())
+  organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  project        Project?      @relation(fields: [projectId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId, projectId])
+}
+
+model TaxRule {
+  id          String   @id @default(cuid())
+  code        String
+  name        String
+  rate        Decimal  @db.Decimal(8, 4)
+  effectiveOn DateTime @db.Date
+  note        String   @default("")
+
+  @@index([code, effectiveOn])
+}
+
+model RentalOffer {
+  id             String       @id @default(cuid())
+  organizationId String
+  category       String
+  brand          String       @default("")
+  model          String       @default("")
+  year           Int?
+  place          String       @default("")
+  available      Boolean      @default(true)
+  rateUnit       RateUnit
+  rate           Decimal      @db.Decimal(14, 2)
+  operator       Boolean      @default(false)
+  fuelNote       String       @default("")
+  delivery       Decimal?     @db.Decimal(14, 2)
+  inspection     String       @default("")
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, category])
+}
+
+model StockLot {
+  id             String       @id @default(cuid())
+  organizationId String
+  materialId     String?
+  locationId     String?
+  code           String
+  batch          String       @default("")
+  qty            Decimal      @db.Decimal(14, 3)
+  unitCost       Decimal      @db.Decimal(14, 4)
+  expiresOn      DateTime?    @db.Date
+  qr             String       @unique
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, code])
+}
+
+model CoopFinding {
+  id        String      @id @default(cuid())
+  requestId String
+  topic     String
+  finding   String
+  createdAt DateTime    @default(now())
+  request   CoopRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+
+  @@index([requestId])
+}
+
+model WarehousePolicy {
+  id             String       @id @default(cuid())
+  organizationId String       @unique
+  method         CostMethod   @default(orta)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+}

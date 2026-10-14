@@ -1,0 +1,33 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "services": {
+    "app": {
+      "root": ".",
+      "framework": "vite"
+    },
+    "backend": {
+      "root": "backend",
+      "framework": "nestjs",
+      "entrypoint": "vercel.cjs",
+      "functions": {
+        "vercel.cjs": {
+          "includeFiles": "{dist/server.js,.vercel-runtime/**,backend/dist/server.js,backend/.vercel-runtime/**}"
+        }
+      }
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": {
+        "service": "backend"
+      }
+    },
+    {
+      "source": "/(.*)",
+      "destination": {
+        "service": "app"
+      }
+    }
+  ]
+}

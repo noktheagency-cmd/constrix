@@ -1,0 +1,36 @@
+{
+  "name": "afez",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "concurrently -n web,api -c blue,green \"npm run dev:web\" \"npm run dev:api\"",
+    "dev:web": "vite",
+    "dev:api": "npm run start:dev --prefix backend",
+    "build": "tsc --noEmit && vite build",
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test src/domain/ops.test.ts src/domain/financeView.test.ts src/domain/crm.test.ts src/domain/hrm.test.ts src/procure/engine.test.ts src/procure/files.test.ts src/procure/smeta.test.ts src/procure/read.test.ts",
+    "lint": "oxlint",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@radix-ui/react-select": "^2.3.8",
+    "react": "^19.2.8",
+    "react-day-picker": "^10.0.2",
+    "react-dom": "^19.2.8",
+    "react-router-dom": "^7.18.4",
+    "tesseract.js": "^7.0.0",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.2",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.7",
+    "@vitejs/plugin-react": "^6.1.1",
+    "concurrently": "^10.0.5",
+    "oxlint": "^1.81.0",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.0"
+  }
+}
