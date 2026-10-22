@@ -15,6 +15,14 @@ if (!direct) {
 }
 
 const prisma = new PrismaClient({ datasources: { db: { url: direct } } });
+await prisma.account.updateMany({
+  where: {
+    activeOrgId: null,
+    memberships: { some: { organizationId: 'seed-org-afez' } },
+  },
+  data: { activeOrgId: 'seed-org-afez' },
+});
+
 const [projects, taxes] = await Promise.all([
   prisma.project.count({ where: { id: { startsWith: 'seed-' } } }),
   prisma.taxRule.count({ where: { id: 'seed-tax-edv' } }),

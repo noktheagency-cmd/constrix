@@ -372,11 +372,19 @@ export class AuthService {
   }
 
   private async settleActiveOrg(accountId: string) {
+    const account = await this.prisma.account.findUnique({
+      where: { id: accountId },
+      select: { activeOrgId: true },
+    });
     const rows = await this.prisma.organizationMember.findMany({
       where: { accountId },
       select: { organizationId: true },
     });
-    const activeOrgId = rows.length === 1 ? rows[0].organizationId : null;
+    const ids = rows.map((row) => row.organizationId);
+    if (account?.activeOrgId && ids.includes(account.activeOrgId)) return;
+    const activeOrgId =
+      ids.find((id) => id === 'seed-org-afez') ??
+      (ids.length === 1 ? ids[0] : null);
     await this.prisma.account.update({
       where: { id: accountId },
       data: { activeOrgId },
