@@ -15,13 +15,13 @@ if (!direct) {
 }
 
 const prisma = new PrismaClient({ datasources: { db: { url: direct } } });
-const [projects, acts] = await Promise.all([
+const [projects, taxes] = await Promise.all([
   prisma.project.count({ where: { id: { startsWith: 'seed-' } } }),
-  prisma.purchaseAct.count({ where: { id: 'seed-pa-1' } }),
+  prisma.taxRule.count({ where: { id: 'seed-tax-edv' } }),
 ]);
 await prisma.$disconnect();
 
-if (projects >= 10 && acts > 0) {
+if (projects >= 10 && taxes > 0) {
   console.log(`Demo data already loaded (${projects} projects)`);
   process.exit(0);
 }

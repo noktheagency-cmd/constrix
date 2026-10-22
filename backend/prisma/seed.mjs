@@ -21,9 +21,6 @@ const WIPE = [
   "complex",
   "subCompany",
   "buyer",
-  "purchaseActLine",
-  "purchaseActAdjust",
-  "purchaseAct",
   "changeLine",
   "taxRule",
   "phaseProcedure",
@@ -1526,74 +1523,6 @@ async function main() {
 }
 
 async function seedScreens(prisma, day) {
-  await prisma.purchaseAct.create({
-    data: {
-      id: "seed-pa-1",
-      number: "AA-2026-014",
-      projectId: "seed-prj-port",
-      project: "Port Baku Residence",
-      objectName: "7-ci mərtəbə fasad",
-      person: "Səbinə Əhmədova",
-      date: "2026-10-06",
-      status: "tesdiq",
-      net: 18640,
-      note: "Anbar qəbulu ilə tutuşdurulub",
-      organizationId: "seed-org-afez",
-      lines: {
-        create: [
-          { id: "seed-pa-1-l1", sort: 1, materialName: "Fasad paneli antrasit", unit: "m²", qty: 120, unitPrice: 86, amount: 10320, firmName: "Fasad Konstruksiya", sender: "Kamal İbrahimov" },
-          { id: "seed-pa-1-l2", sort: 2, materialName: "Montaj ankeri", unit: "əd", qty: 480, unitPrice: 1.5, amount: 720, firmName: "Kür Armatur və İnert" },
-          { id: "seed-pa-1-l3", sort: 3, materialName: "Silikon hermetik", unit: "ədəd", qty: 80, unitPrice: 9.5, amount: 760, cashPaid: 760, firmName: "Azər Boya İstehsalat", note: "Nağd bağlanıb" },
-        ],
-      },
-    },
-  })
-  await prisma.purchaseAct.create({
-    data: {
-      id: "seed-pa-2",
-      number: "AA-2026-021",
-      projectId: "seed-prj-biz",
-      project: "Xəzər Business Center",
-      objectName: "Karkas 8-ci ox",
-      person: "Kamran Əliyev",
-      date: "2026-10-09",
-      status: "qaralama",
-      net: 24600,
-      organizationId: "seed-org-afez",
-      lines: {
-        create: [
-          { id: "seed-pa-2-l1", sort: 1, materialName: "Beton B25", unit: "m³", qty: 40, unitPrice: 110, amount: 4400, firmName: "Kür Armatur və İnert" },
-          { id: "seed-pa-2-l2", sort: 2, materialName: "Armatur A500 Ø16", unit: "ton", qty: 6.2, unitPrice: 1180, amount: 7316, firmName: "Kür Armatur və İnert" },
-        ],
-      },
-      adjustments: {
-        create: [
-          { id: "seed-pa-2-a1", sort: 1, materialName: "Beton B25", unit: "m³", qty: 2, unitPrice: 110, amount: 220, diff: 2, diffAmount: 220, actLabel: "Qəbulda artıq" },
-        ],
-      },
-    },
-  })
-  await prisma.purchaseAct.create({
-    data: {
-      id: "seed-pa-3",
-      number: "AA-2026-028",
-      projectId: "seed-x-prj-metro",
-      project: "Metro Dəmiryol Körpüsü",
-      objectName: "Dayaq 3",
-      person: "Səbinə Əhmədova",
-      date: "2026-10-12",
-      status: "tesdiq",
-      net: 15400,
-      organizationId: "seed-org-afez",
-      lines: {
-        create: [
-          { id: "seed-pa-3-l1", sort: 1, materialName: "Sement CEM II 42.5", unit: "ton", qty: 18, unitPrice: 168, amount: 3024, firmName: "Kür Armatur və İnert" },
-          { id: "seed-pa-3-l2", sort: 2, materialName: "Qum", unit: "m³", qty: 60, unitPrice: 22, amount: 1320, firmName: "Kür Armatur və İnert" },
-        ],
-      },
-    },
-  })
-
   await prisma.taxRule.createMany({
     data: [
       { id: "seed-tax-edv", code: "EDV", name: "Əlavə dəyər vergisi", rate: 18, effectiveOn: day("2026-01-01"), note: "Tikinti-quraşdırma və mal təchizatı" },
