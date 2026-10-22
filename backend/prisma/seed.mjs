@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs"
+import { existsSync, readFileSync } from "node:fs"
 import bcrypt from "bcryptjs"
 import { PrismaClient } from "@prisma/client"
 import { bulk } from "./bulk.mjs"
@@ -7,9 +7,25 @@ import { seedHaulHistory } from "./haul-history.mjs"
 
 const prisma = new PrismaClient()
 const day = (value) => new Date(value)
-const templateCatalog = JSON.parse(readFileSync(new URL("../../src/template-catalog.json", import.meta.url), "utf8"))
+const catalogFile = [
+  new URL("../../src/template-catalog.json", import.meta.url),
+  new URL("./template-catalog.json", import.meta.url),
+].find((file) => existsSync(file))
+const templateCatalog = catalogFile ? JSON.parse(readFileSync(catalogFile, "utf8")) : []
 
 const WIPE = [
+  "saleInstallment",
+  "saleContract",
+  "unit",
+  "building",
+  "complex",
+  "subCompany",
+  "buyer",
+  "purchaseActLine",
+  "purchaseActAdjust",
+  "purchaseAct",
+  "changeLine",
+  "taxRule",
   "phaseProcedure",
   "forma3",
   "leaveRequest",
@@ -220,6 +236,10 @@ async function main() {
     if (!account) continue
     await prisma.organizationMember.create({
       data: { id: `seed-seat-${email}`, organizationId, accountId: account.id, name, seatRole },
+    })
+    await prisma.account.update({
+      where: { id: account.id },
+      data: { activeOrgId: organizationId },
     })
   }
 
@@ -1493,6 +1513,7 @@ async function main() {
   }
   await seedCalcHistory(prisma)
   await seedHaulHistory(prisma)
+  await seedScreens(prisma, day)
 
   const [organizations, projectCount, productCount, peopleCount, tenders] = await Promise.all([
     prisma.organization.count({ where: { id: { startsWith: "seed-" } } }),
@@ -1502,6 +1523,198 @@ async function main() {
     prisma.tenderCase.count({ where: { id: { startsWith: "seed-" } } }),
   ])
   console.log(JSON.stringify({ organizations, projects: projectCount, products: productCount, people: peopleCount, tenders }))
+}
+
+async function seedScreens(prisma, day) {
+  await prisma.purchaseAct.create({
+    data: {
+      id: "seed-pa-1",
+      number: "AA-2026-014",
+      projectId: "seed-prj-port",
+      project: "Port Baku Residence",
+      objectName: "7-ci mərtəbə fasad",
+      person: "Səbinə Əhmədova",
+      date: "2026-10-06",
+      status: "tesdiq",
+      net: 18640,
+      note: "Anbar qəbulu ilə tutuşdurulub",
+      organizationId: "seed-org-afez",
+      lines: {
+        create: [
+          { id: "seed-pa-1-l1", sort: 1, materialName: "Fasad paneli antrasit", unit: "m²", qty: 120, unitPrice: 86, amount: 10320, firmName: "Fasad Konstruksiya", sender: "Kamal İbrahimov" },
+          { id: "seed-pa-1-l2", sort: 2, materialName: "Montaj ankeri", unit: "əd", qty: 480, unitPrice: 1.5, amount: 720, firmName: "Kür Armatur və İnert" },
+          { id: "seed-pa-1-l3", sort: 3, materialName: "Silikon hermetik", unit: "ədəd", qty: 80, unitPrice: 9.5, amount: 760, cashPaid: 760, firmName: "Azər Boya İstehsalat", note: "Nağd bağlanıb" },
+        ],
+      },
+    },
+  })
+  await prisma.purchaseAct.create({
+    data: {
+      id: "seed-pa-2",
+      number: "AA-2026-021",
+      projectId: "seed-prj-biz",
+      project: "Xəzər Business Center",
+      objectName: "Karkas 8-ci ox",
+      person: "Kamran Əliyev",
+      date: "2026-10-09",
+      status: "qaralama",
+      net: 24600,
+      organizationId: "seed-org-afez",
+      lines: {
+        create: [
+          { id: "seed-pa-2-l1", sort: 1, materialName: "Beton B25", unit: "m³", qty: 40, unitPrice: 110, amount: 4400, firmName: "Kür Armatur və İnert" },
+          { id: "seed-pa-2-l2", sort: 2, materialName: "Armatur A500 Ø16", unit: "ton", qty: 6.2, unitPrice: 1180, amount: 7316, firmName: "Kür Armatur və İnert" },
+        ],
+      },
+      adjustments: {
+        create: [
+          { id: "seed-pa-2-a1", sort: 1, materialName: "Beton B25", unit: "m³", qty: 2, unitPrice: 110, amount: 220, diff: 2, diffAmount: 220, actLabel: "Qəbulda artıq" },
+        ],
+      },
+    },
+  })
+  await prisma.purchaseAct.create({
+    data: {
+      id: "seed-pa-3",
+      number: "AA-2026-028",
+      projectId: "seed-x-prj-metro",
+      project: "Metro Dəmiryol Körpüsü",
+      objectName: "Dayaq 3",
+      person: "Səbinə Əhmədova",
+      date: "2026-10-12",
+      status: "tesdiq",
+      net: 15400,
+      organizationId: "seed-org-afez",
+      lines: {
+        create: [
+          { id: "seed-pa-3-l1", sort: 1, materialName: "Sement CEM II 42.5", unit: "ton", qty: 18, unitPrice: 168, amount: 3024, firmName: "Kür Armatur və İnert" },
+          { id: "seed-pa-3-l2", sort: 2, materialName: "Qum", unit: "m³", qty: 60, unitPrice: 22, amount: 1320, firmName: "Kür Armatur və İnert" },
+        ],
+      },
+    },
+  })
+
+  await prisma.taxRule.createMany({
+    data: [
+      { id: "seed-tax-edv", code: "EDV", name: "Əlavə dəyər vergisi", rate: 18, effectiveOn: day("2026-01-01"), note: "Tikinti-quraşdırma və mal təchizatı" },
+      { id: "seed-tax-sad", code: "SADE", name: "Sadələşdirilmiş vergi", rate: 2, effectiveOn: day("2026-01-01"), note: "Podrat dövriyyəsinə şamil olunmur" },
+      { id: "seed-tax-gelir", code: "GELIR", name: "Mənfəət vergisi", rate: 20, effectiveOn: day("2026-01-01"), note: "İllik bəyannamə" },
+      { id: "seed-tax-mdss", code: "MDSS", name: "Məcburi sosial sığorta", rate: 22, effectiveOn: day("2026-01-01"), note: "Əmək haqqı fondu, işəgötürən payı" },
+    ],
+  })
+
+  await prisma.changeOrder.create({
+    data: {
+      id: "seed-chg-1",
+      projectId: "seed-prj-port",
+      title: "Fasad rənginin antrasitə dəyişməsi",
+      reason: "Sifarişçi gümüş əvəzinə antrasit panel təsdiqlədi",
+      status: "tesdiq",
+      author: "Nigar Əliyeva",
+      date: "2026-09-18",
+      smetaVersion: 3,
+      lines: { create: [{ id: "seed-chg-1-l1", sort: 1, name: "Fasad paneli antrasit", unit: "m²", qty: 420, unitPrice: 12, laborHours: 0.1 }] },
+    },
+  })
+  await prisma.changeOrder.create({
+    data: {
+      id: "seed-chg-2",
+      projectId: "seed-prj-sum",
+      title: "İcazə gecikməsinə görə dayandırma",
+      reason: "İcazə 11 gün gecikdi, kran növbəsi dəyişdi",
+      status: "qaralama",
+      author: "Rauf Hüseynov",
+      date: "2026-10-04",
+      smetaVersion: 2,
+      lines: { create: [{ id: "seed-chg-2-l1", sort: 1, name: "Kran növbəsi", unit: "növbə", qty: 11, unitPrice: 420, laborHours: 0 }] },
+    },
+  })
+
+  await prisma.subCompany.createMany({
+    data: [
+      { id: "seed-co-1", name: "AFEZ İnşaat", voen: "1700123451", city: "Bakı" },
+      { id: "seed-co-2", name: "AFEZ Satış", voen: "1700123452", city: "Bakı" },
+    ],
+  })
+  await prisma.complex.createMany({
+    data: [
+      { id: "seed-cx-port", companyId: "seed-co-2", projectId: "seed-prj-port", name: "Port Baku Residence", city: "Bakı", district: "Yasamal" },
+      { id: "seed-cx-villa", companyId: "seed-co-2", projectId: "seed-prj-villa", name: "Abşeron Villa Qrupu", city: "Bakı", district: "Mərdəkan" },
+    ],
+  })
+  await prisma.building.createMany({
+    data: [
+      { id: "seed-bd-a", companyId: "seed-co-2", complexId: "seed-cx-port", projectId: "seed-prj-port", name: "Blok A", kind: "yaşayış", floors: 18 },
+      { id: "seed-bd-b", companyId: "seed-co-2", complexId: "seed-cx-port", projectId: "seed-prj-port", name: "Blok B", kind: "yaşayış", floors: 16 },
+      { id: "seed-bd-v", companyId: "seed-co-2", complexId: "seed-cx-villa", projectId: "seed-prj-villa", name: "Villa sırası", kind: "villa", floors: 3 },
+    ],
+  })
+  await prisma.buyer.createMany({
+    data: [
+      { id: "seed-by-1", name: "Kamran Əliyev", phone: "+994 50 410 11 20", email: "kamran.aliyev@example.az" },
+      { id: "seed-by-2", name: "Leyla Qasımova", phone: "+994 55 200 18 18", email: "leyla.q@example.az" },
+      { id: "seed-by-3", name: "Orxan Vəliyev", phone: "+994 70 330 44 10", email: "orxan.v@example.az" },
+      { id: "seed-by-4", name: "Aygün Əlizadə", phone: "+994 51 616 09 40", email: "aygun.a@example.az" },
+    ],
+  })
+  const units = [
+    ["seed-un-a-12", "seed-bd-a", "menzil", "A-12", 4, 86.4, 245000, "satilib", "seed-by-1"],
+    ["seed-un-a-18", "seed-bd-a", "menzil", "A-18", 6, 112.2, 318000, "muqavile", "seed-by-2"],
+    ["seed-un-a-21", "seed-bd-a", "menzil", "A-21", 7, 74.5, 198000, "bron", "seed-by-3"],
+    ["seed-un-a-30", "seed-bd-a", "menzil", "A-30", 10, 96, 276000, "bos", null],
+    ["seed-un-a-p1", "seed-bd-a", "parking", "P-14", -1, 14, 28000, "bos", null],
+    ["seed-un-b-04", "seed-bd-b", "ofis", "B-04", 1, 64, 186000, "bos", null],
+    ["seed-un-b-09", "seed-bd-b", "menzil", "B-09", 3, 91, 252000, "acar", "seed-by-4"],
+    ["seed-un-v-02", "seed-bd-v", "menzil", "V-02", 1, 180, 420000, "muqavile", "seed-by-3"],
+  ]
+  await prisma.unit.createMany({
+    data: units.map(([id, buildingId, kind, number, floor, area, price, status, buyerId]) => ({
+      id, buildingId, kind, number, floor, area, price, status, buyerId,
+    })),
+  })
+  await prisma.saleContract.create({
+    data: {
+      id: "seed-sale-1",
+      number: "SM-2026-014",
+      unitId: "seed-un-a-12",
+      buyerId: "seed-by-1",
+      date: "2026-06-12",
+      price: 245000,
+      credit: "ipoteka",
+      status: "acar",
+      schedule: {
+        create: [
+          { id: "seed-sale-1-i1", sort: 1, title: "İlkin ödəniş", due: "2026-06-12", amount: 73500, status: "odenib", paidOn: "2026-06-12" },
+          { id: "seed-sale-1-i2", sort: 2, title: "İpoteka tranşı", due: "2026-07-01", amount: 171500, status: "odenib", paidOn: "2026-07-03" },
+        ],
+      },
+    },
+  })
+  await prisma.saleContract.create({
+    data: {
+      id: "seed-sale-2",
+      number: "SM-2026-031",
+      unitId: "seed-un-a-18",
+      buyerId: "seed-by-2",
+      date: "2026-09-02",
+      price: 318000,
+      credit: "daxili",
+      status: "aktiv",
+      schedule: {
+        create: [
+          { id: "seed-sale-2-i1", sort: 1, title: "İlkin ödəniş", due: "2026-09-02", amount: 95400, status: "odenib", paidOn: "2026-09-02" },
+          { id: "seed-sale-2-i2", sort: 2, title: "2-ci ödəniş", due: "2026-11-02", amount: 63600, status: "gozleyir" },
+          { id: "seed-sale-2-i3", sort: 3, title: "Təhvil ödənişi", due: "2026-12-15", amount: 159000, status: "gozleyir" },
+        ],
+      },
+    },
+  })
+  await prisma.closedPeriod.createMany({
+    data: [
+      { id: "seed-period-08", value: "2026-08" },
+      { id: "seed-period-09", value: "2026-09" },
+    ],
+  })
 }
 
 main()

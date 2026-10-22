@@ -1,0 +1,92 @@
+[
+  {
+    "id": "catalog-tpl-podrat",
+    "name": "Podrat müqaviləsi",
+    "kind": "Müqavilə",
+    "version": "2.1",
+    "updatedOn": "2026-09-18",
+    "legal": "Baxıldı",
+    "party": "Sifarişçi",
+    "body": "PODRAT MÜQAVİLƏSİ\n\nBu müqavilə {{tarix}} tarixində {{sirket}} (VÖEN {{voen}}, ünvan: {{unvan}}) ilə {{teref}} arasında bağlanır.\n\n1. Predmet. Podratçı {{layihe}} obyektində tikinti-quraşdırma işlərini görür və təhvil verir.\n2. Qiymət. İşlərin məbləği {{mebleg}} AZN-dir. Əlavə iş ayrıca aktla yazılır.\n3. Müddət. İşlər {{muddet}} ərzində başa çatdırılır. Hesabat dövrü: {{dovr}}.\n4. Ödəniş. Sifarişçi imzalanmış akt əsasında ödənişi edir.\n5. Bu mətn hüquqi rəy əvəzi deyil və rəsmi imza sisteminə ötürülmür."
+  },
+  {
+    "id": "catalog-tpl-techizat",
+    "name": "Material təchizatı müqaviləsi",
+    "kind": "Müqavilə",
+    "version": "1.4",
+    "updatedOn": "2026-10-02",
+    "legal": "Gözləyir",
+    "party": "Təchizatçı",
+    "body": "MATERİAL TƏCHİZATI MÜQAVİLƏSİ\n\n{{sirket}} (VÖEN {{voen}}) və {{teref}} {{tarix}} tarixində bu müqaviləni bağlayır.\n\nTəchizatçı {{layihe}} üçün materialı {{unvan}} ünvanına çatdırır. Dəyər {{mebleg}} AZN-dir. Çatdırılma müddəti {{muddet}}, partiya dövrü {{dovr}}.\n\nKeyfiyyət sertifikatı hər partiya ilə birlikdə verilir. Uyğunsuz mal 5 iş günü ərzində dəyişdirilir. Ödəniş təhvil-təslim aktından sonra aparılır.\n\nMətn hüquqi rəy əvəzi deyil."
+  },
+  {
+    "id": "catalog-tpl-sub",
+    "name": "Subpodrat müqaviləsi",
+    "kind": "Müqavilə",
+    "version": "1.2",
+    "updatedOn": "2026-08-21",
+    "legal": "Baxıldı",
+    "party": "Subpodratçı",
+    "body": "SUBPODRAT MÜQAVİLƏSİ\n\nƏsas podratçı {{sirket}} (VÖEN {{voen}}) {{layihe}} üzrə işin bir hissəsini {{teref}} adlı subpodratçıya həvalə edir.\n\nİşin dəyəri {{mebleg}} AZN, müddəti {{muddet}}, dövrü {{dovr}}. Başlama tarixi {{tarix}}. İş yeri: {{unvan}}.\n\nSubpodratçı sahə qaydalarına və təhlükəsizlik tələbinə əməl edir. Gizlədilmiş iş örtülməzdən əvvəl akta yazılır. Ödəniş əsas sifarişçinin aktından asılı deyil, bu müqavilənin aktı ilə edilir.\n\nMətn hüquqi rəy əvəzi deyil."
+  },
+  {
+    "id": "catalog-tpl-akt",
+    "name": "Görülmüş işlər aktı",
+    "kind": "Akt",
+    "version": "1.1",
+    "updatedOn": "2026-10-08",
+    "legal": "Baxıldı",
+    "party": "Sifarişçi",
+    "body": "GÖRÜLMÜŞ İŞLƏR AKTI\n\nLayihə: {{layihe}}\nDövr: {{dovr}}\nTarix: {{tarix}}\n\nPodratçı {{sirket}} (VÖEN {{voen}}, {{unvan}}) və sifarişçi {{teref}} bu dövrdə görülən işləri təsdiq edir.\n\nAktın məbləği {{mebleg}} AZN-dir. İş {{muddet}} müddətində yerinə yetirilib. Tərəflər həcmi və keyfiyyəti yoxlayıb. Etiraz varsa, akta ayrıca sətir yazılır.\n\nBu akt ödəniş üçün əsasdır. Hüquqi rəy əvəzi deyil."
+  },
+  {
+    "id": "catalog-tpl-forma3",
+    "name": "Forma-3 arayışı",
+    "kind": "Akt",
+    "version": "1.0",
+    "updatedOn": "2026-07-30",
+    "legal": "Gözləyir",
+    "party": "Sifarişçi",
+    "body": "FORMA-3 ARAYIŞI\n\n{{sirket}} (VÖEN {{voen}}) {{layihe}} üzrə {{dovr}} dövrünün arayışını təqdim edir.\n\nSifarişçi: {{teref}}\nÜnvan: {{unvan}}\nArayış tarixi: {{tarix}}\nCəmi: {{mebleg}} AZN\nMüddət: {{muddet}}\n\nArayış smeta sətirləri ilə tutuşdurulur. Rəqəm təsdiq olunmadan ödənişə düşmür. Mətn hüquqi rəy əvəzi deyil."
+  },
+  {
+    "id": "catalog-tpl-qarantiya",
+    "name": "İştirak zəmanəti",
+    "kind": "Zəmanət",
+    "version": "1.3",
+    "updatedOn": "2026-09-04",
+    "legal": "Baxıldı",
+    "party": "Bank",
+    "body": "İŞTİRAK ZƏMANƏTİ\n\n{{sirket}} (VÖEN {{voen}}) {{layihe}} tenderində iştirak üçün {{teref}} bankından zəmanət istəyir.\n\nMəbləğ: {{mebleg}} AZN\nQüvvədə olma müddəti: {{muddet}}\nMüraciət tarixi: {{tarix}}\nÜnvan: {{unvan}}\n\nZəmanət tenderin şərtinə uyğun yazılır. Bank təsdiqi və sənəd tarixi olmadan status yaşıl sayılmır. Bu mətn bank zəmanətinin özü deyil və hüquqi rəy əvəzi deyil."
+  },
+  {
+    "id": "catalog-tpl-icra",
+    "name": "İcra zəmanəti",
+    "kind": "Zəmanət",
+    "version": "1.0",
+    "updatedOn": "2026-06-16",
+    "legal": "Geri qaytarıldı",
+    "party": "Bank",
+    "body": "İCRA ZƏMANƏTİ\n\n{{sirket}} (VÖEN {{voen}}) {{layihe}} müqaviləsinin icrası üçün {{teref}} qarşısında {{mebleg}} AZN məbləğində zəmanət hazırlayır.\n\nMüddət {{muddet}}, dövr {{dovr}}, tarix {{tarix}}. Benefisiar ünvanı: {{unvan}}.\n\nHüquq yoxlaması mətni geri qaytarıb: zəmanətin bitmə tarixi və azalma şərti ayrıca cümlə ilə yazılmalıdır. Bu qaralama imzaya getmir."
+  },
+  {
+    "id": "catalog-tpl-sifaris",
+    "name": "Material sifarişi",
+    "kind": "Sifariş",
+    "version": "1.2",
+    "updatedOn": "2026-10-11",
+    "legal": "Baxıldı",
+    "party": "Anbar",
+    "body": "MATERİAL SİFARİŞİ\n\nSifarişçi: {{sirket}} (VÖEN {{voen}})\nTəchizatçı: {{teref}}\nLayihə: {{layihe}}\nÇatdırılma ünvanı: {{unvan}}\nTarix: {{tarix}}\n\nSifarişin məbləği {{mebleg}} AZN-dir. Çatdırılma {{muddet}} ərzində, partiya dövrü {{dovr}}.\n\nAnbar qəbulu miqdar və sertifikat yoxlanandan sonra bağlanır. Çatışmayan mal ayrıca qeydə düşür. Mətn hüquqi rəy əvəzi deyil."
+  },
+  {
+    "id": "catalog-tpl-icare",
+    "name": "Texnika icarəsi",
+    "kind": "Sifariş",
+    "version": "1.0",
+    "updatedOn": "2026-05-22",
+    "legal": "Gözləyir",
+    "party": "İcarəçi",
+    "body": "TEXNİKA İCARƏSİ SİFARİŞİ\n\n{{sirket}} (VÖEN {{voen}}) {{layihe}} sahəsi üçün {{teref}} şirkətindən texnika icarəyə götürür.\n\nİş ünvanı: {{unvan}}\nBaşlama: {{tarix}}\nMüddət: {{muddet}}\nDövr: {{dovr}}\nİcarə haqqı: {{mebleg}} AZN\n\nOperator, yanacaq və dayanma ayrıca sətirlə yazılır. Texnika sahəyə boş gəlmə aktı ilə qəbul olunur. Mətn hüquqi rəy əvəzi deyil."
+  }
+]
