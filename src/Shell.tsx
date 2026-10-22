@@ -13,7 +13,7 @@ import { useProcure } from "./procure/store"
 import { useStore } from "./store"
 import { api } from "./api"
 import { chooseOrg, CompanyGate, loadAccountOrgs, orgKind, orgMark, resetOrgs, useOrgs, type AccountOrg } from "./orgs"
-
+// shell.tsx
 const LANGS: Lang[] = ["az", "en", "ru"]
 
 export default function Shell() {
