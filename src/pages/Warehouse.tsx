@@ -1,4 +1,5 @@
 import { useEffect, useState, type FormEvent } from "react"
+import { useSearchParams } from "react-router-dom"
 import { ApiError, api } from "../api"
 import { onHand } from "../domain/ops"
 import type { LocationKind, Movement, Shipment } from "../domain/types"
@@ -8,8 +9,9 @@ import { usePrefs } from "../i18n"
 import { useStore } from "../store"
 import { Badge, Drawer, Empty, Field, PageHead, Select, StockBar, Tabs, useTitle } from "../ui"
 import { patch, uid, useWorkspace } from "../workspace"
+import { PassportPage } from "./platform"
 
-type Tab = "qaliq" | "kritik" | "transfer" | "hereket" | "anbarlar"
+type Tab = "qaliq" | "kritik" | "pasport" | "transfer" | "hereket" | "anbarlar"
 type Read =
   | { kind: "material"; id: string }
   | { kind: "move"; id: string }
@@ -23,12 +25,29 @@ const KIND: Record<string, string> = { merkez: "Mərkəz", zavod: "Zavod", sex: 
 const KINDS = Object.keys(KIND) as LocationKind[]
 const emptyMove = { materialId: "", type: "mexaric", qty: "", project: "", locationId: "LOC-MERKEZ", smetaLineId: "", note: "" }
 
+const WAREHOUSE_TABS: Tab[] = ["qaliq", "kritik", "pasport", "transfer", "hereket", "anbarlar"]
+
 export default function Warehouse() {
   const { t } = usePrefs()
   useTitle(t("page.warehouse.title"))
   const { query, materials, movements, projects, smetas, locations, stocks, shipments, stockMove, createShipment, advanceShipment, addLocation, editLocation, removeLocation } = useStore()
-  const [tab, setTab] = useState<Tab>("qaliq")
+  const [search, setSearch] = useSearchParams()
+  const tabParam = search.get("tab")
+  const [tab, setTab] = useState<Tab>(() => (WAREHOUSE_TABS.includes(tabParam as Tab) ? (tabParam as Tab) : "qaliq"))
   const [reading, setReading] = useState<Read | null>(null)
+
+  useEffect(() => {
+    if (WAREHOUSE_TABS.includes(tabParam as Tab) && tabParam !== tab) setTab(tabParam as Tab)
+  }, [tabParam, tab])
+
+  function openTab(next: string) {
+    const value = next as Tab
+    setTab(value)
+    setReading(null)
+    setError("")
+    if (value === "pasport") setSearch({ tab: "pasport" })
+    else if (search.get("tab")) setSearch({})
+  }
   const [form, setForm] = useState(emptyMove)
   const [origin, setOrigin] = useState("LOC-MERKEZ")
   const [stops, setStops] = useState<string[]>([])
@@ -116,12 +135,6 @@ export default function Warehouse() {
     return stocks.filter((row) => row.materialId === materialId && row.qty > 0)
   }
 
-  function openTab(next: string) {
-    setTab(next as Tab)
-    setReading(null)
-    setError("")
-  }
-
   function openIntake(materialId = materials[0]?.id || "", locationId = "LOC-MERKEZ", type = "mexaric") {
     setError("")
     setForm({ ...emptyMove, materialId, locationId, type })
@@ -183,10 +196,28 @@ export default function Warehouse() {
           <button type="button" className="btn" onClick={openRoute}><Icon name="plus" /> Transfer</button>
         ) : tab === "anbarlar" ? (
           <button type="button" className="btn" onClick={() => openHouse()}><Icon name="plus" /> Anbar</button>
-        ) : (
+        ) : tab === "pasport" ? null : (
           <button type="button" className="btn" onClick={() => openIntake()}><Icon name="plus" /> Hərəkət</button>
         )}
       </PageHead>
+      <div className="toolbar">
+        <Tabs
+          value={tab}
+          onChange={openTab}
+          options={[
+            { id: "qaliq", label: "Qalıq" },
+            { id: "kritik", label: "Kritik" },
+            { id: "pasport", label: "Pasport" },
+            { id: "transfer", label: "Transfer" },
+            { id: "hereket", label: "Hərəkət" },
+            { id: "anbarlar", label: "Anbarlar" },
+          ]}
+        />
+        <span className="muted">{hint}</span>
+      </div>
+      {tab === "pasport" && <PassportPage embedded materialFilter={materialCard?.name || ""} />}
+      {tab !== "pasport" && (
+      <>
       <section className="panel pad">
         <h2 className="block-title">QR və maya</h2>
         <div className="form-row wide">
@@ -207,20 +238,6 @@ export default function Warehouse() {
           <div className="step-row" key={item.id}><span>{item.code} · {item.batch || "partiyasız"} · {item.locationId || "anbar"} · {item.qr}</span><strong>{String(item.qty)} × {String(item.unitCost)}</strong></div>
         ))}
       </section>
-      <div className="toolbar">
-        <Tabs
-          value={tab}
-          onChange={openTab}
-          options={[
-            { id: "qaliq", label: "Qalıq" },
-            { id: "kritik", label: "Kritik" },
-            { id: "transfer", label: "Transfer" },
-            { id: "hereket", label: "Hərəkət" },
-            { id: "anbarlar", label: "Anbarlar" },
-          ]}
-        />
-        <span className="muted">{hint}</span>
-      </div>
 
       {(tab === "qaliq" || tab === "kritik") && (
         <div className="table-wrap">
@@ -386,6 +403,8 @@ export default function Warehouse() {
           {houses.length === 0 && <Empty title="Anbar tapılmadı" text="Axtarışa uyğun anbar yoxdur." />}
         </div>
       )}
+      </>
+      )}
 
       {materialCard && (
         <Drawer title={materialCard.name} onClose={() => setReading(null)}>
@@ -399,6 +418,7 @@ export default function Warehouse() {
               <p key={item.id} className="muted">{item.id} · {story(item, nameOf)}</p>
             ))}
             <div className="form-actions">
+              <button type="button" className="btn ghost" onClick={() => { setReading(null); openTab("pasport") }}>Pasportlar</button>
               <button type="button" className="btn ghost" onClick={() => openIntake(materialCard.id, placesOf(materialCard.id)[0]?.locationId || "LOC-MERKEZ", "medaxil")}>Mədaxil</button>
               <button type="button" className="btn" onClick={() => openIntake(materialCard.id, placesOf(materialCard.id)[0]?.locationId || "LOC-MERKEZ", "mexaric")}>Məxaric</button>
             </div>

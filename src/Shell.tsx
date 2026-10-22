@@ -132,7 +132,7 @@ export default function Shell() {
       .filter((item) => item.status === "gonderilib")
       .map((item) => ({
         id: item.id,
-        to: "/gundelik",
+        to: "/sahe?tab=gundelik",
         title: t("alert.report", { id: item.id }),
         meta: item.author,
       })),
@@ -491,6 +491,19 @@ export default function Shell() {
                         <small>{t(`role.${actor.role}`)}</small>
                       </span>
                     </div>
+                    {allowed("dashboard") && (
+                      <button
+                        type="button"
+                        role="menuitem"
+                        onClick={() => {
+                          setProfile(false)
+                          navigate("/kabinet")
+                        }}
+                      >
+                        <Icon name="office" />
+                        {t("nav.companyCabinet")}
+                      </button>
+                    )}
                     <button
                       type="button"
                       role="menuitem"

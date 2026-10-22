@@ -94,7 +94,10 @@ export function ChecksPage() {
 
   const firm = cabinet.name.trim() || company.name
   const place = cabinet.legalAddress.trim() || company.legal
-  const book = [...saved, ...ARCHIVE.filter((item) => !saved.some((row) => row.id === item.id))]
+  const showDemo = typeof localStorage !== "undefined" && localStorage.getItem("afez.demo") === "1"
+  const book = showDemo
+    ? [...saved, ...ARCHIVE.filter((item) => !saved.some((row) => row.id === item.id))]
+    : saved
   const fresh = latestOf(book, topic) ?? latestOf(book)
   const guide = topicOf(topic)
   const cards = TOPICS.map((item) => ({ ...item, row: latestOf(book, item.id) }))

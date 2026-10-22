@@ -4,6 +4,7 @@ import { dateAZ, hit, num } from "../format"
 import { usePrefs } from "../i18n"
 import { useStore } from "../store"
 import { Badge, Meter, Tabs, useTitle } from "../ui"
+import { WeatherSummary } from "./Weather"
 
 type Sheet = "project" | "volume" | "report" | "request" | "stock" | "asset" | "journal"
 
@@ -102,6 +103,7 @@ export default function Dashboard() {
           </section>
 
           <div className="grid-2">
+            <WeatherSummary />
             <section className="panel pad">
               <div className="panel-head">
                 <h2>{t("dash.projectsChart")}</h2>
@@ -135,7 +137,7 @@ export default function Dashboard() {
             <section className="panel pad">
               <div className="panel-head">
                 <h2>{t("dash.reportChart")}</h2>
-                <Link to="/gundelik">Hamısı</Link>
+                <Link to="/sahe?tab=gundelik">Hamısı</Link>
               </div>
               {counts([
                 { label: t("status.qaralama"), value: reports.filter((item) => item.status === "qaralama").length },

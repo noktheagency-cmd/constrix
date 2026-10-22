@@ -1,7 +1,8 @@
 import { useState } from "react"
+import { ApiError, api } from "../api"
 import { dateAZ } from "../format"
 import { Icon } from "../icons"
-import { PageHead, Select, useTitle } from "../ui"
+import { Field, PageHead, Select, useTitle } from "../ui"
 import { WEATHER_RULES, patch, uid, useWorkspace, weatherStops, type WeatherLog } from "../workspace"
 
 type Site = {
@@ -113,6 +114,108 @@ function fromLog(item: WeatherLog): Proof {
   }
 }
 
+/** İcmal panelində göstərilən qısa hava kartı (xarici proqnoz API yoxdur — əl ilə / nümunə). */
+export function WeatherSummary() {
+  const { weather } = useWorkspace()
+  const [siteId, setSiteId] = useState(SITES[0].id)
+  const [officer, setOfficer] = useState(weather.officer || "")
+  const [note, setNote] = useState("")
+  const [error, setError] = useState("")
+  const [busy, setBusy] = useState(false)
+  const site = SITES.find((item) => item.id === siteId) ?? SITES[0]
+  const held = SITES.filter((item) => verdict(item.rain, item.wind, item.pouring).length)
+  const next = WEEK.find((item) => item.date > OBSERVED) || WEEK[1]
+  const risk = verdict(site.rain, site.wind, site.pouring)
+
+  async function recordStop() {
+    if (!officer.trim()) {
+      setError("Dayanma yalnız səlahiyyətli əməkdaşın adı ilə yazılır.")
+      return
+    }
+    setBusy(true)
+    setError("")
+    const decision = risk.join("; ") || "İş dayanmır"
+    const entry = {
+      id: uid(),
+      rain: site.rain,
+      wind: site.wind,
+      pouring: site.pouring,
+      stop: decision,
+      officer: officer.trim(),
+      date: todayISO(),
+      site: site.name,
+      temp: site.temp,
+      sky: site.sky,
+    }
+    patch((state) => ({
+      ...state,
+      weather: {
+        ...state.weather,
+        officer: officer.trim(),
+        site: site.name,
+        rain: site.rain,
+        wind: site.wind,
+        pouring: site.pouring,
+        log: [...state.weather.log, entry],
+      },
+    }))
+    try {
+      await api("/api/platform/weather", {
+        method: "POST",
+        body: JSON.stringify({
+          date: todayISO(),
+          rainPercent: Number(site.rain),
+          windMs: Number(site.wind),
+          pouring: site.pouring,
+          source: "əl ilə",
+          note: `${site.name}: ${decision}. ${officer.trim()}. ${note.trim()}`.trim(),
+        }),
+      })
+      setNote("")
+    } catch (reason) {
+      setError(reason instanceof ApiError ? reason.message : "Qeyd lokal saxlandı; serverə yazılmadı.")
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <section className="panel pad">
+      <div className="panel-head">
+        <h2>Hava</h2>
+        <span className="muted">{dateAZ(OBSERVED)}</span>
+      </div>
+      <p>
+        <b>{site.temp}°</b> · {site.sky} · yağış {site.rain}% · külək {site.wind} m/s
+      </p>
+      <p className="muted">{site.short}: {cardStatus(site)}</p>
+      {next && <p className="muted">Sabah: {next.sky || "—"} · yağış {next.rain}% · külək {next.wind} m/s</p>}
+      <p className={held.length ? "warn" : "muted"}>
+        {held.length ? `${held.length} obyektdə açıq iş dayanma riski` : "Açıq işlər üçün hədd keçilməyib"}
+      </p>
+      <p className="muted">İş dayanması yalnız səlahiyyətli əməkdaşın qeydi ilə yazılır; hava avtomatik status dəyişmir.</p>
+      <Field label="Obyekt">
+        <Select value={siteId} onValueChange={setSiteId} options={SITES.map((item) => ({ value: item.id, label: item.short }))} />
+      </Field>
+      <Field label="Səlahiyyətli">
+        <input value={officer} onChange={(event) => setOfficer(event.target.value)} placeholder="Sahə rəisi / SƏTƏM" />
+      </Field>
+      <Field label="Qeyd">
+        <input value={note} onChange={(event) => setNote(event.target.value)} placeholder="Müddət, səbəb" />
+      </Field>
+      {error && <p className="form-error">{error}</p>}
+      <div className="form-actions">
+        <button type="button" className="btn ghost" disabled={busy} onClick={() => void recordStop()}>
+          {busy ? "Yazılır" : risk.length ? "Dayanmanı yaz" : "Şəraiti jurnalə yaz"}
+        </button>
+      </div>
+      {weather.log[0] && (
+        <p className="muted">Son qeyd: {weather.log[weather.log.length - 1]?.site} · {weather.log[weather.log.length - 1]?.stop}</p>
+      )}
+    </section>
+  )
+}
+
 export function WeatherPage() {
   useTitle("Hava")
   const { weather } = useWorkspace()
@@ -135,7 +238,7 @@ export function WeatherPage() {
     }))
   }
 
-  function save() {
+  async function save() {
     if (!weather.officer.trim()) {
       setError("Sübut SƏTƏM məsulunun adı ilə yazılır.")
       return
@@ -161,6 +264,21 @@ export function WeatherPage() {
         }],
       },
     }))
+    try {
+      await api("/api/platform/weather", {
+        method: "POST",
+        body: JSON.stringify({
+          date: todayISO(),
+          rainPercent: Number(weather.rain),
+          windMs: Number(weather.wind),
+          pouring: weather.pouring,
+          source: "əl ilə",
+          note: `${site.name}: ${decision}. ${weather.officer.trim()}`,
+        }),
+      })
+    } catch (reason) {
+      setError(reason instanceof ApiError ? reason.message : "Lokal jurnal yazıldı; serverə düşmədi.")
+    }
   }
 
   return (
@@ -307,7 +425,7 @@ export function WeatherPage() {
             <label>SƏTƏM məsulu
               <input value={weather.officer} onChange={(event) => patch((state) => ({ ...state, weather: { ...state.weather, officer: event.target.value } }))} />
             </label>
-            <button type="button" className="btn" onClick={save}>Günü yaz</button>
+            <button type="button" className="btn" onClick={() => void save()}>Günü yaz</button>
           </div>
           {error && <p className="form-error">{error}</p>}
           <p className="lede">{stops.length ? `Dayanır: ${stops.join("; ")}.` : "Bu rəqəmlərlə dayanma yoxdur."}</p>

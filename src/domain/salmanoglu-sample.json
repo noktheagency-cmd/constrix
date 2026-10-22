@@ -1,0 +1,5613 @@
+{
+  "project": {
+    "id": "PRJ-XOCA",
+    "name": "Xocalı Təzəbinə 60 ev",
+    "client": "Bərpa Tikinti və İdarəetmə Xidməti PHŞ",
+    "contractNumber": "96/25",
+    "contractSigned": "2025-12-12"
+  },
+  "smetaLines": [
+    {
+      "sort": 1,
+      "kind": "house",
+      "houseNo": "1913025",
+      "section": "",
+      "code": "",
+      "name": "Fərdi yaşayış evi №1913025",
+      "unit": "",
+      "qty": 0,
+      "unitPrice": 0
+    },
+    {
+      "sort": 2,
+      "kind": "section",
+      "houseNo": "1913025",
+      "section": "Bölmə 1. FASAD",
+      "code": "",
+      "name": "Bölmə 1. FASAD",
+      "unit": "",
+      "qty": 0,
+      "unitPrice": 0
+    },
+    {
+      "sort": 3,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 1. FASAD",
+      "code": "1",
+      "name": "Suvağın səthlərdən kərpic divar və tavanlardan qopardılması",
+      "unit": "100 m2",
+      "qty": 0.26,
+      "unitPrice": 200.0
+    },
+    {
+      "sort": 4,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 1. FASAD",
+      "code": "2",
+      "name": "Beton və daş səthlərin sement-əhəng məhlulu ilə suvanması: divarların, yaxşılaşdırılmış",
+      "unit": "100 m2",
+      "qty": 0.26,
+      "unitPrice": 800.0
+    },
+    {
+      "sort": 5,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 1. FASAD",
+      "code": "3",
+      "name": "Fasadların hazır səthlərinin  mineral tərkibdən torsovka olunması",
+      "unit": "100 m2",
+      "qty": 2.51,
+      "unitPrice": 180.0
+    },
+    {
+      "sort": 6,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 1. FASAD",
+      "code": "4",
+      "name": "Fasadların hazırlanmış səthinin taxtabəndlərdən rənglənməsi: silikatlı",
+      "unit": "100 m2",
+      "qty": 2.51,
+      "unitPrice": 180.0
+    },
+    {
+      "sort": 7,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 1. FASAD",
+      "code": "5",
+      "name": "Xarici inventar taxtabəndlərin qurulması və sökülməsi",
+      "unit": "100 m2",
+      "qty": 2.51,
+      "unitPrice": 300.0
+    },
+    {
+      "sort": 8,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 1. FASAD",
+      "code": "6",
+      "name": "Qurulması: dəmir-beton artırmaların (selsəki - 10sm qal.)",
+      "unit": "m3",
+      "qty": 1.68,
+      "unitPrice": 280.0
+    },
+    {
+      "sort": 9,
+      "kind": "section",
+      "houseNo": "1913025",
+      "section": "Bölmə 2. DAM ÖRTÜYÜ",
+      "code": "",
+      "name": "Bölmə 2. DAM ÖRTÜYÜ",
+      "unit": "",
+      "qty": 0,
+      "unitPrice": 0
+    },
+    {
+      "sort": 10,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 2. DAM ÖRTÜYÜ",
+      "code": "7",
+      "name": "Dam örtüklərinin sökülməsi: dalğavari və yarımdalğavari vərəqlərdən",
+      "unit": "100 m2",
+      "qty": 2.18,
+      "unitPrice": 280.0
+    },
+    {
+      "sort": 11,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 2. DAM ÖRTÜYÜ",
+      "code": "8",
+      "name": "Dam konstruksiyalarının ağac elementlərinin sökülməsi",
+      "unit": "100 m2",
+      "qty": 2.18,
+      "unitPrice": 260.0
+    },
+    {
+      "sort": 12,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 2. DAM ÖRTÜYÜ",
+      "code": "9",
+      "name": "Çatıların qoyulması",
+      "unit": "m3",
+      "qty": 5.45,
+      "unitPrice": 360.0
+    },
+    {
+      "sort": 13,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 2. DAM ÖRTÜYÜ",
+      "code": "10",
+      "name": "Sinklənmiş poladdan dam örtüyünün düzəldilməsi",
+      "unit": "100 m2",
+      "qty": 2.18,
+      "unitPrice": 1650.0
+    },
+    {
+      "sort": 14,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 2. DAM ÖRTÜYÜ",
+      "code": "11",
+      "name": "Novların düzəldilməsi: asma",
+      "unit": "100 m",
+      "qty": 0.52,
+      "unitPrice": 1100.0
+    },
+    {
+      "sort": 15,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 2. DAM ÖRTÜYÜ",
+      "code": "12",
+      "name": "Metal su axıdıcı sistemin qurulması: düz boru bağlantıları",
+      "unit": "m",
+      "qty": 22.0,
+      "unitPrice": 12.0
+    },
+    {
+      "sort": 16,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 2. DAM ÖRTÜYÜ",
+      "code": "13",
+      "name": "Metal su axıdıcı sistemin qurulması: qıflar",
+      "unit": "ədəd",
+      "qty": 4.0,
+      "unitPrice": 7.0
+    },
+    {
+      "sort": 17,
+      "kind": "section",
+      "houseNo": "1913025",
+      "section": "Bölmə 3. DİVAR və ARAKƏSMƏLƏR",
+      "code": "",
+      "name": "Bölmə 3. DİVAR və ARAKƏSMƏLƏR",
+      "unit": "",
+      "qty": 0,
+      "unitPrice": 0
+    },
+    {
+      "sort": 18,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 3. DİVAR və ARAKƏSMƏLƏR",
+      "code": "14",
+      "name": "Söküntü: kiçik bloklardan divarların",
+      "unit": "m3",
+      "qty": 2.2,
+      "unitPrice": 28.0
+    },
+    {
+      "sort": 19,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 3. DİVAR və ARAKƏSMƏLƏR",
+      "code": "15",
+      "name": "390x190x188 mm ölçülərində mişarlanmış əhəng daşından daxili divarlarının hörgüsü: 39 sm",
+      "unit": "10 m2",
+      "qty": 0.2,
+      "unitPrice": 380.0
+    },
+    {
+      "sort": 20,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 3. DİVAR və ARAKƏSMƏLƏR",
+      "code": "16",
+      "name": "390x190x188 mm ölçülərində mişarlanmış əhəng daşından daxili divarlarının hörgüsü: 19 sm",
+      "unit": "10 m2",
+      "qty": 3.3,
+      "unitPrice": 200.0
+    },
+    {
+      "sort": 21,
+      "kind": "section",
+      "houseNo": "1913025",
+      "section": "Bölmə 4. DÖŞƏMƏLƏR",
+      "code": "",
+      "name": "Bölmə 4. DÖŞƏMƏLƏR",
+      "unit": "",
+      "qty": 0,
+      "unitPrice": 0
+    },
+    {
+      "sort": 22,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 4. DÖŞƏMƏLƏR",
+      "code": "17",
+      "name": "Birləşdirici qatın düzəldilməsi:sement, qalınlığı 20 mm",
+      "unit": "100 m2",
+      "qty": 0.25,
+      "unitPrice": 480.0
+    },
+    {
+      "sort": 23,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 4. DÖŞƏMƏLƏR",
+      "code": "18",
+      "name": "Birləşdirici qatın düzəldilməsi: sement - Əlavə 10mm",
+      "unit": "100 m2",
+      "qty": 0.25,
+      "unitPrice": 290.0
+    },
+    {
+      "sort": 24,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 4. DÖŞƏMƏLƏR",
+      "code": "19",
+      "name": "Ruberoid qoruyuculu, hidroizolyasiyanın düzəldilməsi: birinci qat",
+      "unit": "100 m2",
+      "qty": 0.07,
+      "unitPrice": 980.0
+    },
+    {
+      "sort": 25,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 4. DÖŞƏMƏLƏR",
+      "code": "20",
+      "name": "Ruberoid qoruyuculu, hidroizolyasiyanın düzəldilməsi: sonrakı qat",
+      "unit": "100 m2",
+      "qty": 0.07,
+      "unitPrice": 980.0
+    },
+    {
+      "sort": 26,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 4. DÖŞƏMƏLƏR",
+      "code": "21",
+      "name": "Bitum mastikasında tavalardan örtüklərin düzəldilməsi: keramik",
+      "unit": "100 m2",
+      "qty": 0.25,
+      "unitPrice": 2450.0
+    },
+    {
+      "sort": 27,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 4. DÖŞƏMƏLƏR",
+      "code": "22",
+      "name": "Döşəmə örtüklərinin sökülməsi: taxtadan",
+      "unit": "100 m2",
+      "qty": 0.88,
+      "unitPrice": 310.0
+    },
+    {
+      "sort": 28,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 4. DÖŞƏMƏLƏR",
+      "code": "23",
+      "name": "Laqaların qoyulması: örtük tavaları üzrə",
+      "unit": "100 m2",
+      "qty": 0.88,
+      "unitPrice": 880.0
+    },
+    {
+      "sort": 29,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 4. DÖŞƏMƏLƏR",
+      "code": "24",
+      "name": "Bir lay fanerdan döşəmələrin əsasının qurulması",
+      "unit": "100 m2",
+      "qty": 0.88,
+      "unitPrice": 350.0
+    },
+    {
+      "sort": 30,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 4. DÖŞƏMƏLƏR",
+      "code": "25",
+      "name": "Dikt (1,52*1,52) 15 mm",
+      "unit": "ədəd",
+      "qty": 38.0,
+      "unitPrice": 28.0
+    },
+    {
+      "sort": 31,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 4. DÖŞƏMƏLƏR",
+      "code": "26",
+      "name": "Örtüklərin düzəldilməsi: açar üsulu ilə laminasiya olunmuş taxtalardan",
+      "unit": "100 m2",
+      "qty": 0.88,
+      "unitPrice": 1450.0
+    },
+    {
+      "sort": 32,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 4. DÖŞƏMƏLƏR",
+      "code": "27",
+      "name": "Birləşdirici qatın düzəldilməsi: sement, qalınlığı 20 mm - Zirzəmi üçün",
+      "unit": "100 m2",
+      "qty": 1.02,
+      "unitPrice": 480.0
+    },
+    {
+      "sort": 33,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 4. DÖŞƏMƏLƏR",
+      "code": "28",
+      "name": "Birləşdirici qatın düzəldilməsi: sement - əlavə 30mm - Zirzəmi üçün",
+      "unit": "100 m2",
+      "qty": 1.02,
+      "unitPrice": 720.0
+    },
+    {
+      "sort": 34,
+      "kind": "section",
+      "houseNo": "1913025",
+      "section": "Bölmə 5. QAPI və PƏNCƏRƏLƏR",
+      "code": "",
+      "name": "Bölmə 5. QAPI və PƏNCƏRƏLƏR",
+      "unit": "",
+      "qty": 0,
+      "unitPrice": 0
+    },
+    {
+      "sort": 35,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 5. QAPI və PƏNCƏRƏLƏR",
+      "code": "29",
+      "name": "Boşluqların taxta doldurucularının sökülməsi: pəncərəaltı lövhəsiz pəncərələrin",
+      "unit": "100 m2",
+      "qty": 0.5,
+      "unitPrice": 950.0
+    },
+    {
+      "sort": 36,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 5. QAPI və PƏNCƏRƏLƏR",
+      "code": "30",
+      "name": "PVX profildən pəncərə bloklarının qoyulması",
+      "unit": "100 m2",
+      "qty": 0.48,
+      "unitPrice": 10500.0
+    },
+    {
+      "sort": 37,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 5. QAPI və PƏNCƏRƏLƏR",
+      "code": "31",
+      "name": "Boşluqların taxta doldurucularının sökülməsi: qapı və darvaza",
+      "unit": "100 m2",
+      "qty": 0.26,
+      "unitPrice": 950.0
+    },
+    {
+      "sort": 38,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 5. QAPI və PƏNCƏRƏLƏR",
+      "code": "32",
+      "name": "PVX blokların daxili qapı boşluqlarına qoyulması",
+      "unit": "100 m2",
+      "qty": 0.2,
+      "unitPrice": 12000.0
+    },
+    {
+      "sort": 39,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 5. QAPI və PƏNCƏRƏLƏR",
+      "code": "33",
+      "name": "Daxili qapı boşluqlarında MDF qapıların quraşdırılması",
+      "unit": "100 m2",
+      "qty": 0.05,
+      "unitPrice": 15000.0
+    },
+    {
+      "sort": 40,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 5. QAPI və PƏNCƏRƏLƏR",
+      "code": "34",
+      "name": "Hazır boşluqlara metal qapı bloklarının qurulması",
+      "unit": "m2",
+      "qty": 2.0,
+      "unitPrice": 205.0
+    },
+    {
+      "sort": 41,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 5. QAPI və PƏNCƏRƏLƏR",
+      "code": "35",
+      "name": "PVX-dan pəncərəaltı lövhələrin qoyulması",
+      "unit": "100 m",
+      "qty": 0.58,
+      "unitPrice": 1200.0
+    },
+    {
+      "sort": 42,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 5. QAPI və PƏNCƏRƏLƏR",
+      "code": "36",
+      "name": "Pəncərəaltı PVX lövhələri",
+      "unit": "m",
+      "qty": 58.0,
+      "unitPrice": 7.0
+    },
+    {
+      "sort": 43,
+      "kind": "section",
+      "houseNo": "1913025",
+      "section": "Bölmə 6. DAXİLİ TAMAMLAMA İŞLƏRİ",
+      "code": "",
+      "name": "Bölmə 6. DAXİLİ TAMAMLAMA İŞLƏRİ",
+      "unit": "",
+      "qty": 0,
+      "unitPrice": 0
+    },
+    {
+      "sort": 44,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 6. DAXİLİ TAMAMLAMA İŞLƏRİ",
+      "code": "37",
+      "name": "Suvağın səthlərdən kərpic divar və tavanlardan qopardılması",
+      "unit": "100 m2",
+      "qty": 0.5,
+      "unitPrice": 200.0
+    },
+    {
+      "sort": 45,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 6. DAXİLİ TAMAMLAMA İŞLƏRİ",
+      "code": "38",
+      "name": "Beton və daş səthlərin sement-əhəng məhlulu ilə suvanması: divarların, yaxşılaşdırılmış",
+      "unit": "100 m2",
+      "qty": 0.5,
+      "unitPrice": 800.0
+    },
+    {
+      "sort": 46,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 6. DAXİLİ TAMAMLAMA İŞLƏRİ",
+      "code": "39",
+      "name": "Su-dispersiyalı astarın çəkilməsi: məsaməli səthə (binder)",
+      "unit": "100 m2",
+      "qty": 0.5,
+      "unitPrice": 72.0
+    },
+    {
+      "sort": 47,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 6. DAXİLİ TAMAMLAMA İŞLƏRİ",
+      "code": "40",
+      "name": "Suvaqlanmış səthlərin nərdivandan tam şpatlyovkalanması",
+      "unit": "100 m2",
+      "qty": 2.46,
+      "unitPrice": 380.0
+    },
+    {
+      "sort": 48,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 6. DAXİLİ TAMAMLAMA İŞLƏRİ",
+      "code": "41",
+      "name": "Monolit suvaqlara və beton divarlara divar kağızının yapışdırılması",
+      "unit": "100 m2",
+      "qty": 2.46,
+      "unitPrice": 690.0
+    },
+    {
+      "sort": 49,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 6. DAXİLİ TAMAMLAMA İŞLƏRİ",
+      "code": "42",
+      "name": "Beton və daş səthlərin sement məhlulu ilə suvanması: divarların, sadə (Kafelaltı səthin)",
+      "unit": "100 m2",
+      "qty": 0.37,
+      "unitPrice": 800.0
+    },
+    {
+      "sort": 50,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 6. DAXİLİ TAMAMLAMA İŞLƏRİ",
+      "code": "43",
+      "name": "Səthlərin sement məhlulu əsasında kafellə üzlənməsi",
+      "unit": "100 m2",
+      "qty": 0.35,
+      "unitPrice": 2450.0
+    },
+    {
+      "sort": 51,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 6. DAXİLİ TAMAMLAMA İŞLƏRİ",
+      "code": "44",
+      "name": "Səthlərin sement məhlulu əsasında kafellə üzlənməsi (Mebelarası kafellə üzlənmə)",
+      "unit": "100 m2",
+      "qty": 0.02,
+      "unitPrice": 2450.0
+    },
+    {
+      "sort": 52,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 6. DAXİLİ TAMAMLAMA İŞLƏRİ",
+      "code": "45",
+      "name": "Tavanların qurulması: məsaməli plitələrdən, sinklənmiş profildən karkas üzrə (Lambrin)",
+      "unit": "100 m2",
+      "qty": 0.33,
+      "unitPrice": 1400.0
+    },
+    {
+      "sort": 53,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 6. DAXİLİ TAMAMLAMA İŞLƏRİ",
+      "code": "46",
+      "name": "Gipskarton vərəqlərdən asma tavanların quraşdırılması: bir səviyyəli",
+      "unit": "100 m2",
+      "qty": 0.88,
+      "unitPrice": 1200.0
+    },
+    {
+      "sort": 54,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 6. DAXİLİ TAMAMLAMA İŞLƏRİ",
+      "code": "47",
+      "name": "Polivinilasetatlı suemulsiya tərkiblərlə yaxşılaşdırılmış rəngləmə: yığma konstruksiyalı tavanların",
+      "unit": "100 m2",
+      "qty": 0.88,
+      "unitPrice": 860.0
+    },
+    {
+      "sort": 55,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 6. DAXİLİ TAMAMLAMA İŞLƏRİ",
+      "code": "48",
+      "name": "Haşiyələrin qoyulması və bərkidilməsi (Paduqa)",
+      "unit": "100 m",
+      "qty": 0.91,
+      "unitPrice": 434.0
+    },
+    {
+      "sort": 56,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 6. DAXİLİ TAMAMLAMA İŞLƏRİ",
+      "code": "49",
+      "name": "Tavanların qurulması: məsaməli plitələrdən, sinklənmiş profildən karkas üzrə (Zirzəmi-Lambrin)",
+      "unit": "100 m2",
+      "qty": 1.21,
+      "unitPrice": 1400.0
+    },
+    {
+      "sort": 57,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 6. DAXİLİ TAMAMLAMA İŞLƏRİ",
+      "code": "50",
+      "name": "Beton və daş səthlərin sement-əhəng məhlulu ilə suvanması:tavanların, yaxşılaşdırılmış (Zirzəmi)",
+      "unit": "100 m2",
+      "qty": 0.11,
+      "unitPrice": 800.0
+    },
+    {
+      "sort": 58,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 6. DAXİLİ TAMAMLAMA İŞLƏRİ",
+      "code": "51",
+      "name": "Binanın daxilində əhəngli sulu tərkiblərlə rəngləmə: suvaq üzrə (Zirzəmi tavanı)",
+      "unit": "100 m2",
+      "qty": 0.11,
+      "unitPrice": 220.0
+    },
+    {
+      "sort": 59,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 6. DAXİLİ TAMAMLAMA İŞLƏRİ",
+      "code": "52",
+      "name": "Beton və daş səthlərin sement-əhəng məhlulu ilə suvanması:divarların yaxşılaşdırılmış (Zirzəmi)",
+      "unit": "100 m2",
+      "qty": 2.19,
+      "unitPrice": 800.0
+    },
+    {
+      "sort": 60,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 6. DAXİLİ TAMAMLAMA İŞLƏRİ",
+      "code": "53",
+      "name": "Binanın daxilində əhəngli sulu tərkiblərlə rəngləmə: suvaq üzrə (Zirzəmi)",
+      "unit": "100 m2",
+      "qty": 2.19,
+      "unitPrice": 220.0
+    },
+    {
+      "sort": 61,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 6. DAXİLİ TAMAMLAMA İŞLƏRİ",
+      "code": "54",
+      "name": "Dörd tin daşdan örtüyün düzəldilməsi: sement məhlulunda tikişləri doldurmaqla",
+      "unit": "100 m2",
+      "qty": 0.17,
+      "unitPrice": 2800.0
+    },
+    {
+      "sort": 62,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 6. DAXİLİ TAMAMLAMA İŞLƏRİ",
+      "code": "55",
+      "name": "Tutacaqsız metal məhəccərlərin qurulması",
+      "unit": "100 m",
+      "qty": 0.2,
+      "unitPrice": 3500.0
+    },
+    {
+      "sort": 63,
+      "kind": "section",
+      "houseNo": "1913025",
+      "section": "Bölmə 7. SU TƏCHİZATI və KANALİZASİYA",
+      "code": "",
+      "name": "Bölmə 7. SU TƏCHİZATI və KANALİZASİYA",
+      "unit": "",
+      "qty": 0,
+      "unitPrice": 0
+    },
+    {
+      "sort": 64,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 7. SU TƏCHİZATI və KANALİZASİYA",
+      "code": "56",
+      "name": "Polipropilen borulardan daxili su təchizatı və istilik borularının çəkilməsi: 25mm",
+      "unit": "100 m",
+      "qty": 0.46,
+      "unitPrice": 860.0
+    },
+    {
+      "sort": 65,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 7. SU TƏCHİZATI və KANALİZASİYA",
+      "code": "57",
+      "name": "Ventil, diametri 32mm",
+      "unit": "ədəd",
+      "qty": 2.0,
+      "unitPrice": 16.0
+    },
+    {
+      "sort": 66,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 7. SU TƏCHİZATI və KANALİZASİYA",
+      "code": "58",
+      "name": "Ventil, 25mm",
+      "unit": "ədəd",
+      "qty": 5.0,
+      "unitPrice": 14.0
+    },
+    {
+      "sort": 67,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 7. SU TƏCHİZATI və KANALİZASİYA",
+      "code": "59",
+      "name": "Ventil, 20mm",
+      "unit": "ədəd",
+      "qty": 2.0,
+      "unitPrice": 10.0
+    },
+    {
+      "sort": 68,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 7. SU TƏCHİZATI və KANALİZASİYA",
+      "code": "60",
+      "name": "Arko kran",
+      "unit": "ədəd",
+      "qty": 8.0,
+      "unitPrice": 12.0
+    },
+    {
+      "sort": 69,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 7. SU TƏCHİZATI və KANALİZASİYA",
+      "code": "61",
+      "name": "Yüksək sıxlıqlı polietilen borulardan kanalizasiya boru kəmərlərinin çəkilməsi,\ndiametri: 110mm",
+      "unit": "100 m",
+      "qty": 0.12,
+      "unitPrice": 900.0
+    },
+    {
+      "sort": 70,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 7. SU TƏCHİZATI və KANALİZASİYA",
+      "code": "62",
+      "name": "Yüksək sıxlıqlı polietilen borulardan kanalizasiya boru kəmərlərinin çəkilməsi,\ndiametri: 50mm",
+      "unit": "100 m",
+      "qty": 0.06,
+      "unitPrice": 700.0
+    },
+    {
+      "sort": 71,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 7. SU TƏCHİZATI və KANALİZASİYA",
+      "code": "63",
+      "name": "Unitazların quraşdırılması: baçokla bilavasitə birləşdirilmiş",
+      "unit": "10 dəst",
+      "qty": 0.1,
+      "unitPrice": 1200.0
+    },
+    {
+      "sort": 72,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 7. SU TƏCHİZATI və KANALİZASİYA",
+      "code": "64",
+      "name": "Gigiyenik su qarışdırıcı (şlanqlı,başliqlı)",
+      "unit": "dəst",
+      "qty": 1.0,
+      "unitPrice": 48.0
+    },
+    {
+      "sort": 73,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 7. SU TƏCHİZATI və KANALİZASİYA",
+      "code": "65",
+      "name": "Əlüzyuyanların quraşdırılması: isti və soyuq su çəkilməklə",
+      "unit": "10 dəst",
+      "qty": 0.1,
+      "unitPrice": 920.0
+    },
+    {
+      "sort": 74,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 7. SU TƏCHİZATI və KANALİZASİYA",
+      "code": "66",
+      "name": "Yuyucuların quraşdırılması: bir hissəli (Mətbəxdə)",
+      "unit": "10 dəst",
+      "qty": 0.1,
+      "unitPrice": 900.0
+    },
+    {
+      "sort": 75,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 7. SU TƏCHİZATI və KANALİZASİYA",
+      "code": "67",
+      "name": "Qarışdırıcıların quraşdırılması (Duşun quraşdırılması)",
+      "unit": "10 ədəd",
+      "qty": 0.1,
+      "unitPrice": 940.0
+    },
+    {
+      "sort": 76,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 7. SU TƏCHİZATI və KANALİZASİYA",
+      "code": "68",
+      "name": "Trapların quraşdırılması diametri: 50 mm",
+      "unit": "10 dəst",
+      "qty": 0.1,
+      "unitPrice": 110.0
+    },
+    {
+      "sort": 77,
+      "kind": "section",
+      "houseNo": "1913025",
+      "section": "Bölmə 8. İSİTMƏ SİSTEMİ",
+      "code": "",
+      "name": "Bölmə 8. İSİTMƏ SİSTEMİ",
+      "unit": "",
+      "qty": 0,
+      "unitPrice": 0
+    },
+    {
+      "sort": 78,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 8. İSİTMƏ SİSTEMİ",
+      "code": "69",
+      "name": "Polipropilen borulardan daxili su təchizatı və istilik borularının çəkilməsi: 25mm",
+      "unit": "100 m",
+      "qty": 0.9,
+      "unitPrice": 860.0
+    },
+    {
+      "sort": 79,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 8. İSİTMƏ SİSTEMİ",
+      "code": "70",
+      "name": "Radiatorların qoyulması: polad",
+      "unit": "100 kvt",
+      "qty": 0.112,
+      "unitPrice": 650.0
+    },
+    {
+      "sort": 80,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 8. İSİTMƏ SİSTEMİ",
+      "code": "71",
+      "name": "İstilik radiatorları, seksiyalı",
+      "unit": "ədəd",
+      "qty": 66.0,
+      "unitPrice": 14.0
+    },
+    {
+      "sort": 81,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 8. İSİTMƏ SİSTEMİ",
+      "code": "72",
+      "name": "Sintetik yapışdırıcılı mineral pambıqdan silindrlərlə boru kəmərlərinin izolyasiya edilməsi",
+      "unit": "m3",
+      "qty": 0.03,
+      "unitPrice": 580.0
+    },
+    {
+      "sort": 82,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 8. İSİTMƏ SİSTEMİ",
+      "code": "73",
+      "name": "Dəsmal qurudanların quraşdırılması: xromlanmış latundan",
+      "unit": "10 ədəd",
+      "qty": 0.1,
+      "unitPrice": 850.0
+    },
+    {
+      "sort": 83,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 8. İSİTMƏ SİSTEMİ",
+      "code": "74",
+      "name": "Radiator ventili; 1/2 düyümlü",
+      "unit": "ədəd",
+      "qty": 16.0,
+      "unitPrice": 9.0
+    },
+    {
+      "sort": 84,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 8. İSİTMƏ SİSTEMİ",
+      "code": "75",
+      "name": "Termostatlı radiator ventili 1/2 düyümlü",
+      "unit": "ədəd",
+      "qty": 3.0,
+      "unitPrice": 21.0
+    },
+    {
+      "sort": 85,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 8. İSİTMƏ SİSTEMİ",
+      "code": "76",
+      "name": "Ventil, diametri 32mm",
+      "unit": "ədəd",
+      "qty": 1.0,
+      "unitPrice": 16.0
+    },
+    {
+      "sort": 86,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 8. İSİTMƏ SİSTEMİ",
+      "code": "77",
+      "name": "Ventil, 25mm",
+      "unit": "ədəd",
+      "qty": 2.0,
+      "unitPrice": 14.0
+    },
+    {
+      "sort": 87,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 8. İSİTMƏ SİSTEMİ",
+      "code": "78",
+      "name": "Fərdi qızdırıcıların quraşdırılması: su ilə",
+      "unit": "10 dəst",
+      "qty": 0.1,
+      "unitPrice": 510.0
+    },
+    {
+      "sort": 88,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 8. İSİTMƏ SİSTEMİ",
+      "code": "79",
+      "name": "Kombi 24 kVt",
+      "unit": "ədəd",
+      "qty": 1.0,
+      "unitPrice": 960.0
+    },
+    {
+      "sort": 89,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 8. İSİTMƏ SİSTEMİ",
+      "code": "80",
+      "name": "Cihaz və ya aparat - Avtomatların quraşdırılması",
+      "unit": "ədəd",
+      "qty": 1.0,
+      "unitPrice": 5.0
+    },
+    {
+      "sort": 90,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 8. İSİTMƏ SİSTEMİ",
+      "code": "81",
+      "name": "Stablizator",
+      "unit": "ədəd",
+      "qty": 1.0,
+      "unitPrice": 60.0
+    },
+    {
+      "sort": 91,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 8. İSİTMƏ SİSTEMİ",
+      "code": "82",
+      "name": "Reduksiyalı (təzyiqazaldan) yaylı klapanların qoyulması, diametri: 25 mm",
+      "unit": "ədəd",
+      "qty": 1.0,
+      "unitPrice": 12.0
+    },
+    {
+      "sort": 92,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 8. İSİTMƏ SİSTEMİ",
+      "code": "83",
+      "name": "Qaz tənzimləyici (reduktor), diametri 25 mm",
+      "unit": "ədəd",
+      "qty": 1.0,
+      "unitPrice": 54.0
+    },
+    {
+      "sort": 93,
+      "kind": "section",
+      "houseNo": "1913025",
+      "section": "Bölmə 9. ELEKTRİK TƏCHİZATI",
+      "code": "",
+      "name": "Bölmə 9. ELEKTRİK TƏCHİZATI",
+      "unit": "",
+      "qty": 0,
+      "unitPrice": 0
+    },
+    {
+      "sort": 94,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 9. ELEKTRİK TƏCHİZATI",
+      "code": "84",
+      "name": "Divarda quraşdırılmış işıqlandırma lövhə",
+      "unit": "ədəd",
+      "qty": 1.0,
+      "unitPrice": 44.0
+    },
+    {
+      "sort": 95,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 9. ELEKTRİK TƏCHİZATI",
+      "code": "85",
+      "name": "Işıqlanma lövhəsi",
+      "unit": "ədəd",
+      "qty": 1.0,
+      "unitPrice": 160.0
+    },
+    {
+      "sort": 96,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 9. ELEKTRİK TƏCHİZATI",
+      "code": "86",
+      "name": "Cihaz və ya aparat - Avtomatların quraşdırılması",
+      "unit": "ədəd",
+      "qty": 10.0,
+      "unitPrice": 5.0
+    },
+    {
+      "sort": 97,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 9. ELEKTRİK TƏCHİZATI",
+      "code": "87",
+      "name": "3FAZ C TİPİ 40A avtomat açar",
+      "unit": "ədəd",
+      "qty": 1.0,
+      "unitPrice": 48.0
+    },
+    {
+      "sort": 98,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 9. ELEKTRİK TƏCHİZATI",
+      "code": "88",
+      "name": "1FAZ C TİPİ 25A avtomat açar",
+      "unit": "ədəd",
+      "qty": 3.0,
+      "unitPrice": 9.0
+    },
+    {
+      "sort": 99,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 9. ELEKTRİK TƏCHİZATI",
+      "code": "89",
+      "name": "1FAZ C TİPİ 20A avtomat açar",
+      "unit": "ədəd",
+      "qty": 2.0,
+      "unitPrice": 8.0
+    },
+    {
+      "sort": 100,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 9. ELEKTRİK TƏCHİZATI",
+      "code": "90",
+      "name": "1FAZ C TİPİ 16A avtomat açar",
+      "unit": "ədəd",
+      "qty": 4.0,
+      "unitPrice": 6.0
+    },
+    {
+      "sort": 101,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 9. ELEKTRİK TƏCHİZATI",
+      "code": "91",
+      "name": "Asma tavanlarda çıraqlar",
+      "unit": "100 ədəd",
+      "qty": 0.18,
+      "unitPrice": 1200.0
+    },
+    {
+      "sort": 102,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 9. ELEKTRİK TƏCHİZATI",
+      "code": "92",
+      "name": "Plafon LED Dairəvi Güc:12W",
+      "unit": "ədəd",
+      "qty": 18.0,
+      "unitPrice": 18.0
+    },
+    {
+      "sort": 103,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 9. ELEKTRİK TƏCHİZATI",
+      "code": "93",
+      "name": "Çılçıraq və asılqanlar, lampaların sayı, qədər:5",
+      "unit": "ədəd",
+      "qty": 6.0,
+      "unitPrice": 30.0
+    },
+    {
+      "sort": 104,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 9. ELEKTRİK TƏCHİZATI",
+      "code": "94",
+      "name": "Asma çilçıraq beş lampalı",
+      "unit": "ədəd",
+      "qty": 6.0,
+      "unitPrice": 80.0
+    },
+    {
+      "sort": 105,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 9. ELEKTRİK TƏCHİZATI",
+      "code": "95",
+      "name": "Elektrik açarı:açıq üsulla elektrik şəbəkəsinin çəkilməsi zamanı, birdilli, batıqsız tipli",
+      "unit": "100 ədəd",
+      "qty": 0.2,
+      "unitPrice": 210.0
+    },
+    {
+      "sort": 106,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 9. ELEKTRİK TƏCHİZATI",
+      "code": "96",
+      "name": "Elektrik açarları",
+      "unit": "ədəd",
+      "qty": 20.0,
+      "unitPrice": 6.0
+    },
+    {
+      "sort": 107,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 9. ELEKTRİK TƏCHİZATI",
+      "code": "97",
+      "name": "Ştepsel rozetkası: yarımgermetik və germetik",
+      "unit": "100 ədəd",
+      "qty": 0.23,
+      "unitPrice": 450.0
+    },
+    {
+      "sort": 108,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 9. ELEKTRİK TƏCHİZATI",
+      "code": "98",
+      "name": "Ştepsel rozetkalar",
+      "unit": "ədəd",
+      "qty": 21.0,
+      "unitPrice": 6.0
+    },
+    {
+      "sort": 109,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 9. ELEKTRİK TƏCHİZATI",
+      "code": "99",
+      "name": "TV yuvalı rozetkası",
+      "unit": "ədəd",
+      "qty": 2.0,
+      "unitPrice": 5.0
+    },
+    {
+      "sort": 110,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 9. ELEKTRİK TƏCHİZATI",
+      "code": "100",
+      "name": "Kərpic divarların şırım açanla şırımlarının açılması, en kəsiyinin sahəsi: 20 sm2-ə qədər",
+      "unit": "100 m",
+      "qty": 5.2,
+      "unitPrice": 40.0
+    },
+    {
+      "sort": 111,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 9. ELEKTRİK TƏCHİZATI",
+      "code": "101",
+      "name": "Quraşdırılmış konstruksiyalar,üzrə kabel və naqilləri qorumaq üçün qırçınlı PVX boruları",
+      "unit": "100 m",
+      "qty": 5.2,
+      "unitPrice": 120.0
+    },
+    {
+      "sort": 112,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 9. ELEKTRİK TƏCHİZATI",
+      "code": "102",
+      "name": "Qofra borusu 25mm",
+      "unit": "m",
+      "qty": 520.0,
+      "unitPrice": 0.7
+    },
+    {
+      "sort": 113,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 9. ELEKTRİK TƏCHİZATI",
+      "code": "103",
+      "name": "Ümumi hörmədə çoxdamarlı birinci naqil, ümumi en kəsiyi, mm2, qədər: 6",
+      "unit": "100 m",
+      "qty": 0.4,
+      "unitPrice": 80.0
+    },
+    {
+      "sort": 114,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 9. ELEKTRİK TƏCHİZATI",
+      "code": "104",
+      "name": "Quraşdırma kabeli ПВ 3 6",
+      "unit": "m",
+      "qty": 40.0,
+      "unitPrice": 2.1
+    },
+    {
+      "sort": 115,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 9. ELEKTRİK TƏCHİZATI",
+      "code": "105",
+      "name": "Ümumi hörmədə çoxdamarlı birinci naqil, ümumi en kəsiyi, mm2, qədər: 2,5",
+      "unit": "100 m",
+      "qty": 7.4,
+      "unitPrice": 60.0
+    },
+    {
+      "sort": 116,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 9. ELEKTRİK TƏCHİZATI",
+      "code": "106",
+      "name": "Quraşdırma kabeli ПВ 3 4",
+      "unit": "m",
+      "qty": 180.0,
+      "unitPrice": 1.8
+    },
+    {
+      "sort": 117,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 9. ELEKTRİK TƏCHİZATI",
+      "code": "107",
+      "name": "Quraşdırma kabeli ПВ 3 2.5",
+      "unit": "m",
+      "qty": 560.0,
+      "unitPrice": 1.4
+    },
+    {
+      "sort": 118,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 9. ELEKTRİK TƏCHİZATI",
+      "code": "108",
+      "name": "Çəkilmiş boru, blok və qutularda 35 kV-a qədər kabel, 1 m kabelin kütləsi, kq, qədər:1",
+      "unit": "100 m",
+      "qty": 0.6,
+      "unitPrice": 145.0
+    },
+    {
+      "sort": 119,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 9. ELEKTRİK TƏCHİZATI",
+      "code": "109",
+      "name": "Siqnal kabeli CAT 6 UTP",
+      "unit": "m",
+      "qty": 30.0,
+      "unitPrice": 2.0
+    },
+    {
+      "sort": 120,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 9. ELEKTRİK TƏCHİZATI",
+      "code": "110",
+      "name": "Telefon, LAN, koaksial kabel RG 6/ U-4",
+      "unit": "m",
+      "qty": 30.0,
+      "unitPrice": 1.6
+    },
+    {
+      "sort": 121,
+      "kind": "section",
+      "houseNo": "1913025",
+      "section": "Bölmə 10. DAXİLİ QAZ XƏTTİ",
+      "code": "",
+      "name": "Bölmə 10. DAXİLİ QAZ XƏTTİ",
+      "unit": "",
+      "qty": 0,
+      "unitPrice": 0
+    },
+    {
+      "sort": 122,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 10. DAXİLİ QAZ XƏTTİ",
+      "code": "111",
+      "name": "Tikişsiz polad borulardan istilik və qaz təchizatı boru kəmərlərinin çəkilməsi,diametri: 50 mm",
+      "unit": "100 m",
+      "qty": 0.7,
+      "unitPrice": 440.0
+    },
+    {
+      "sort": 123,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 10. DAXİLİ QAZ XƏTTİ",
+      "code": "112",
+      "name": "Tikişli boru 20x2.5 QOST 3262",
+      "unit": "m",
+      "qty": 40.0,
+      "unitPrice": 4.0
+    },
+    {
+      "sort": 124,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 10. DAXİLİ QAZ XƏTTİ",
+      "code": "113",
+      "name": "Tikişli boru 15x2.5 QOST 3262",
+      "unit": "m",
+      "qty": 30.0,
+      "unitPrice": 4.0
+    },
+    {
+      "sort": 125,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 10. DAXİLİ QAZ XƏTTİ",
+      "code": "114",
+      "name": "Metal səthlərin yağlı boya ilə rənglənməsi: rənglənmənin sayı 2 dəfə",
+      "unit": "100 m2",
+      "qty": 0.05,
+      "unitPrice": 580.0
+    },
+    {
+      "sort": 126,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 10. DAXİLİ QAZ XƏTTİ",
+      "code": "115",
+      "name": "Qaz kranı, diametri 20 mm, içi şarlı, əl dəstəkli",
+      "unit": "ədəd",
+      "qty": 1.0,
+      "unitPrice": 5.0
+    },
+    {
+      "sort": 127,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 10. DAXİLİ QAZ XƏTTİ",
+      "code": "116",
+      "name": "Qaz kranı, diametri 15 mm, içi şarlı, əl dəstəkli",
+      "unit": "ədəd",
+      "qty": 1.0,
+      "unitPrice": 5.0
+    },
+    {
+      "sort": 128,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 10. DAXİLİ QAZ XƏTTİ",
+      "code": "117",
+      "name": "Qaz plitələrinin quraşdırılması: məişət üçün dörd komforlu",
+      "unit": "ədəd",
+      "qty": 1.0,
+      "unitPrice": 25.0
+    },
+    {
+      "sort": 129,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 10. DAXİLİ QAZ XƏTTİ",
+      "code": "118",
+      "name": "Döşəmə üstü lövhəli ayrıca dayanmış duxovkalı və quruducu şkaflı, dörd odluqlu qaz plitəsi",
+      "unit": "ədəd",
+      "qty": 1.0,
+      "unitPrice": 240.0
+    },
+    {
+      "sort": 130,
+      "kind": "section",
+      "houseNo": "1913025",
+      "section": "Bölmə 11. MƏTBƏX MEBELİ",
+      "code": "",
+      "name": "Bölmə 11. MƏTBƏX MEBELİ",
+      "unit": "",
+      "qty": 0,
+      "unitPrice": 0
+    },
+    {
+      "sort": 131,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 11. MƏTBƏX MEBELİ",
+      "code": "119",
+      "name": "Mətbəx mebeli MDF",
+      "unit": "p.m",
+      "qty": 3.0,
+      "unitPrice": 220.0
+    },
+    {
+      "sort": 132,
+      "kind": "section",
+      "houseNo": "1913025",
+      "section": "Bölmə 12. ABADLAŞDIRMA",
+      "code": "",
+      "name": "Bölmə 12. ABADLAŞDIRMA",
+      "unit": "",
+      "qty": 0,
+      "unitPrice": 0
+    },
+    {
+      "sort": 133,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 12. ABADLAŞDIRMA",
+      "code": "120",
+      "name": "Əsasların döşənək və hamarlayıcı qatlarının qurulması: qum-çınqıldan",
+      "unit": "100 m3",
+      "qty": 0.07,
+      "unitPrice": 400.0
+    },
+    {
+      "sort": 134,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 12. ABADLAŞDIRMA",
+      "code": "121",
+      "name": "Qum çınqıl qarışığı",
+      "unit": "m3",
+      "qty": 7.0,
+      "unitPrice": 28.0
+    },
+    {
+      "sort": 135,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 12. ABADLAŞDIRMA",
+      "code": "122",
+      "name": "Birləşdirici qatın düzəldilməsi:sement, qalınlığı 20 mm",
+      "unit": "100 m2",
+      "qty": 0.7,
+      "unitPrice": 480.0
+    },
+    {
+      "sort": 136,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 12. ABADLAŞDIRMA",
+      "code": "123",
+      "name": "Birləşdirici qatın düzəldilməsi: sement - Əlavə 30 mm",
+      "unit": "100 m2",
+      "qty": 0.7,
+      "unitPrice": 720.0
+    },
+    {
+      "sort": 137,
+      "kind": "section",
+      "houseNo": "1913025",
+      "section": "Bölmə 13. YARDIMÇI TİKİLİ",
+      "code": "",
+      "name": "Bölmə 13. YARDIMÇI TİKİLİ",
+      "unit": "",
+      "qty": 0,
+      "unitPrice": 0
+    },
+    {
+      "sort": 138,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 13. YARDIMÇI TİKİLİ",
+      "code": "124",
+      "name": "Beton və daş səthlərin sement-əhəng məhlulu ilə suvanması: divarların, yaxşılaşdırılmış",
+      "unit": "100 m2",
+      "qty": 1.21,
+      "unitPrice": 800.0
+    },
+    {
+      "sort": 139,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 13. YARDIMÇI TİKİLİ",
+      "code": "125",
+      "name": "Fasadların hazırlanmış səthinin taxtabəndlərdən rənglənməsi: silikatlı",
+      "unit": "100 m2",
+      "qty": 1.21,
+      "unitPrice": 180.0
+    },
+    {
+      "sort": 140,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 13. YARDIMÇI TİKİLİ",
+      "code": "126",
+      "name": "Beton və daş səthlərin sement-əhəng məhlulu ilə suvanması: divarların, yaxşılaşdırılmış",
+      "unit": "100 m2",
+      "qty": 1.22,
+      "unitPrice": 800.0
+    },
+    {
+      "sort": 141,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 13. YARDIMÇI TİKİLİ",
+      "code": "127",
+      "name": "Binanın daxilində əhəngli sulu tərkiblərlə rəngləmə: suvaq üzrə",
+      "unit": "100 m2",
+      "qty": 1.22,
+      "unitPrice": 220.0
+    },
+    {
+      "sort": 142,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 13. YARDIMÇI TİKİLİ",
+      "code": "128",
+      "name": "Birləşdirici qatın düzəldilməsi:sement, qalınlığı 20 mm",
+      "unit": "100 m2",
+      "qty": 0.7,
+      "unitPrice": 480.0
+    },
+    {
+      "sort": 143,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 13. YARDIMÇI TİKİLİ",
+      "code": "129",
+      "name": "Birləşdirici qatın düzəldilməsi: sement - Əlavə 30 mm",
+      "unit": "100 m2",
+      "qty": 0.7,
+      "unitPrice": 720.0
+    },
+    {
+      "sort": 144,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 13. YARDIMÇI TİKİLİ",
+      "code": "130",
+      "name": "Dam örtüklərinin sökülməsi: dalğavari və yarımdalğavari vərəqlərdən",
+      "unit": "100 m2",
+      "qty": 0.81,
+      "unitPrice": 280.0
+    },
+    {
+      "sort": 145,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 13. YARDIMÇI TİKİLİ",
+      "code": "131",
+      "name": "Sinklənmiş poladdan dam örtüyünün düzəldilməsi",
+      "unit": "100 m2",
+      "qty": 0.81,
+      "unitPrice": 1650.0
+    },
+    {
+      "sort": 146,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 13. YARDIMÇI TİKİLİ",
+      "code": "132",
+      "name": "PVX profildən pəncərə bloklarının qoyulması",
+      "unit": "100 m2",
+      "qty": 0.1,
+      "unitPrice": 10500.0
+    },
+    {
+      "sort": 147,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 13. YARDIMÇI TİKİLİ",
+      "code": "133",
+      "name": "Hazır boşluqlara metal qapı bloklarının qurulması",
+      "unit": "m2",
+      "qty": 8.0,
+      "unitPrice": 205.0
+    },
+    {
+      "sort": 148,
+      "kind": "section",
+      "houseNo": "1913025",
+      "section": "Bölmə 14. HASAR",
+      "code": "",
+      "name": "Bölmə 14. HASAR",
+      "unit": "",
+      "qty": 0,
+      "unitPrice": 0
+    },
+    {
+      "sort": 149,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 14. HASAR",
+      "code": "134",
+      "name": "Darvazaların təmiri",
+      "unit": "100 m2",
+      "qty": 0.24,
+      "unitPrice": 4500.0
+    },
+    {
+      "sort": 150,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 14. HASAR",
+      "code": "135",
+      "name": "Kürsüsü tor paneldən metal hasarların qurulması, hündürlüyü: 1,6 m-ə qədər",
+      "unit": "100 m",
+      "qty": 1.5,
+      "unitPrice": 400.0
+    },
+    {
+      "sort": 151,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 14. HASAR",
+      "code": "136",
+      "name": "Metal tor 50x50mm,qalınlığı 3mm,sinklənmiş",
+      "unit": "m2",
+      "qty": 240.0,
+      "unitPrice": 6.0
+    },
+    {
+      "sort": 152,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 14. HASAR",
+      "code": "137",
+      "name": "Beton və daş səthlərin sement-əhəng məhlulu ilə suvanması: divarların, yaxşılaşdırılmış",
+      "unit": "100 m2",
+      "qty": 1.2,
+      "unitPrice": 800.0
+    },
+    {
+      "sort": 153,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 14. HASAR",
+      "code": "138",
+      "name": "Fasadların hazırlanmış səthinin taxtabəndlərdən rənglənməsi: silikatlı",
+      "unit": "100 m2",
+      "qty": 1.2,
+      "unitPrice": 180.0
+    },
+    {
+      "sort": 154,
+      "kind": "section",
+      "houseNo": "1913025",
+      "section": "Bölmə 15. SÖKÜNTÜ və İNŞAAT TULLANTISI",
+      "code": "",
+      "name": "Bölmə 15. SÖKÜNTÜ və İNŞAAT TULLANTISI",
+      "unit": "",
+      "qty": 0,
+      "unitPrice": 0
+    },
+    {
+      "sort": 155,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 15. SÖKÜNTÜ və İNŞAAT TULLANTISI",
+      "code": "139",
+      "name": "Tikinti zibilinin kisələrə doldurulması",
+      "unit": "t",
+      "qty": 50.0,
+      "unitPrice": 18.5
+    },
+    {
+      "sort": 156,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 15. SÖKÜNTÜ və İNŞAAT TULLANTISI",
+      "code": "140",
+      "name": "Kisə və paketlərdə daşınan materiallar: Yükləmə",
+      "unit": "t",
+      "qty": 50.0,
+      "unitPrice": 28.0
+    },
+    {
+      "sort": 157,
+      "kind": "work",
+      "houseNo": "1913025",
+      "section": "Bölmə 15. SÖKÜNTÜ və İNŞAAT TULLANTISI",
+      "code": "141",
+      "name": "Yükü özüboşaldan avtomobil ilə 15km məsafəyə daşınması",
+      "unit": "t",
+      "qty": 50.0,
+      "unitPrice": 7.0
+    },
+    {
+      "sort": 158,
+      "kind": "house",
+      "houseNo": "1913053",
+      "section": "",
+      "code": "",
+      "name": "Fərdi yaşayış evi №1913053",
+      "unit": "",
+      "qty": 0,
+      "unitPrice": 0
+    },
+    {
+      "sort": 159,
+      "kind": "section",
+      "houseNo": "1913053",
+      "section": "Bölmə 1. FASAD",
+      "code": "",
+      "name": "Bölmə 1. FASAD",
+      "unit": "",
+      "qty": 0,
+      "unitPrice": 0
+    },
+    {
+      "sort": 160,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 1. FASAD",
+      "code": "1",
+      "name": "Suvağın səthlərdən kərpic divar və tavanlardan qopardılması",
+      "unit": "100 m2",
+      "qty": 2.2,
+      "unitPrice": 200.0
+    },
+    {
+      "sort": 161,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 1. FASAD",
+      "code": "2",
+      "name": "Beton və daş səthlərin sement-əhəng məhlulu ilə suvanması: divarların, yaxşılaşdırılmış",
+      "unit": "100 m2",
+      "qty": 2.2,
+      "unitPrice": 800.0
+    },
+    {
+      "sort": 162,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 1. FASAD",
+      "code": "3",
+      "name": "Fasadların hazır səthlərinin  mineral tərkibdən torsovka olunması",
+      "unit": "100 m2",
+      "qty": 2.2,
+      "unitPrice": 180.0
+    },
+    {
+      "sort": 163,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 1. FASAD",
+      "code": "4",
+      "name": "Fasadların hazırlanmış səthinin taxtabəndlərdən rənglənməsi: silikatlı",
+      "unit": "100 m2",
+      "qty": 2.2,
+      "unitPrice": 180.0
+    },
+    {
+      "sort": 164,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 1. FASAD",
+      "code": "5",
+      "name": "Xarici inventar taxtabəndlərin qurulması və sökülməsi",
+      "unit": "100 m2",
+      "qty": 2.2,
+      "unitPrice": 300.0
+    },
+    {
+      "sort": 165,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 1. FASAD",
+      "code": "6",
+      "name": "Qurulması: dəmir-beton artırmaların (selsəki - 10sm qal.)",
+      "unit": "m3",
+      "qty": 2.7,
+      "unitPrice": 280.0
+    },
+    {
+      "sort": 166,
+      "kind": "section",
+      "houseNo": "1913053",
+      "section": "Bölmə 2. DAM ÖRTÜYÜ",
+      "code": "",
+      "name": "Bölmə 2. DAM ÖRTÜYÜ",
+      "unit": "",
+      "qty": 0,
+      "unitPrice": 0
+    },
+    {
+      "sort": 167,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 2. DAM ÖRTÜYÜ",
+      "code": "7",
+      "name": "Dam örtüklərinin sökülməsi: dalğavari və yarımdalğavari vərəqlərdən",
+      "unit": "100 m2",
+      "qty": 1.89,
+      "unitPrice": 280.0
+    },
+    {
+      "sort": 168,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 2. DAM ÖRTÜYÜ",
+      "code": "8",
+      "name": "Dam konstruksiyalarının ağac elementlərinin sökülməsi",
+      "unit": "100 m2",
+      "qty": 1.89,
+      "unitPrice": 260.0
+    },
+    {
+      "sort": 169,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 2. DAM ÖRTÜYÜ",
+      "code": "9",
+      "name": "Çatıların qoyulması",
+      "unit": "m3",
+      "qty": 4.73,
+      "unitPrice": 360.0
+    },
+    {
+      "sort": 170,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 2. DAM ÖRTÜYÜ",
+      "code": "10",
+      "name": "Sinklənmiş poladdan dam örtüyünün düzəldilməsi",
+      "unit": "100 m2",
+      "qty": 1.89,
+      "unitPrice": 1650.0
+    },
+    {
+      "sort": 171,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 2. DAM ÖRTÜYÜ",
+      "code": "11",
+      "name": "Novların düzəldilməsi: asma",
+      "unit": "100 m",
+      "qty": 0.44,
+      "unitPrice": 1100.0
+    },
+    {
+      "sort": 172,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 2. DAM ÖRTÜYÜ",
+      "code": "12",
+      "name": "Metal su axıdıcı sistemin qurulması: düz boru bağlantıları",
+      "unit": "m",
+      "qty": 20.0,
+      "unitPrice": 12.0
+    },
+    {
+      "sort": 173,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 2. DAM ÖRTÜYÜ",
+      "code": "13",
+      "name": "Metal su axıdıcı sistemin qurulması: qıflar",
+      "unit": "ədəd",
+      "qty": 4.0,
+      "unitPrice": 7.0
+    },
+    {
+      "sort": 174,
+      "kind": "section",
+      "houseNo": "1913053",
+      "section": "Bölmə 3. DİVAR və ARAKƏSMƏLƏR",
+      "code": "",
+      "name": "Bölmə 3. DİVAR və ARAKƏSMƏLƏR",
+      "unit": "",
+      "qty": 0,
+      "unitPrice": 0
+    },
+    {
+      "sort": 175,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 3. DİVAR və ARAKƏSMƏLƏR",
+      "code": "14",
+      "name": "Söküntü: kiçik bloklardan divarların",
+      "unit": "m3",
+      "qty": 2.4,
+      "unitPrice": 28.0
+    },
+    {
+      "sort": 176,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 3. DİVAR və ARAKƏSMƏLƏR",
+      "code": "15",
+      "name": "390x190x188 mm ölçülərində mişarlanmış əhəng daşından daxili divarlarının hörgüsü: 19 sm",
+      "unit": "10 m2",
+      "qty": 4.2,
+      "unitPrice": 200.0
+    },
+    {
+      "sort": 177,
+      "kind": "section",
+      "houseNo": "1913053",
+      "section": "Bölmə 4. DÖŞƏMƏLƏR",
+      "code": "",
+      "name": "Bölmə 4. DÖŞƏMƏLƏR",
+      "unit": "",
+      "qty": 0,
+      "unitPrice": 0
+    },
+    {
+      "sort": 178,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 4. DÖŞƏMƏLƏR",
+      "code": "16",
+      "name": "Birləşdirici qatın düzəldilməsi:sement, qalınlığı 20 mm",
+      "unit": "100 m2",
+      "qty": 0.24,
+      "unitPrice": 480.0
+    },
+    {
+      "sort": 179,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 4. DÖŞƏMƏLƏR",
+      "code": "17",
+      "name": "Birləşdirici qatın düzəldilməsi: sement - Əlavə 10mm",
+      "unit": "100 m2",
+      "qty": 0.24,
+      "unitPrice": 290.0
+    },
+    {
+      "sort": 180,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 4. DÖŞƏMƏLƏR",
+      "code": "18",
+      "name": "Ruberoid qoruyuculu, hidroizolyasiyanın düzəldilməsi: birinci qat",
+      "unit": "100 m2",
+      "qty": 0.07,
+      "unitPrice": 980.0
+    },
+    {
+      "sort": 181,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 4. DÖŞƏMƏLƏR",
+      "code": "19",
+      "name": "Ruberoid qoruyuculu, hidroizolyasiyanın düzəldilməsi: sonrakı qat",
+      "unit": "100 m2",
+      "qty": 0.07,
+      "unitPrice": 980.0
+    },
+    {
+      "sort": 182,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 4. DÖŞƏMƏLƏR",
+      "code": "20",
+      "name": "Bitum mastikasında tavalardan örtüklərin düzəldilməsi: keramik",
+      "unit": "100 m2",
+      "qty": 0.25,
+      "unitPrice": 2450.0
+    },
+    {
+      "sort": 183,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 4. DÖŞƏMƏLƏR",
+      "code": "21",
+      "name": "Döşəmə örtüklərinin sökülməsi: taxtadan",
+      "unit": "100 m2",
+      "qty": 0.92,
+      "unitPrice": 310.0
+    },
+    {
+      "sort": 184,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 4. DÖŞƏMƏLƏR",
+      "code": "22",
+      "name": "Laqaların qoyulması: örtük tavaları üzrə",
+      "unit": "100 m2",
+      "qty": 0.92,
+      "unitPrice": 880.0
+    },
+    {
+      "sort": 185,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 4. DÖŞƏMƏLƏR",
+      "code": "23",
+      "name": "Bir lay fanerdan döşəmələrin əsasının qurulması",
+      "unit": "100 m2",
+      "qty": 0.92,
+      "unitPrice": 350.0
+    },
+    {
+      "sort": 186,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 4. DÖŞƏMƏLƏR",
+      "code": "24",
+      "name": "Dikt (1,52*1,52) 15 mm",
+      "unit": "ədəd",
+      "qty": 60.0,
+      "unitPrice": 28.0
+    },
+    {
+      "sort": 187,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 4. DÖŞƏMƏLƏR",
+      "code": "25",
+      "name": "Örtüklərin düzəldilməsi: açar üsulu ilə laminasiya olunmuş taxtalardan",
+      "unit": "100 m2",
+      "qty": 0.92,
+      "unitPrice": 1450.0
+    },
+    {
+      "sort": 188,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 4. DÖŞƏMƏLƏR",
+      "code": "26",
+      "name": "Birləşdirici qatın düzəldilməsi: sement, qalınlığı 20 mm - Zirzəmi üçün",
+      "unit": "100 m2",
+      "qty": 0.94,
+      "unitPrice": 480.0
+    },
+    {
+      "sort": 189,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 4. DÖŞƏMƏLƏR",
+      "code": "27",
+      "name": "Birləşdirici qatın düzəldilməsi: sement - əlavə 30mm - Zirzəmi üçün",
+      "unit": "100 m2",
+      "qty": 0.94,
+      "unitPrice": 720.0
+    },
+    {
+      "sort": 190,
+      "kind": "section",
+      "houseNo": "1913053",
+      "section": "Bölmə 5. QAPI və PƏNCƏRƏLƏR",
+      "code": "",
+      "name": "Bölmə 5. QAPI və PƏNCƏRƏLƏR",
+      "unit": "",
+      "qty": 0,
+      "unitPrice": 0
+    },
+    {
+      "sort": 191,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 5. QAPI və PƏNCƏRƏLƏR",
+      "code": "28",
+      "name": "Boşluqların taxta doldurucularının sökülməsi: pəncərəaltı lövhəsiz pəncərələrin",
+      "unit": "100 m2",
+      "qty": 0.32,
+      "unitPrice": 950.0
+    },
+    {
+      "sort": 192,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 5. QAPI və PƏNCƏRƏLƏR",
+      "code": "29",
+      "name": "PVX profildən pəncərə bloklarının qoyulması",
+      "unit": "100 m2",
+      "qty": 0.38,
+      "unitPrice": 10500.0
+    },
+    {
+      "sort": 193,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 5. QAPI və PƏNCƏRƏLƏR",
+      "code": "30",
+      "name": "Boşluqların taxta doldurucularının sökülməsi: qapı və darvaza",
+      "unit": "100 m2",
+      "qty": 0.24,
+      "unitPrice": 950.0
+    },
+    {
+      "sort": 194,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 5. QAPI və PƏNCƏRƏLƏR",
+      "code": "31",
+      "name": "PVX blokların daxili qapı boşluqlarına qoyulması",
+      "unit": "100 m2",
+      "qty": 0.16,
+      "unitPrice": 12000.0
+    },
+    {
+      "sort": 195,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 5. QAPI və PƏNCƏRƏLƏR",
+      "code": "32",
+      "name": "Daxili qapı boşluqlarında MDF qapıların quraşdırılması",
+      "unit": "100 m2",
+      "qty": 0.08,
+      "unitPrice": 15000.0
+    },
+    {
+      "sort": 196,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 5. QAPI və PƏNCƏRƏLƏR",
+      "code": "33",
+      "name": "Hazır boşluqlara metal qapı bloklarının qurulması",
+      "unit": "m2",
+      "qty": 2.0,
+      "unitPrice": 205.0
+    },
+    {
+      "sort": 197,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 5. QAPI və PƏNCƏRƏLƏR",
+      "code": "34",
+      "name": "PVX-dan pəncərəaltı lövhələrin qoyulması",
+      "unit": "100 m",
+      "qty": 0.48,
+      "unitPrice": 1200.0
+    },
+    {
+      "sort": 198,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 5. QAPI və PƏNCƏRƏLƏR",
+      "code": "35",
+      "name": "Pəncərəaltı PVX lövhələri",
+      "unit": "m",
+      "qty": 48.0,
+      "unitPrice": 7.0
+    },
+    {
+      "sort": 199,
+      "kind": "section",
+      "houseNo": "1913053",
+      "section": "Bölmə 6. DAXİLİ TAMAMLAMA İŞLƏRİ",
+      "code": "",
+      "name": "Bölmə 6. DAXİLİ TAMAMLAMA İŞLƏRİ",
+      "unit": "",
+      "qty": 0,
+      "unitPrice": 0
+    },
+    {
+      "sort": 200,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 6. DAXİLİ TAMAMLAMA İŞLƏRİ",
+      "code": "36",
+      "name": "Suvağın səthlərdən kərpic divar və tavanlardan qopardılması",
+      "unit": "100 m2",
+      "qty": 0.5,
+      "unitPrice": 200.0
+    },
+    {
+      "sort": 201,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 6. DAXİLİ TAMAMLAMA İŞLƏRİ",
+      "code": "37",
+      "name": "Beton və daş səthlərin sement-əhəng məhlulu ilə suvanması: divarların, yaxşılaşdırılmış",
+      "unit": "100 m2",
+      "qty": 0.5,
+      "unitPrice": 800.0
+    },
+    {
+      "sort": 202,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 6. DAXİLİ TAMAMLAMA İŞLƏRİ",
+      "code": "38",
+      "name": "Su-dispersiyalı astarın çəkilməsi: məsaməli səthə (binder)",
+      "unit": "100 m2",
+      "qty": 0.5,
+      "unitPrice": 72.0
+    },
+    {
+      "sort": 203,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 6. DAXİLİ TAMAMLAMA İŞLƏRİ",
+      "code": "39",
+      "name": "Suvaqlanmış səthlərin nərdivandan tam şpatlyovkalanması",
+      "unit": "100 m2",
+      "qty": 2.46,
+      "unitPrice": 380.0
+    },
+    {
+      "sort": 204,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 6. DAXİLİ TAMAMLAMA İŞLƏRİ",
+      "code": "40",
+      "name": "Monolit suvaqlara və beton divarlara divar kağızının yapışdırılması",
+      "unit": "100 m2",
+      "qty": 2.46,
+      "unitPrice": 690.0
+    },
+    {
+      "sort": 205,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 6. DAXİLİ TAMAMLAMA İŞLƏRİ",
+      "code": "41",
+      "name": "Beton və daş səthlərin sement məhlulu ilə suvanması: divarların, sadə (Kafelaltı səthin)",
+      "unit": "100 m2",
+      "qty": 0.27,
+      "unitPrice": 800.0
+    },
+    {
+      "sort": 206,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 6. DAXİLİ TAMAMLAMA İŞLƏRİ",
+      "code": "42",
+      "name": "Səthlərin sement məhlulu əsasında kafellə üzlənməsi",
+      "unit": "100 m2",
+      "qty": 0.25,
+      "unitPrice": 2450.0
+    },
+    {
+      "sort": 207,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 6. DAXİLİ TAMAMLAMA İŞLƏRİ",
+      "code": "43",
+      "name": "Səthlərin sement məhlulu əsasında kafellə üzlənməsi (Mebelarası kafellə üzlənmə)",
+      "unit": "100 m2",
+      "qty": 0.02,
+      "unitPrice": 2450.0
+    },
+    {
+      "sort": 208,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 6. DAXİLİ TAMAMLAMA İŞLƏRİ",
+      "code": "44",
+      "name": "Tavanların qurulması: məsaməli plitələrdən, sinklənmiş profildən karkas üzrə (Lambrin)",
+      "unit": "100 m2",
+      "qty": 0.24,
+      "unitPrice": 1400.0
+    },
+    {
+      "sort": 209,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 6. DAXİLİ TAMAMLAMA İŞLƏRİ",
+      "code": "45",
+      "name": "Gipskarton vərəqlərdən asma tavanların quraşdırılması: bir səviyyəli",
+      "unit": "100 m2",
+      "qty": 0.92,
+      "unitPrice": 1200.0
+    },
+    {
+      "sort": 210,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 6. DAXİLİ TAMAMLAMA İŞLƏRİ",
+      "code": "46",
+      "name": "Polivinilasetatlı suemulsiya tərkiblərlə yaxşılaşdırılmış rəngləmə: yığma konstruksiyalı tavanların",
+      "unit": "100 m2",
+      "qty": 0.92,
+      "unitPrice": 860.0
+    },
+    {
+      "sort": 211,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 6. DAXİLİ TAMAMLAMA İŞLƏRİ",
+      "code": "47",
+      "name": "Haşiyələrin qoyulması və bərkidilməsi (Paduqa)",
+      "unit": "100 m",
+      "qty": 0.95,
+      "unitPrice": 434.0
+    },
+    {
+      "sort": 212,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 6. DAXİLİ TAMAMLAMA İŞLƏRİ",
+      "code": "48",
+      "name": "Tavanların qurulması: məsaməli plitələrdən, sinklənmiş profildən karkas üzrə (Zirzəmi-Lambrin)",
+      "unit": "100 m2",
+      "qty": 0.8,
+      "unitPrice": 1400.0
+    },
+    {
+      "sort": 213,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 6. DAXİLİ TAMAMLAMA İŞLƏRİ",
+      "code": "49",
+      "name": "Beton və daş səthlərin sement-əhəng məhlulu ilə suvanması:tavanların, yaxşılaşdırılmış (Zirzəmi)",
+      "unit": "100 m2",
+      "qty": 0.25,
+      "unitPrice": 800.0
+    },
+    {
+      "sort": 214,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 6. DAXİLİ TAMAMLAMA İŞLƏRİ",
+      "code": "50",
+      "name": "Binanın daxilində əhəngli sulu tərkiblərlə rəngləmə: suvaq üzrə (Zirzəmi tavanı)",
+      "unit": "100 m2",
+      "qty": 0.25,
+      "unitPrice": 220.0
+    },
+    {
+      "sort": 215,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 6. DAXİLİ TAMAMLAMA İŞLƏRİ",
+      "code": "51",
+      "name": "Beton və daş səthlərin sement-əhəng məhlulu ilə suvanması:divarların yaxşılaşdırılmış (Zirzəmi)",
+      "unit": "100 m2",
+      "qty": 1.69,
+      "unitPrice": 800.0
+    },
+    {
+      "sort": 216,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 6. DAXİLİ TAMAMLAMA İŞLƏRİ",
+      "code": "52",
+      "name": "Binanın daxilində əhəngli sulu tərkiblərlə rəngləmə: suvaq üzrə (Zirzəmi)",
+      "unit": "100 m2",
+      "qty": 1.69,
+      "unitPrice": 220.0
+    },
+    {
+      "sort": 217,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 6. DAXİLİ TAMAMLAMA İŞLƏRİ",
+      "code": "53",
+      "name": "Dörd tin daşdan örtüyün düzəldilməsi: sement məhlulunda tikişləri doldurmaqla",
+      "unit": "100 m2",
+      "qty": 0.06,
+      "unitPrice": 2800.0
+    },
+    {
+      "sort": 218,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 6. DAXİLİ TAMAMLAMA İŞLƏRİ",
+      "code": "54",
+      "name": "Tutacaqsız metal məhəccərlərin qurulması",
+      "unit": "100 m",
+      "qty": 0.12,
+      "unitPrice": 3500.0
+    },
+    {
+      "sort": 219,
+      "kind": "section",
+      "houseNo": "1913053",
+      "section": "Bölmə 7. SU TƏCHİZATI və KANALİZASİYA",
+      "code": "",
+      "name": "Bölmə 7. SU TƏCHİZATI və KANALİZASİYA",
+      "unit": "",
+      "qty": 0,
+      "unitPrice": 0
+    },
+    {
+      "sort": 220,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 7. SU TƏCHİZATI və KANALİZASİYA",
+      "code": "55",
+      "name": "Polipropilen borulardan daxili su təchizatı və istilik borularının çəkilməsi: 25mm",
+      "unit": "100 m",
+      "qty": 0.46,
+      "unitPrice": 860.0
+    },
+    {
+      "sort": 221,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 7. SU TƏCHİZATI və KANALİZASİYA",
+      "code": "56",
+      "name": "Ventil, diametri 32mm",
+      "unit": "ədəd",
+      "qty": 2.0,
+      "unitPrice": 16.0
+    },
+    {
+      "sort": 222,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 7. SU TƏCHİZATI və KANALİZASİYA",
+      "code": "57",
+      "name": "Ventil, 25mm",
+      "unit": "ədəd",
+      "qty": 5.0,
+      "unitPrice": 14.0
+    },
+    {
+      "sort": 223,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 7. SU TƏCHİZATI və KANALİZASİYA",
+      "code": "58",
+      "name": "Ventil, 20mm",
+      "unit": "ədəd",
+      "qty": 2.0,
+      "unitPrice": 10.0
+    },
+    {
+      "sort": 224,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 7. SU TƏCHİZATI və KANALİZASİYA",
+      "code": "59",
+      "name": "Arko kran",
+      "unit": "ədəd",
+      "qty": 8.0,
+      "unitPrice": 12.0
+    },
+    {
+      "sort": 225,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 7. SU TƏCHİZATI və KANALİZASİYA",
+      "code": "60",
+      "name": "Yüksək sıxlıqlı polietilen borulardan kanalizasiya boru kəmərlərinin çəkilməsi,\ndiametri: 110mm",
+      "unit": "100 m",
+      "qty": 0.12,
+      "unitPrice": 900.0
+    },
+    {
+      "sort": 226,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 7. SU TƏCHİZATI və KANALİZASİYA",
+      "code": "61",
+      "name": "Yüksək sıxlıqlı polietilen borulardan kanalizasiya boru kəmərlərinin çəkilməsi,\ndiametri: 50mm",
+      "unit": "100 m",
+      "qty": 0.06,
+      "unitPrice": 700.0
+    },
+    {
+      "sort": 227,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 7. SU TƏCHİZATI və KANALİZASİYA",
+      "code": "62",
+      "name": "Unitazların quraşdırılması: baçokla bilavasitə birləşdirilmiş",
+      "unit": "10 dəst",
+      "qty": 0.1,
+      "unitPrice": 1200.0
+    },
+    {
+      "sort": 228,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 7. SU TƏCHİZATI və KANALİZASİYA",
+      "code": "63",
+      "name": "Gigiyenik su qarışdırıcı (şlanqlı,başliqlı)",
+      "unit": "dəst",
+      "qty": 1.0,
+      "unitPrice": 48.0
+    },
+    {
+      "sort": 229,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 7. SU TƏCHİZATI və KANALİZASİYA",
+      "code": "64",
+      "name": "Əlüzyuyanların quraşdırılması: isti və soyuq su çəkilməklə",
+      "unit": "10 dəst",
+      "qty": 0.1,
+      "unitPrice": 920.0
+    },
+    {
+      "sort": 230,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 7. SU TƏCHİZATI və KANALİZASİYA",
+      "code": "65",
+      "name": "Yuyucuların quraşdırılması: bir hissəli (Mətbəxdə)",
+      "unit": "10 dəst",
+      "qty": 0.1,
+      "unitPrice": 900.0
+    },
+    {
+      "sort": 231,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 7. SU TƏCHİZATI və KANALİZASİYA",
+      "code": "66",
+      "name": "Qarışdırıcıların quraşdırılması (Duşun quraşdırılması)",
+      "unit": "10 ədəd",
+      "qty": 0.1,
+      "unitPrice": 940.0
+    },
+    {
+      "sort": 232,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 7. SU TƏCHİZATI və KANALİZASİYA",
+      "code": "67",
+      "name": "Trapların quraşdırılması diametri: 50 mm",
+      "unit": "10 dəst",
+      "qty": 0.1,
+      "unitPrice": 110.0
+    },
+    {
+      "sort": 233,
+      "kind": "section",
+      "houseNo": "1913053",
+      "section": "Bölmə 8. İSİTMƏ SİSTEMİ",
+      "code": "",
+      "name": "Bölmə 8. İSİTMƏ SİSTEMİ",
+      "unit": "",
+      "qty": 0,
+      "unitPrice": 0
+    },
+    {
+      "sort": 234,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 8. İSİTMƏ SİSTEMİ",
+      "code": "68",
+      "name": "Polipropilen borulardan daxili su təchizatı və istilik borularının çəkilməsi: 25mm",
+      "unit": "100 m",
+      "qty": 0.9,
+      "unitPrice": 860.0
+    },
+    {
+      "sort": 235,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 8. İSİTMƏ SİSTEMİ",
+      "code": "69",
+      "name": "Radiatorların qoyulması: polad",
+      "unit": "100 kvt",
+      "qty": 0.1176,
+      "unitPrice": 650.0
+    },
+    {
+      "sort": 236,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 8. İSİTMƏ SİSTEMİ",
+      "code": "70",
+      "name": "İstilik radiatorları, seksiyalı",
+      "unit": "ədəd",
+      "qty": 70.0,
+      "unitPrice": 14.0
+    },
+    {
+      "sort": 237,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 8. İSİTMƏ SİSTEMİ",
+      "code": "71",
+      "name": "Sintetik yapışdırıcılı mineral pambıqdan silindrlərlə boru kəmərlərinin izolyasiya edilməsi",
+      "unit": "m3",
+      "qty": 0.03,
+      "unitPrice": 580.0
+    },
+    {
+      "sort": 238,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 8. İSİTMƏ SİSTEMİ",
+      "code": "72",
+      "name": "Dəsmal qurudanların quraşdırılması: xromlanmış latundan",
+      "unit": "10 ədəd",
+      "qty": 0.1,
+      "unitPrice": 850.0
+    },
+    {
+      "sort": 239,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 8. İSİTMƏ SİSTEMİ",
+      "code": "73",
+      "name": "Radiator ventili; 1/2 düyümlü",
+      "unit": "ədəd",
+      "qty": 14.0,
+      "unitPrice": 9.0
+    },
+    {
+      "sort": 240,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 8. İSİTMƏ SİSTEMİ",
+      "code": "74",
+      "name": "Termostatlı radiator ventili 1/2 düyümlü",
+      "unit": "ədəd",
+      "qty": 3.0,
+      "unitPrice": 21.0
+    },
+    {
+      "sort": 241,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 8. İSİTMƏ SİSTEMİ",
+      "code": "75",
+      "name": "Ventil, diametri 32mm",
+      "unit": "ədəd",
+      "qty": 1.0,
+      "unitPrice": 16.0
+    },
+    {
+      "sort": 242,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 8. İSİTMƏ SİSTEMİ",
+      "code": "76",
+      "name": "Ventil, 25mm",
+      "unit": "ədəd",
+      "qty": 2.0,
+      "unitPrice": 14.0
+    },
+    {
+      "sort": 243,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 8. İSİTMƏ SİSTEMİ",
+      "code": "77",
+      "name": "Fərdi qızdırıcıların quraşdırılması: su ilə",
+      "unit": "10 dəst",
+      "qty": 0.1,
+      "unitPrice": 510.0
+    },
+    {
+      "sort": 244,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 8. İSİTMƏ SİSTEMİ",
+      "code": "78",
+      "name": "Kombi 24 kVt",
+      "unit": "ədəd",
+      "qty": 1.0,
+      "unitPrice": 960.0
+    },
+    {
+      "sort": 245,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 8. İSİTMƏ SİSTEMİ",
+      "code": "79",
+      "name": "Cihaz və ya aparat - Avtomatların quraşdırılması",
+      "unit": "ədəd",
+      "qty": 1.0,
+      "unitPrice": 5.0
+    },
+    {
+      "sort": 246,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 8. İSİTMƏ SİSTEMİ",
+      "code": "80",
+      "name": "Stablizator",
+      "unit": "ədəd",
+      "qty": 1.0,
+      "unitPrice": 60.0
+    },
+    {
+      "sort": 247,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 8. İSİTMƏ SİSTEMİ",
+      "code": "81",
+      "name": "Reduksiyalı (təzyiqazaldan) yaylı klapanların qoyulması, diametri: 25 mm",
+      "unit": "ədəd",
+      "qty": 1.0,
+      "unitPrice": 12.0
+    },
+    {
+      "sort": 248,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 8. İSİTMƏ SİSTEMİ",
+      "code": "82",
+      "name": "Qaz tənzimləyici (reduktor), diametri 25 mm",
+      "unit": "ədəd",
+      "qty": 1.0,
+      "unitPrice": 54.0
+    },
+    {
+      "sort": 249,
+      "kind": "section",
+      "houseNo": "1913053",
+      "section": "Bölmə 9. ELEKTRİK TƏCHİZATI",
+      "code": "",
+      "name": "Bölmə 9. ELEKTRİK TƏCHİZATI",
+      "unit": "",
+      "qty": 0,
+      "unitPrice": 0
+    },
+    {
+      "sort": 250,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 9. ELEKTRİK TƏCHİZATI",
+      "code": "83",
+      "name": "Divarda quraşdırılmış işıqlandırma lövhə",
+      "unit": "ədəd",
+      "qty": 1.0,
+      "unitPrice": 44.0
+    },
+    {
+      "sort": 251,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 9. ELEKTRİK TƏCHİZATI",
+      "code": "84",
+      "name": "Işıqlanma lövhəsi",
+      "unit": "ədəd",
+      "qty": 1.0,
+      "unitPrice": 160.0
+    },
+    {
+      "sort": 252,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 9. ELEKTRİK TƏCHİZATI",
+      "code": "85",
+      "name": "Cihaz və ya aparat - Avtomatların quraşdırılması",
+      "unit": "ədəd",
+      "qty": 10.0,
+      "unitPrice": 5.0
+    },
+    {
+      "sort": 253,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 9. ELEKTRİK TƏCHİZATI",
+      "code": "86",
+      "name": "3FAZ C TİPİ 40A avtomat açar",
+      "unit": "ədəd",
+      "qty": 1.0,
+      "unitPrice": 48.0
+    },
+    {
+      "sort": 254,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 9. ELEKTRİK TƏCHİZATI",
+      "code": "87",
+      "name": "1FAZ C TİPİ 25A avtomat açar",
+      "unit": "ədəd",
+      "qty": 3.0,
+      "unitPrice": 9.0
+    },
+    {
+      "sort": 255,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 9. ELEKTRİK TƏCHİZATI",
+      "code": "88",
+      "name": "1FAZ C TİPİ 20A avtomat açar",
+      "unit": "ədəd",
+      "qty": 2.0,
+      "unitPrice": 8.0
+    },
+    {
+      "sort": 256,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 9. ELEKTRİK TƏCHİZATI",
+      "code": "89",
+      "name": "1FAZ C TİPİ 16A avtomat açar",
+      "unit": "ədəd",
+      "qty": 4.0,
+      "unitPrice": 6.0
+    },
+    {
+      "sort": 257,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 9. ELEKTRİK TƏCHİZATI",
+      "code": "90",
+      "name": "Asma tavanlarda çıraqlar",
+      "unit": "100 ədəd",
+      "qty": 0.14,
+      "unitPrice": 1200.0
+    },
+    {
+      "sort": 258,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 9. ELEKTRİK TƏCHİZATI",
+      "code": "91",
+      "name": "Plafon LED Dairəvi Güc:12W",
+      "unit": "ədəd",
+      "qty": 14.0,
+      "unitPrice": 18.0
+    },
+    {
+      "sort": 259,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 9. ELEKTRİK TƏCHİZATI",
+      "code": "92",
+      "name": "Çılçıraq və asılqanlar, lampaların sayı, qədər:5",
+      "unit": "ədəd",
+      "qty": 6.0,
+      "unitPrice": 30.0
+    },
+    {
+      "sort": 260,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 9. ELEKTRİK TƏCHİZATI",
+      "code": "93",
+      "name": "Asma çilçıraq beş lampalı",
+      "unit": "ədəd",
+      "qty": 6.0,
+      "unitPrice": 80.0
+    },
+    {
+      "sort": 261,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 9. ELEKTRİK TƏCHİZATI",
+      "code": "94",
+      "name": "Elektrik açarı:açıq üsulla elektrik şəbəkəsinin çəkilməsi zamanı, birdilli, batıqsız tipli",
+      "unit": "100 ədəd",
+      "qty": 0.15,
+      "unitPrice": 210.0
+    },
+    {
+      "sort": 262,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 9. ELEKTRİK TƏCHİZATI",
+      "code": "95",
+      "name": "Elektrik açarları",
+      "unit": "ədəd",
+      "qty": 15.0,
+      "unitPrice": 6.0
+    },
+    {
+      "sort": 263,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 9. ELEKTRİK TƏCHİZATI",
+      "code": "96",
+      "name": "Ştepsel rozetkası: yarımgermetik və germetik",
+      "unit": "100 ədəd",
+      "qty": 0.21,
+      "unitPrice": 450.0
+    },
+    {
+      "sort": 264,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 9. ELEKTRİK TƏCHİZATI",
+      "code": "97",
+      "name": "Ştepsel rozetkalar",
+      "unit": "ədəd",
+      "qty": 19.0,
+      "unitPrice": 6.0
+    },
+    {
+      "sort": 265,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 9. ELEKTRİK TƏCHİZATI",
+      "code": "98",
+      "name": "TV yuvalı rozetkası",
+      "unit": "ədəd",
+      "qty": 2.0,
+      "unitPrice": 5.0
+    },
+    {
+      "sort": 266,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 9. ELEKTRİK TƏCHİZATI",
+      "code": "99",
+      "name": "Kərpic divarların şırım açanla şırımlarının açılması, en kəsiyinin sahəsi: 20 sm2-ə qədər",
+      "unit": "100 m",
+      "qty": 5.2,
+      "unitPrice": 40.0
+    },
+    {
+      "sort": 267,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 9. ELEKTRİK TƏCHİZATI",
+      "code": "100",
+      "name": "Quraşdırılmış konstruksiyalar,üzrə kabel və naqilləri qorumaq üçün qırçınlı PVX boruları",
+      "unit": "100 m",
+      "qty": 5.2,
+      "unitPrice": 120.0
+    },
+    {
+      "sort": 268,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 9. ELEKTRİK TƏCHİZATI",
+      "code": "101",
+      "name": "Qofra borusu 25mm",
+      "unit": "m",
+      "qty": 520.0,
+      "unitPrice": 0.7
+    },
+    {
+      "sort": 269,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 9. ELEKTRİK TƏCHİZATI",
+      "code": "102",
+      "name": "Ümumi hörmədə çoxdamarlı birinci naqil, ümumi en kəsiyi, mm2, qədər: 6",
+      "unit": "100 m",
+      "qty": 0.4,
+      "unitPrice": 80.0
+    },
+    {
+      "sort": 270,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 9. ELEKTRİK TƏCHİZATI",
+      "code": "103",
+      "name": "Quraşdırma kabeli ПВ 3 6",
+      "unit": "m",
+      "qty": 40.0,
+      "unitPrice": 2.1
+    },
+    {
+      "sort": 271,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 9. ELEKTRİK TƏCHİZATI",
+      "code": "104",
+      "name": "Ümumi hörmədə çoxdamarlı birinci naqil, ümumi en kəsiyi, mm2, qədər: 2,5",
+      "unit": "100 m",
+      "qty": 7.4,
+      "unitPrice": 60.0
+    },
+    {
+      "sort": 272,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 9. ELEKTRİK TƏCHİZATI",
+      "code": "105",
+      "name": "Quraşdırma kabeli ПВ 3 4",
+      "unit": "m",
+      "qty": 180.0,
+      "unitPrice": 1.8
+    },
+    {
+      "sort": 273,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 9. ELEKTRİK TƏCHİZATI",
+      "code": "106",
+      "name": "Quraşdırma kabeli ПВ 3 2.5",
+      "unit": "m",
+      "qty": 560.0,
+      "unitPrice": 1.4
+    },
+    {
+      "sort": 274,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 9. ELEKTRİK TƏCHİZATI",
+      "code": "107",
+      "name": "Çəkilmiş boru, blok və qutularda 35 kV-a qədər kabel, 1 m kabelin kütləsi, kq, qədər:1",
+      "unit": "100 m",
+      "qty": 0.6,
+      "unitPrice": 145.0
+    },
+    {
+      "sort": 275,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 9. ELEKTRİK TƏCHİZATI",
+      "code": "108",
+      "name": "Siqnal kabeli CAT 6 UTP",
+      "unit": "m",
+      "qty": 30.0,
+      "unitPrice": 2.0
+    },
+    {
+      "sort": 276,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 9. ELEKTRİK TƏCHİZATI",
+      "code": "109",
+      "name": "Telefon, LAN, koaksial kabel RG 6/ U-4",
+      "unit": "m",
+      "qty": 30.0,
+      "unitPrice": 1.6
+    },
+    {
+      "sort": 277,
+      "kind": "section",
+      "houseNo": "1913053",
+      "section": "Bölmə 10. DAXİLİ QAZ XƏTTİ",
+      "code": "",
+      "name": "Bölmə 10. DAXİLİ QAZ XƏTTİ",
+      "unit": "",
+      "qty": 0,
+      "unitPrice": 0
+    },
+    {
+      "sort": 278,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 10. DAXİLİ QAZ XƏTTİ",
+      "code": "110",
+      "name": "Tikişsiz polad borulardan istilik və qaz təchizatı boru kəmərlərinin çəkilməsi,diametri: 50 mm",
+      "unit": "100 m",
+      "qty": 0.7,
+      "unitPrice": 440.0
+    },
+    {
+      "sort": 279,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 10. DAXİLİ QAZ XƏTTİ",
+      "code": "111",
+      "name": "Tikişli boru 20x2.5 QOST 3262",
+      "unit": "m",
+      "qty": 40.0,
+      "unitPrice": 4.0
+    },
+    {
+      "sort": 280,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 10. DAXİLİ QAZ XƏTTİ",
+      "code": "112",
+      "name": "Tikişli boru 15x2.5 QOST 3262",
+      "unit": "m",
+      "qty": 30.0,
+      "unitPrice": 4.0
+    },
+    {
+      "sort": 281,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 10. DAXİLİ QAZ XƏTTİ",
+      "code": "113",
+      "name": "Metal səthlərin yağlı boya ilə rənglənməsi: rənglənmənin sayı 2 dəfə",
+      "unit": "100 m2",
+      "qty": 0.05,
+      "unitPrice": 580.0
+    },
+    {
+      "sort": 282,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 10. DAXİLİ QAZ XƏTTİ",
+      "code": "114",
+      "name": "Qaz kranı, diametri 20 mm, içi şarlı, əl dəstəkli",
+      "unit": "ədəd",
+      "qty": 1.0,
+      "unitPrice": 5.0
+    },
+    {
+      "sort": 283,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 10. DAXİLİ QAZ XƏTTİ",
+      "code": "115",
+      "name": "Qaz kranı, diametri 15 mm, içi şarlı, əl dəstəkli",
+      "unit": "ədəd",
+      "qty": 1.0,
+      "unitPrice": 5.0
+    },
+    {
+      "sort": 284,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 10. DAXİLİ QAZ XƏTTİ",
+      "code": "116",
+      "name": "Qaz plitələrinin quraşdırılması: məişət üçün dörd komforlu",
+      "unit": "ədəd",
+      "qty": 1.0,
+      "unitPrice": 25.0
+    },
+    {
+      "sort": 285,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 10. DAXİLİ QAZ XƏTTİ",
+      "code": "117",
+      "name": "Döşəmə üstü lövhəli ayrıca dayanmış duxovkalı və quruducu şkaflı, dörd odluqlu qaz plitəsi",
+      "unit": "ədəd",
+      "qty": 1.0,
+      "unitPrice": 240.0
+    },
+    {
+      "sort": 286,
+      "kind": "section",
+      "houseNo": "1913053",
+      "section": "Bölmə 11. MƏTBƏX MEBELİ",
+      "code": "",
+      "name": "Bölmə 11. MƏTBƏX MEBELİ",
+      "unit": "",
+      "qty": 0,
+      "unitPrice": 0
+    },
+    {
+      "sort": 287,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 11. MƏTBƏX MEBELİ",
+      "code": "118",
+      "name": "Mətbəx mebeli MDF",
+      "unit": "p.m",
+      "qty": 3.0,
+      "unitPrice": 220.0
+    },
+    {
+      "sort": 288,
+      "kind": "section",
+      "houseNo": "1913053",
+      "section": "Bölmə 12. ABADLAŞDIRMA",
+      "code": "",
+      "name": "Bölmə 12. ABADLAŞDIRMA",
+      "unit": "",
+      "qty": 0,
+      "unitPrice": 0
+    },
+    {
+      "sort": 289,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 12. ABADLAŞDIRMA",
+      "code": "119",
+      "name": "Əsasların döşənək və hamarlayıcı qatlarının qurulması: qum-çınqıldan",
+      "unit": "100 m3",
+      "qty": 0.06,
+      "unitPrice": 400.0
+    },
+    {
+      "sort": 290,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 12. ABADLAŞDIRMA",
+      "code": "120",
+      "name": "Qum çınqıl qarışığı",
+      "unit": "m3",
+      "qty": 6.0,
+      "unitPrice": 28.0
+    },
+    {
+      "sort": 291,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 12. ABADLAŞDIRMA",
+      "code": "121",
+      "name": "Birləşdirici qatın düzəldilməsi:sement, qalınlığı 20 mm",
+      "unit": "100 m2",
+      "qty": 0.6,
+      "unitPrice": 480.0
+    },
+    {
+      "sort": 292,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 12. ABADLAŞDIRMA",
+      "code": "122",
+      "name": "Birləşdirici qatın düzəldilməsi: sement - Əlavə 30 mm",
+      "unit": "100 m2",
+      "qty": 0.6,
+      "unitPrice": 720.0
+    },
+    {
+      "sort": 293,
+      "kind": "section",
+      "houseNo": "1913053",
+      "section": "Bölmə 13. YARDIMÇI TİKİLİ",
+      "code": "",
+      "name": "Bölmə 13. YARDIMÇI TİKİLİ",
+      "unit": "",
+      "qty": 0,
+      "unitPrice": 0
+    },
+    {
+      "sort": 294,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 13. YARDIMÇI TİKİLİ",
+      "code": "123",
+      "name": "Beton və daş səthlərin sement-əhəng məhlulu ilə suvanması: divarların, yaxşılaşdırılmış",
+      "unit": "100 m2",
+      "qty": 0.31,
+      "unitPrice": 800.0
+    },
+    {
+      "sort": 295,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 13. YARDIMÇI TİKİLİ",
+      "code": "124",
+      "name": "Fasadların hazırlanmış səthinin taxtabəndlərdən rənglənməsi: silikatlı",
+      "unit": "100 m2",
+      "qty": 0.31,
+      "unitPrice": 180.0
+    },
+    {
+      "sort": 296,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 13. YARDIMÇI TİKİLİ",
+      "code": "125",
+      "name": "Beton və daş səthlərin sement-əhəng məhlulu ilə suvanması: divarların, yaxşılaşdırılmış",
+      "unit": "100 m2",
+      "qty": 0.25,
+      "unitPrice": 800.0
+    },
+    {
+      "sort": 297,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 13. YARDIMÇI TİKİLİ",
+      "code": "126",
+      "name": "Binanın daxilində əhəngli sulu tərkiblərlə rəngləmə: suvaq üzrə",
+      "unit": "100 m2",
+      "qty": 0.25,
+      "unitPrice": 220.0
+    },
+    {
+      "sort": 298,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 13. YARDIMÇI TİKİLİ",
+      "code": "127",
+      "name": "Birləşdirici qatın düzəldilməsi:sement, qalınlığı 20 mm",
+      "unit": "100 m2",
+      "qty": 0.11,
+      "unitPrice": 480.0
+    },
+    {
+      "sort": 299,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 13. YARDIMÇI TİKİLİ",
+      "code": "128",
+      "name": "Birləşdirici qatın düzəldilməsi: sement - Əlavə 30 mm",
+      "unit": "100 m2",
+      "qty": 0.11,
+      "unitPrice": 720.0
+    },
+    {
+      "sort": 300,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 13. YARDIMÇI TİKİLİ",
+      "code": "129",
+      "name": "Dam örtüklərinin sökülməsi: dalğavari və yarımdalğavari vərəqlərdən",
+      "unit": "100 m2",
+      "qty": 0.14,
+      "unitPrice": 280.0
+    },
+    {
+      "sort": 301,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 13. YARDIMÇI TİKİLİ",
+      "code": "130",
+      "name": "Sinklənmiş poladdan dam örtüyünün düzəldilməsi",
+      "unit": "100 m2",
+      "qty": 0.14,
+      "unitPrice": 1650.0
+    },
+    {
+      "sort": 302,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 13. YARDIMÇI TİKİLİ",
+      "code": "131",
+      "name": "PVX profildən pəncərə bloklarının qoyulması",
+      "unit": "100 m2",
+      "qty": 0.02,
+      "unitPrice": 10500.0
+    },
+    {
+      "sort": 303,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 13. YARDIMÇI TİKİLİ",
+      "code": "132",
+      "name": "Hazır boşluqlara metal qapı bloklarının qurulması",
+      "unit": "m2",
+      "qty": 2.0,
+      "unitPrice": 205.0
+    },
+    {
+      "sort": 304,
+      "kind": "section",
+      "houseNo": "1913053",
+      "section": "Bölmə 14. HASAR",
+      "code": "",
+      "name": "Bölmə 14. HASAR",
+      "unit": "",
+      "qty": 0,
+      "unitPrice": 0
+    },
+    {
+      "sort": 305,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 14. HASAR",
+      "code": "133",
+      "name": "Darvazaların təmiri",
+      "unit": "100 m2",
+      "qty": 0.24,
+      "unitPrice": 4500.0
+    },
+    {
+      "sort": 306,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 14. HASAR",
+      "code": "134",
+      "name": "390x190x188 mm ölçülərində mişarlanmış əhəng daşından bütöv divarlarının hörgüsü: 39 sm",
+      "unit": "10 m2",
+      "qty": 2.0,
+      "unitPrice": 380.0
+    },
+    {
+      "sort": 307,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 14. HASAR",
+      "code": "135",
+      "name": "Kürsüsü tor paneldən metal hasarların qurulması, hündürlüyü: 1,6 m-ə qədər",
+      "unit": "100 m",
+      "qty": 1.0,
+      "unitPrice": 400.0
+    },
+    {
+      "sort": 308,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 14. HASAR",
+      "code": "136",
+      "name": "Metal tor 50x50mm,qalınlığı 3mm,sinklənmiş",
+      "unit": "m2",
+      "qty": 160.0,
+      "unitPrice": 6.0
+    },
+    {
+      "sort": 309,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 14. HASAR",
+      "code": "137",
+      "name": "Beton və daş səthlərin sement-əhəng məhlulu ilə suvanması: divarların, yaxşılaşdırılmış",
+      "unit": "100 m2",
+      "qty": 0.5,
+      "unitPrice": 800.0
+    },
+    {
+      "sort": 310,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 14. HASAR",
+      "code": "138",
+      "name": "Fasadların hazırlanmış səthinin taxtabəndlərdən rənglənməsi: silikatlı",
+      "unit": "100 m2",
+      "qty": 0.5,
+      "unitPrice": 180.0
+    },
+    {
+      "sort": 311,
+      "kind": "section",
+      "houseNo": "1913053",
+      "section": "Bölmə 15. SÖKÜNTÜ və İNŞAAT TULLANTISI",
+      "code": "",
+      "name": "Bölmə 15. SÖKÜNTÜ və İNŞAAT TULLANTISI",
+      "unit": "",
+      "qty": 0,
+      "unitPrice": 0
+    },
+    {
+      "sort": 312,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 15. SÖKÜNTÜ və İNŞAAT TULLANTISI",
+      "code": "139",
+      "name": "Tikinti zibilinin kisələrə doldurulması",
+      "unit": "t",
+      "qty": 50.0,
+      "unitPrice": 18.5
+    },
+    {
+      "sort": 313,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 15. SÖKÜNTÜ və İNŞAAT TULLANTISI",
+      "code": "140",
+      "name": "Kisə və paketlərdə daşınan materiallar: Yükləmə",
+      "unit": "t",
+      "qty": 50.0,
+      "unitPrice": 28.0
+    },
+    {
+      "sort": 314,
+      "kind": "work",
+      "houseNo": "1913053",
+      "section": "Bölmə 15. SÖKÜNTÜ və İNŞAAT TULLANTISI",
+      "code": "141",
+      "name": "Yükü özüboşaldan avtomobil ilə 15km məsafəyə daşınması",
+      "unit": "t",
+      "qty": 50.0,
+      "unitPrice": 7.0
+    }
+  ],
+  "aprilAct": [
+    {
+      "code": "17",
+      "houseNo": "1913025",
+      "name": "Birləşdirici qatın düzəldilməsi:sement, qalınlığı 20 mm",
+      "qty": 0.25
+    },
+    {
+      "code": "18",
+      "houseNo": "1913025",
+      "name": "Birləşdirici qatın düzəldilməsi: sement - Əlavə 10mm",
+      "qty": 0.25
+    },
+    {
+      "code": "19",
+      "houseNo": "1913025",
+      "name": "Ruberoid qoruyuculu, hidroizolyasiyanın düzəldilməsi: birinci qat",
+      "qty": 0.07
+    },
+    {
+      "code": "20",
+      "houseNo": "1913025",
+      "name": "Ruberoid qoruyuculu, hidroizolyasiyanın düzəldilməsi: sonrakı qat",
+      "qty": 0.07
+    },
+    {
+      "code": "21",
+      "houseNo": "1913025",
+      "name": "Bitum mastikasında tavalardan örtüklərin düzəldilməsi: keramik",
+      "qty": 0.25
+    },
+    {
+      "code": "26",
+      "houseNo": "1913025",
+      "name": "Örtüklərin düzəldilməsi: açar üsulu ilə laminasiya olunmuş taxtalardan",
+      "qty": 0.35
+    },
+    {
+      "code": "27",
+      "houseNo": "1913025",
+      "name": "Birləşdirici qatın düzəldilməsi: sement, qalınlığı 20 mm - Zirzəmi üçün",
+      "qty": 1.02
+    },
+    {
+      "code": "28",
+      "houseNo": "1913025",
+      "name": "Birləşdirici qatın düzəldilməsi: sement - əlavə 30mm - Zirzəmi üçün",
+      "qty": 1.02
+    },
+    {
+      "code": "29",
+      "houseNo": "1913025",
+      "name": "Boşluqların taxta doldurucularının sökülməsi: pəncərəaltı lövhəsiz pəncərələrin",
+      "qty": 0.5
+    },
+    {
+      "code": "30",
+      "houseNo": "1913025",
+      "name": "PVX profildən pəncərə bloklarının qoyulması",
+      "qty": 0.48
+    },
+    {
+      "code": "31",
+      "houseNo": "1913025",
+      "name": "Boşluqların taxta doldurucularının sökülməsi: qapı və darvaza",
+      "qty": 0.26
+    },
+    {
+      "code": "32",
+      "houseNo": "1913025",
+      "name": "PVX blokların daxili qapı boşluqlarına qoyulması",
+      "qty": 0.2
+    },
+    {
+      "code": "33",
+      "houseNo": "1913025",
+      "name": "Daxili qapı boşluqlarında MDF qapıların quraşdırılması",
+      "qty": 0.05
+    },
+    {
+      "code": "34",
+      "houseNo": "1913025",
+      "name": "Hazır boşluqlara metal qapı bloklarının qurulması",
+      "qty": 2.0
+    },
+    {
+      "code": "35",
+      "houseNo": "1913025",
+      "name": "PVX-dan pəncərəaltı lövhələrin qoyulması",
+      "qty": 0.58
+    },
+    {
+      "code": "36",
+      "houseNo": "1913025",
+      "name": "Pəncərəaltı PVX lövhələri",
+      "qty": 58.0
+    },
+    {
+      "code": "37",
+      "houseNo": "1913025",
+      "name": "Suvağın səthlərdən kərpic divar və tavanlardan qopardılması",
+      "qty": 0.5
+    },
+    {
+      "code": "38",
+      "houseNo": "1913025",
+      "name": "Beton və daş səthlərin sement-əhəng məhlulu ilə suvanması: divarların, yaxşılaşdırılmış",
+      "qty": 0.5
+    },
+    {
+      "code": "39",
+      "houseNo": "1913025",
+      "name": "Su-dispersiyalı astarın çəkilməsi: məsaməli səthə (binder)",
+      "qty": 0.5
+    },
+    {
+      "code": "40",
+      "houseNo": "1913025",
+      "name": "Suvaqlanmış səthlərin nərdivandan tam şpatlyovkalanması",
+      "qty": 2.46
+    },
+    {
+      "code": "41",
+      "houseNo": "1913025",
+      "name": "Monolit suvaqlara və beton divarlara divar kağızının yapışdırılması",
+      "qty": 2.0
+    },
+    {
+      "code": "46",
+      "houseNo": "1913025",
+      "name": "Gipskarton vərəqlərdən asma tavanların quraşdırılması: bir səviyyəli",
+      "qty": 0.88
+    },
+    {
+      "code": "47",
+      "houseNo": "1913025",
+      "name": "Polivinilasetatlı suemulsiya tərkiblərlə yaxşılaşdırılmış rəngləmə: yığma konstruksiyalı tavanların",
+      "qty": 0.88
+    },
+    {
+      "code": "48",
+      "houseNo": "1913025",
+      "name": "Haşiyələrin qoyulması və bərkidilməsi (Paduqa)",
+      "qty": 0.91
+    },
+    {
+      "code": "49",
+      "houseNo": "1913025",
+      "name": "Tavanların qurulması: məsaməli plitələrdən, sinklənmiş profildən karkas üzrə (Zirzəmi-Lambrin)",
+      "qty": 1.21
+    },
+    {
+      "code": "50",
+      "houseNo": "1913025",
+      "name": "Beton və daş səthlərin sement-əhəng məhlulu ilə suvanması:tavanların, yaxşılaşdırılmış (Zirzəmi)",
+      "qty": 0.11
+    },
+    {
+      "code": "51",
+      "houseNo": "1913025",
+      "name": "Binanın daxilində əhəngli sulu tərkiblərlə rəngləmə: suvaq üzrə (Zirzəmi tavanı)",
+      "qty": 0.11
+    },
+    {
+      "code": "52",
+      "houseNo": "1913025",
+      "name": "Beton və daş səthlərin sement-əhəng məhlulu ilə suvanması:divarların yaxşılaşdırılmış (Zirzəmi)",
+      "qty": 2.19
+    },
+    {
+      "code": "53",
+      "houseNo": "1913025",
+      "name": "Binanın daxilində əhəngli sulu tərkiblərlə rəngləmə: suvaq üzrə (Zirzəmi)",
+      "qty": 2.19
+    },
+    {
+      "code": "54",
+      "houseNo": "1913025",
+      "name": "Dörd tin daşdan örtüyün düzəldilməsi: sement məhlulunda tikişləri doldurmaqla",
+      "qty": 0.17
+    },
+    {
+      "code": "56",
+      "houseNo": "1913025",
+      "name": "Polipropilen borulardan daxili su təchizatı və istilik borularının çəkilməsi: 25mm",
+      "qty": 0.46
+    },
+    {
+      "code": "61",
+      "houseNo": "1913025",
+      "name": "Yüksək sıxlıqlı polietilen borulardan kanalizasiya boru kəmərlərinin çəkilməsi,\ndiametri: 110mm",
+      "qty": 0.12
+    },
+    {
+      "code": "62",
+      "houseNo": "1913025",
+      "name": "Yüksək sıxlıqlı polietilen borulardan kanalizasiya boru kəmərlərinin çəkilməsi,\ndiametri: 50mm",
+      "qty": 0.06
+    },
+    {
+      "code": "69",
+      "houseNo": "1913025",
+      "name": "Polipropilen borulardan daxili su təchizatı və istilik borularının çəkilməsi: 25mm",
+      "qty": 0.9
+    },
+    {
+      "code": "72",
+      "houseNo": "1913025",
+      "name": "Sintetik yapışdırıcılı mineral pambıqdan silindrlərlə boru kəmərlərinin izolyasiya edilməsi",
+      "qty": 0.03
+    },
+    {
+      "code": "84",
+      "houseNo": "1913025",
+      "name": "Divarda quraşdırılmış işıqlandırma lövhə",
+      "qty": 1.0
+    },
+    {
+      "code": "85",
+      "houseNo": "1913025",
+      "name": "Işıqlanma lövhəsi",
+      "qty": 1.0
+    },
+    {
+      "code": "86",
+      "houseNo": "1913025",
+      "name": "Cihaz və ya aparat - Avtomatların quraşdırılması",
+      "qty": 10.0
+    },
+    {
+      "code": "87",
+      "houseNo": "1913025",
+      "name": "3FAZ C TİPİ 40A avtomat açar",
+      "qty": 1.0
+    },
+    {
+      "code": "88",
+      "houseNo": "1913025",
+      "name": "1FAZ C TİPİ 25A avtomat açar",
+      "qty": 3.0
+    },
+    {
+      "code": "89",
+      "houseNo": "1913025",
+      "name": "1FAZ C TİPİ 20A avtomat açar",
+      "qty": 2.0
+    },
+    {
+      "code": "90",
+      "houseNo": "1913025",
+      "name": "1FAZ C TİPİ 16A avtomat açar",
+      "qty": 4.0
+    },
+    {
+      "code": "100",
+      "houseNo": "1913025",
+      "name": "Kərpic divarların şırım açanla şırımlarının açılması, en kəsiyinin sahəsi: 20 sm2-ə qədər",
+      "qty": 5.2
+    },
+    {
+      "code": "101",
+      "houseNo": "1913025",
+      "name": "Quraşdırılmış konstruksiyalar,üzrə kabel və naqilləri qorumaq üçün qırçınlı PVX boruları",
+      "qty": 5.2
+    },
+    {
+      "code": "102",
+      "houseNo": "1913025",
+      "name": "Qofra borusu 25mm",
+      "qty": 520.0
+    },
+    {
+      "code": "103",
+      "houseNo": "1913025",
+      "name": "Ümumi hörmədə çoxdamarlı birinci naqil, ümumi en kəsiyi, mm2, qədər: 6",
+      "qty": 0.4
+    },
+    {
+      "code": "104",
+      "houseNo": "1913025",
+      "name": "Quraşdırma kabeli ПВ 3 6",
+      "qty": 40.0
+    },
+    {
+      "code": "105",
+      "houseNo": "1913025",
+      "name": "Ümumi hörmədə çoxdamarlı birinci naqil, ümumi en kəsiyi, mm2, qədər: 2,5",
+      "qty": 7.4
+    },
+    {
+      "code": "106",
+      "houseNo": "1913025",
+      "name": "Quraşdırma kabeli ПВ 3 4",
+      "qty": 180.0
+    },
+    {
+      "code": "107",
+      "houseNo": "1913025",
+      "name": "Quraşdırma kabeli ПВ 3 2.5",
+      "qty": 560.0
+    },
+    {
+      "code": "108",
+      "houseNo": "1913025",
+      "name": "Çəkilmiş boru, blok və qutularda 35 kV-a qədər kabel, 1 m kabelin kütləsi, kq, qədər:1",
+      "qty": 0.6
+    },
+    {
+      "code": "109",
+      "houseNo": "1913025",
+      "name": "Siqnal kabeli CAT 6 UTP",
+      "qty": 30.0
+    },
+    {
+      "code": "110",
+      "houseNo": "1913025",
+      "name": "Telefon, LAN, koaksial kabel RG 6/ U-4",
+      "qty": 30.0
+    },
+    {
+      "code": "119",
+      "houseNo": "1913025",
+      "name": "Mətbəx mebeli MDF",
+      "qty": 3.0
+    },
+    {
+      "code": "120",
+      "houseNo": "1913025",
+      "name": "Əsasların döşənək və hamarlayıcı qatlarının qurulması: qum-çınqıldan",
+      "qty": 0.07
+    },
+    {
+      "code": "121",
+      "houseNo": "1913025",
+      "name": "Qum çınqıl qarışığı",
+      "qty": 7.0
+    },
+    {
+      "code": "124",
+      "houseNo": "1913025",
+      "name": "Beton və daş səthlərin sement-əhəng məhlulu ilə suvanması: divarların, yaxşılaşdırılmış",
+      "qty": 1.21
+    },
+    {
+      "code": "125",
+      "houseNo": "1913025",
+      "name": "Fasadların hazırlanmış səthinin taxtabəndlərdən rənglənməsi: silikatlı",
+      "qty": 1.21
+    },
+    {
+      "code": "126",
+      "houseNo": "1913025",
+      "name": "Beton və daş səthlərin sement-əhəng məhlulu ilə suvanması: divarların, yaxşılaşdırılmış",
+      "qty": 1.22
+    },
+    {
+      "code": "127",
+      "houseNo": "1913025",
+      "name": "Binanın daxilində əhəngli sulu tərkiblərlə rəngləmə: suvaq üzrə",
+      "qty": 1.22
+    },
+    {
+      "code": "128",
+      "houseNo": "1913025",
+      "name": "Birləşdirici qatın düzəldilməsi:sement, qalınlığı 20 mm",
+      "qty": 0.7
+    },
+    {
+      "code": "129",
+      "houseNo": "1913025",
+      "name": "Birləşdirici qatın düzəldilməsi: sement - Əlavə 30 mm",
+      "qty": 0.7
+    },
+    {
+      "code": "130",
+      "houseNo": "1913025",
+      "name": "Dam örtüklərinin sökülməsi: dalğavari və yarımdalğavari vərəqlərdən",
+      "qty": 0.81
+    },
+    {
+      "code": "131",
+      "houseNo": "1913025",
+      "name": "Sinklənmiş poladdan dam örtüyünün düzəldilməsi",
+      "qty": 0.81
+    },
+    {
+      "code": "132",
+      "houseNo": "1913025",
+      "name": "PVX profildən pəncərə bloklarının qoyulması",
+      "qty": 0.1
+    },
+    {
+      "code": "133",
+      "houseNo": "1913025",
+      "name": "Hazır boşluqlara metal qapı bloklarının qurulması",
+      "qty": 8.0
+    },
+    {
+      "code": "134",
+      "houseNo": "1913025",
+      "name": "Darvazaların təmiri",
+      "qty": 0.24
+    },
+    {
+      "code": "137",
+      "houseNo": "1913025",
+      "name": "Beton və daş səthlərin sement-əhəng məhlulu ilə suvanması: divarların, yaxşılaşdırılmış",
+      "qty": 1.2
+    },
+    {
+      "code": "138",
+      "houseNo": "1913025",
+      "name": "Fasadların hazırlanmış səthinin taxtabəndlərdən rənglənməsi: silikatlı",
+      "qty": 1.2
+    },
+    {
+      "code": "139",
+      "houseNo": "1913025",
+      "name": "Tikinti zibilinin kisələrə doldurulması",
+      "qty": 50.0
+    },
+    {
+      "code": "140",
+      "houseNo": "1913025",
+      "name": "Kisə və paketlərdə daşınan materiallar: Yükləmə",
+      "qty": 50.0
+    },
+    {
+      "code": "141",
+      "houseNo": "1913025",
+      "name": "Yükü özüboşaldan avtomobil ilə 15km məsafəyə daşınması",
+      "qty": 50.0
+    },
+    {
+      "code": "1",
+      "houseNo": "1913053",
+      "name": "Suvağın səthlərdən kərpic divar və tavanlardan qopardılması",
+      "qty": 2.2
+    },
+    {
+      "code": "2",
+      "houseNo": "1913053",
+      "name": "Beton və daş səthlərin sement-əhəng məhlulu ilə suvanması: divarların, yaxşılaşdırılmış",
+      "qty": 2.2
+    },
+    {
+      "code": "5",
+      "houseNo": "1913053",
+      "name": "Xarici inventar taxtabəndlərin qurulması və sökülməsi",
+      "qty": 2.2
+    },
+    {
+      "code": "6",
+      "houseNo": "1913053",
+      "name": "Qurulması: dəmir-beton artırmaların (selsəki - 10sm qal.)",
+      "qty": 2.7
+    },
+    {
+      "code": "7",
+      "houseNo": "1913053",
+      "name": "Dam örtüklərinin sökülməsi: dalğavari və yarımdalğavari vərəqlərdən",
+      "qty": 1.89
+    },
+    {
+      "code": "8",
+      "houseNo": "1913053",
+      "name": "Dam konstruksiyalarının ağac elementlərinin sökülməsi",
+      "qty": 1.89
+    },
+    {
+      "code": "9",
+      "houseNo": "1913053",
+      "name": "Çatıların qoyulması",
+      "qty": 3.0
+    },
+    {
+      "code": "10",
+      "houseNo": "1913053",
+      "name": "Sinklənmiş poladdan dam örtüyünün düzəldilməsi",
+      "qty": 1.89
+    },
+    {
+      "code": "11",
+      "houseNo": "1913053",
+      "name": "Novların düzəldilməsi: asma",
+      "qty": 0.44
+    },
+    {
+      "code": "12",
+      "houseNo": "1913053",
+      "name": "Metal su axıdıcı sistemin qurulması: düz boru bağlantıları",
+      "qty": 20.0
+    },
+    {
+      "code": "13",
+      "houseNo": "1913053",
+      "name": "Metal su axıdıcı sistemin qurulması: qıflar",
+      "qty": 4.0
+    },
+    {
+      "code": "14",
+      "houseNo": "1913053",
+      "name": "Söküntü: kiçik bloklardan divarların",
+      "qty": 2.4
+    },
+    {
+      "code": "15",
+      "houseNo": "1913053",
+      "name": "390x190x188 mm ölçülərində mişarlanmış əhəng daşından daxili divarlarının hörgüsü: 19 sm",
+      "qty": 4.2
+    },
+    {
+      "code": "18",
+      "houseNo": "1913053",
+      "name": "Ruberoid qoruyuculu, hidroizolyasiyanın düzəldilməsi: birinci qat",
+      "qty": 0.07
+    },
+    {
+      "code": "19",
+      "houseNo": "1913053",
+      "name": "Ruberoid qoruyuculu, hidroizolyasiyanın düzəldilməsi: sonrakı qat",
+      "qty": 0.07
+    },
+    {
+      "code": "20",
+      "houseNo": "1913053",
+      "name": "Bitum mastikasında tavalardan örtüklərin düzəldilməsi: keramik",
+      "qty": 0.24
+    },
+    {
+      "code": "26",
+      "houseNo": "1913053",
+      "name": "Birləşdirici qatın düzəldilməsi: sement, qalınlığı 20 mm - Zirzəmi üçün",
+      "qty": 0.94
+    },
+    {
+      "code": "27",
+      "houseNo": "1913053",
+      "name": "Birləşdirici qatın düzəldilməsi: sement - əlavə 30mm - Zirzəmi üçün",
+      "qty": 0.94
+    },
+    {
+      "code": "28",
+      "houseNo": "1913053",
+      "name": "Boşluqların taxta doldurucularının sökülməsi: pəncərəaltı lövhəsiz pəncərələrin",
+      "qty": 0.32
+    },
+    {
+      "code": "29",
+      "houseNo": "1913053",
+      "name": "PVX profildən pəncərə bloklarının qoyulması",
+      "qty": 0.38
+    },
+    {
+      "code": "30",
+      "houseNo": "1913053",
+      "name": "Boşluqların taxta doldurucularının sökülməsi: qapı və darvaza",
+      "qty": 0.24
+    },
+    {
+      "code": "31",
+      "houseNo": "1913053",
+      "name": "PVX blokların daxili qapı boşluqlarına qoyulması",
+      "qty": 0.16
+    },
+    {
+      "code": "32",
+      "houseNo": "1913053",
+      "name": "Daxili qapı boşluqlarında MDF qapıların quraşdırılması",
+      "qty": 0.08
+    },
+    {
+      "code": "33",
+      "houseNo": "1913053",
+      "name": "Hazır boşluqlara metal qapı bloklarının qurulması",
+      "qty": 2.0
+    },
+    {
+      "code": "34",
+      "houseNo": "1913053",
+      "name": "PVX-dan pəncərəaltı lövhələrin qoyulması",
+      "qty": 0.48
+    },
+    {
+      "code": "35",
+      "houseNo": "1913053",
+      "name": "Pəncərəaltı PVX lövhələri",
+      "qty": 48.0
+    },
+    {
+      "code": "36",
+      "houseNo": "1913053",
+      "name": "Suvağın səthlərdən kərpic divar və tavanlardan qopardılması",
+      "qty": 0.5
+    },
+    {
+      "code": "37",
+      "houseNo": "1913053",
+      "name": "Beton və daş səthlərin sement-əhəng məhlulu ilə suvanması: divarların, yaxşılaşdırılmış",
+      "qty": 0.5
+    },
+    {
+      "code": "38",
+      "houseNo": "1913053",
+      "name": "Su-dispersiyalı astarın çəkilməsi: məsaməli səthə (binder)",
+      "qty": 0.5
+    },
+    {
+      "code": "39",
+      "houseNo": "1913053",
+      "name": "Suvaqlanmış səthlərin nərdivandan tam şpatlyovkalanması",
+      "qty": 2.46
+    },
+    {
+      "code": "40",
+      "houseNo": "1913053",
+      "name": "Monolit suvaqlara və beton divarlara divar kağızının yapışdırılması",
+      "qty": 2.46
+    },
+    {
+      "code": "45",
+      "houseNo": "1913053",
+      "name": "Gipskarton vərəqlərdən asma tavanların quraşdırılması: bir səviyyəli",
+      "qty": 0.92
+    },
+    {
+      "code": "46",
+      "houseNo": "1913053",
+      "name": "Polivinilasetatlı suemulsiya tərkiblərlə yaxşılaşdırılmış rəngləmə: yığma konstruksiyalı tavanların",
+      "qty": 0.92
+    },
+    {
+      "code": "47",
+      "houseNo": "1913053",
+      "name": "Haşiyələrin qoyulması və bərkidilməsi (Paduqa)",
+      "qty": 0.95
+    },
+    {
+      "code": "48",
+      "houseNo": "1913053",
+      "name": "Tavanların qurulması: məsaməli plitələrdən, sinklənmiş profildən karkas üzrə (Zirzəmi-Lambrin)",
+      "qty": 0.8
+    },
+    {
+      "code": "49",
+      "houseNo": "1913053",
+      "name": "Beton və daş səthlərin sement-əhəng məhlulu ilə suvanması:tavanların, yaxşılaşdırılmış (Zirzəmi)",
+      "qty": 0.25
+    },
+    {
+      "code": "50",
+      "houseNo": "1913053",
+      "name": "Binanın daxilində əhəngli sulu tərkiblərlə rəngləmə: suvaq üzrə (Zirzəmi tavanı)",
+      "qty": 0.25
+    },
+    {
+      "code": "51",
+      "houseNo": "1913053",
+      "name": "Beton və daş səthlərin sement-əhəng məhlulu ilə suvanması:divarların yaxşılaşdırılmış (Zirzəmi)",
+      "qty": 1.69
+    },
+    {
+      "code": "52",
+      "houseNo": "1913053",
+      "name": "Binanın daxilində əhəngli sulu tərkiblərlə rəngləmə: suvaq üzrə (Zirzəmi)",
+      "qty": 1.69
+    },
+    {
+      "code": "53",
+      "houseNo": "1913053",
+      "name": "Dörd tin daşdan örtüyün düzəldilməsi: sement məhlulunda tikişləri doldurmaqla",
+      "qty": 0.06
+    },
+    {
+      "code": "55",
+      "houseNo": "1913053",
+      "name": "Polipropilen borulardan daxili su təchizatı və istilik borularının çəkilməsi: 25mm",
+      "qty": 0.46
+    },
+    {
+      "code": "60",
+      "houseNo": "1913053",
+      "name": "Yüksək sıxlıqlı polietilen borulardan kanalizasiya boru kəmərlərinin çəkilməsi,\ndiametri: 110mm",
+      "qty": 0.12
+    },
+    {
+      "code": "61",
+      "houseNo": "1913053",
+      "name": "Yüksək sıxlıqlı polietilen borulardan kanalizasiya boru kəmərlərinin çəkilməsi,\ndiametri: 50mm",
+      "qty": 0.06
+    },
+    {
+      "code": "68",
+      "houseNo": "1913053",
+      "name": "Polipropilen borulardan daxili su təchizatı və istilik borularının çəkilməsi: 25mm",
+      "qty": 0.9
+    },
+    {
+      "code": "71",
+      "houseNo": "1913053",
+      "name": "Sintetik yapışdırıcılı mineral pambıqdan silindrlərlə boru kəmərlərinin izolyasiya edilməsi",
+      "qty": 0.03
+    },
+    {
+      "code": "83",
+      "houseNo": "1913053",
+      "name": "Divarda quraşdırılmış işıqlandırma lövhə",
+      "qty": 1.0
+    },
+    {
+      "code": "84",
+      "houseNo": "1913053",
+      "name": "Işıqlanma lövhəsi",
+      "qty": 1.0
+    },
+    {
+      "code": "85",
+      "houseNo": "1913053",
+      "name": "Cihaz və ya aparat - Avtomatların quraşdırılması",
+      "qty": 10.0
+    },
+    {
+      "code": "86",
+      "houseNo": "1913053",
+      "name": "3FAZ C TİPİ 40A avtomat açar",
+      "qty": 1.0
+    },
+    {
+      "code": "87",
+      "houseNo": "1913053",
+      "name": "1FAZ C TİPİ 25A avtomat açar",
+      "qty": 3.0
+    },
+    {
+      "code": "88",
+      "houseNo": "1913053",
+      "name": "1FAZ C TİPİ 20A avtomat açar",
+      "qty": 2.0
+    },
+    {
+      "code": "89",
+      "houseNo": "1913053",
+      "name": "1FAZ C TİPİ 16A avtomat açar",
+      "qty": 4.0
+    },
+    {
+      "code": "99",
+      "houseNo": "1913053",
+      "name": "Kərpic divarların şırım açanla şırımlarının açılması, en kəsiyinin sahəsi: 20 sm2-ə qədər",
+      "qty": 5.2
+    },
+    {
+      "code": "100",
+      "houseNo": "1913053",
+      "name": "Quraşdırılmış konstruksiyalar,üzrə kabel və naqilləri qorumaq üçün qırçınlı PVX boruları",
+      "qty": 5.2
+    },
+    {
+      "code": "101",
+      "houseNo": "1913053",
+      "name": "Qofra borusu 25mm",
+      "qty": 520.0
+    },
+    {
+      "code": "102",
+      "houseNo": "1913053",
+      "name": "Ümumi hörmədə çoxdamarlı birinci naqil, ümumi en kəsiyi, mm2, qədər: 6",
+      "qty": 0.4
+    },
+    {
+      "code": "103",
+      "houseNo": "1913053",
+      "name": "Quraşdırma kabeli ПВ 3 6",
+      "qty": 40.0
+    },
+    {
+      "code": "104",
+      "houseNo": "1913053",
+      "name": "Ümumi hörmədə çoxdamarlı birinci naqil, ümumi en kəsiyi, mm2, qədər: 2,5",
+      "qty": 7.4
+    },
+    {
+      "code": "105",
+      "houseNo": "1913053",
+      "name": "Quraşdırma kabeli ПВ 3 4",
+      "qty": 180.0
+    },
+    {
+      "code": "106",
+      "houseNo": "1913053",
+      "name": "Quraşdırma kabeli ПВ 3 2.5",
+      "qty": 560.0
+    },
+    {
+      "code": "107",
+      "houseNo": "1913053",
+      "name": "Çəkilmiş boru, blok və qutularda 35 kV-a qədər kabel, 1 m kabelin kütləsi, kq, qədər:1",
+      "qty": 0.6
+    },
+    {
+      "code": "119",
+      "houseNo": "1913053",
+      "name": "Əsasların döşənək və hamarlayıcı qatlarının qurulması: qum-çınqıldan",
+      "qty": 0.06
+    },
+    {
+      "code": "120",
+      "houseNo": "1913053",
+      "name": "Qum çınqıl qarışığı",
+      "qty": 6.0
+    },
+    {
+      "code": "123",
+      "houseNo": "1913053",
+      "name": "Beton və daş səthlərin sement-əhəng məhlulu ilə suvanması: divarların, yaxşılaşdırılmış",
+      "qty": 0.31
+    },
+    {
+      "code": "124",
+      "houseNo": "1913053",
+      "name": "Fasadların hazırlanmış səthinin taxtabəndlərdən rənglənməsi: silikatlı",
+      "qty": 0.31
+    },
+    {
+      "code": "125",
+      "houseNo": "1913053",
+      "name": "Beton və daş səthlərin sement-əhəng məhlulu ilə suvanması: divarların, yaxşılaşdırılmış",
+      "qty": 0.25
+    },
+    {
+      "code": "126",
+      "houseNo": "1913053",
+      "name": "Binanın daxilində əhəngli sulu tərkiblərlə rəngləmə: suvaq üzrə",
+      "qty": 0.25
+    },
+    {
+      "code": "127",
+      "houseNo": "1913053",
+      "name": "Birləşdirici qatın düzəldilməsi:sement, qalınlığı 20 mm",
+      "qty": 0.11
+    },
+    {
+      "code": "128",
+      "houseNo": "1913053",
+      "name": "Birləşdirici qatın düzəldilməsi: sement - Əlavə 30 mm",
+      "qty": 0.11
+    },
+    {
+      "code": "129",
+      "houseNo": "1913053",
+      "name": "Dam örtüklərinin sökülməsi: dalğavari və yarımdalğavari vərəqlərdən",
+      "qty": 0.14
+    },
+    {
+      "code": "130",
+      "houseNo": "1913053",
+      "name": "Sinklənmiş poladdan dam örtüyünün düzəldilməsi",
+      "qty": 0.14
+    },
+    {
+      "code": "131",
+      "houseNo": "1913053",
+      "name": "PVX profildən pəncərə bloklarının qoyulması",
+      "qty": 0.02
+    },
+    {
+      "code": "133",
+      "houseNo": "1913053",
+      "name": "Darvazaların təmiri",
+      "qty": 0.24
+    },
+    {
+      "code": "134",
+      "houseNo": "1913053",
+      "name": "390x190x188 mm ölçülərində mişarlanmış əhəng daşından bütöv divarlarının hörgüsü: 39 sm",
+      "qty": 2.0
+    },
+    {
+      "code": "137",
+      "houseNo": "1913053",
+      "name": "Beton və daş səthlərin sement-əhəng məhlulu ilə suvanması: divarların, yaxşılaşdırılmış",
+      "qty": 0.5
+    },
+    {
+      "code": "139",
+      "houseNo": "1913053",
+      "name": "Tikinti zibilinin kisələrə doldurulması",
+      "qty": 50.0
+    },
+    {
+      "code": "140",
+      "houseNo": "1913053",
+      "name": "Kisə və paketlərdə daşınan materiallar: Yükləmə",
+      "qty": 50.0
+    },
+    {
+      "code": "141",
+      "houseNo": "1913053",
+      "name": "Yükü özüboşaldan avtomobil ilə 15km məsafəyə daşınması",
+      "qty": 50.0
+    }
+  ],
+  "purchaseActs": [
+    {
+      "sheet": "10.12.25 Tapdıq (45 Ev) +",
+      "objectName": "Xocalı evlər (45 Ev)",
+      "person": "Tapdıq",
+      "dateLabel": "10 Dekabr 2025-ci il",
+      "lines": [
+        {
+          "materialName": "ELCEK (1) (21.11.25)",
+          "unit": "ədəd",
+          "qty": 204.0,
+          "unitPrice": 0.5,
+          "amount": 102.0,
+          "cashPaid": null,
+          "firmName": "TMP",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "VANNA",
+          "unit": "ədəd",
+          "qty": 30.0,
+          "unitPrice": 2.0,
+          "amount": 60.0,
+          "cashPaid": null,
+          "firmName": "TMP",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "VEDRE",
+          "unit": "ədəd",
+          "qty": 30.0,
+          "unitPrice": 1.8,
+          "amount": 54.0,
+          "cashPaid": null,
+          "firmName": "TMP",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "ARABA SVARKALI",
+          "unit": "ədəd",
+          "qty": 5.0,
+          "unitPrice": 48.0,
+          "amount": 240.0,
+          "cashPaid": null,
+          "firmName": "TMP",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "PROFİL (3 M AG ORTA)",
+          "unit": "ədəd",
+          "qty": 10.0,
+          "unitPrice": 17.0,
+          "amount": 170.0,
+          "cashPaid": null,
+          "firmName": "TMP",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "LAPATKA CALO + SAP",
+          "unit": "ədəd",
+          "qty": 10.0,
+          "unitPrice": 6.5,
+          "amount": 65.0,
+          "cashPaid": null,
+          "firmName": "TMP",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "LAPATKA  DUZ +SAP",
+          "unit": "ədəd",
+          "qty": 10.0,
+          "unitPrice": 6.5,
+          "amount": 65.0,
+          "cashPaid": null,
+          "firmName": "TMP",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "QIFIL",
+          "unit": "ədəd",
+          "qty": 10.0,
+          "unitPrice": 4.0,
+          "amount": 40.0,
+          "cashPaid": null,
+          "firmName": "TMP",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "LAQUNDA 230",
+          "unit": "ədəd",
+          "qty": 3.0,
+          "unitPrice": 140.0,
+          "amount": 420.0,
+          "cashPaid": null,
+          "firmName": "TMP",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "LAQUNDA 115",
+          "unit": "ədəd",
+          "qty": 3.0,
+          "unitPrice": 70.0,
+          "amount": 210.0,
+          "cashPaid": null,
+          "firmName": "TMP",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "PEREPARATOR (2/26)",
+          "unit": "ədəd",
+          "qty": 3.0,
+          "unitPrice": 90.0,
+          "amount": 270.0,
+          "cashPaid": null,
+          "firmName": "TMP",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "PEREPARATOR",
+          "unit": "ədəd",
+          "qty": 3.0,
+          "unitPrice": 370.0,
+          "amount": 1110.0,
+          "cashPaid": null,
+          "firmName": "TMP",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "DREL ZARYATKALİ",
+          "unit": "ədəd",
+          "qty": 3.0,
+          "unitPrice": 95.0,
+          "amount": 285.0,
+          "cashPaid": null,
+          "firmName": "TMP",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "KUVALT 4 KG.",
+          "unit": "ədəd",
+          "qty": 3.0,
+          "unitPrice": 28.0,
+          "amount": 84.0,
+          "cashPaid": null,
+          "firmName": "TMP",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "KUVALT 5 KG.",
+          "unit": "ədəd",
+          "qty": 3.0,
+          "unitPrice": 34.0,
+          "amount": 102.0,
+          "cashPaid": null,
+          "firmName": "TMP",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "LOM",
+          "unit": "ədəd",
+          "qty": 5.0,
+          "unitPrice": 12.0,
+          "amount": 60.0,
+          "cashPaid": null,
+          "firmName": "TMP",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "DAS (230) DEMIR",
+          "unit": "ədəd",
+          "qty": 70.0,
+          "unitPrice": 2.0,
+          "amount": 140.0,
+          "cashPaid": null,
+          "firmName": "TMP",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "DAS (230) DAS UCUN",
+          "unit": "ədəd",
+          "qty": 30.0,
+          "unitPrice": 4.0,
+          "amount": 120.0,
+          "cashPaid": null,
+          "firmName": "TMP",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "PIKA",
+          "unit": "ədəd",
+          "qty": 10.0,
+          "unitPrice": 4.0,
+          "amount": 40.0,
+          "cashPaid": null,
+          "firmName": "TMP",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "PIKA QALIN",
+          "unit": "ədəd",
+          "qty": 10.0,
+          "unitPrice": 9.0,
+          "amount": 90.0,
+          "cashPaid": null,
+          "firmName": "TMP",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "SURUP SEMISKA",
+          "unit": "paçka",
+          "qty": 20.0,
+          "unitPrice": 5.0,
+          "amount": 100.0,
+          "cashPaid": null,
+          "firmName": "TMP",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "EQREB 10",
+          "unit": "ədəd",
+          "qty": 500.0,
+          "unitPrice": 0.21,
+          "amount": 105.0,
+          "cashPaid": null,
+          "firmName": "TMP",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "SURUP (25)",
+          "unit": "paçka",
+          "qty": 50.0,
+          "unitPrice": 8.0,
+          "amount": 400.0,
+          "cashPaid": null,
+          "firmName": "TMP",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "SURUP 5.0 MM. X 50 MM.",
+          "unit": "paçka",
+          "qty": 30.0,
+          "unitPrice": 3.5,
+          "amount": 105.0,
+          "cashPaid": null,
+          "firmName": "TMP",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "PROBKA (7)",
+          "unit": "paçka",
+          "qty": 30.0,
+          "unitPrice": 0.7,
+          "amount": 21.0,
+          "cashPaid": null,
+          "firmName": "TMP",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "GIPER ASTAR",
+          "unit": "ədəd",
+          "qty": 100.0,
+          "unitPrice": 5.5,
+          "amount": 550.0,
+          "cashPaid": null,
+          "firmName": "TMP",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "GIPER UZLUK",
+          "unit": "ədəd",
+          "qty": 50.0,
+          "unitPrice": 5.8,
+          "amount": 290.0,
+          "cashPaid": null,
+          "firmName": "TMP",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "SEMENT QARADAG 400 EZ",
+          "unit": "ədəd",
+          "qty": 100.0,
+          "unitPrice": 7.5,
+          "amount": 750.0,
+          "cashPaid": null,
+          "firmName": "TMP",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "PADUQA 10",
+          "unit": "metr",
+          "qty": 500.0,
+          "unitPrice": 0.8,
+          "amount": 400.0,
+          "cashPaid": null,
+          "firmName": "TMP",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "MATA FASAD",
+          "unit": "ədəd",
+          "qty": 50.0,
+          "unitPrice": 7.5,
+          "amount": 375.0,
+          "cashPaid": null,
+          "firmName": "TMP",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "MALA",
+          "unit": "ədəd",
+          "qty": 10.0,
+          "unitPrice": 1.8,
+          "amount": 18.0,
+          "cashPaid": null,
+          "firmName": "TMP",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "ANTIPAS",
+          "unit": "ədəd",
+          "qty": 7.0,
+          "unitPrice": 42.0,
+          "amount": 294.0,
+          "cashPaid": null,
+          "firmName": "TMP",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "TINER",
+          "unit": "ədəd",
+          "qty": 7.0,
+          "unitPrice": 4.0,
+          "amount": 28.0,
+          "cashPaid": null,
+          "firmName": "TMP",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "VALIK 25",
+          "unit": "ədəd",
+          "qty": 10.0,
+          "unitPrice": 4.0,
+          "amount": 40.0,
+          "cashPaid": null,
+          "firmName": "TMP",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "VALIK 20",
+          "unit": "ədəd",
+          "qty": 10.0,
+          "unitPrice": 2.5,
+          "amount": 25.0,
+          "cashPaid": null,
+          "firmName": "TMP",
+          "note": "",
+          "sender": ""
+        }
+      ],
+      "total": 7228.0
+    },
+    {
+      "sheet": "20.12.25 Tapdıq (45 Ev) +",
+      "objectName": "Xocalı evlər (45 Ev)",
+      "person": "Tapdıq",
+      "dateLabel": "20 Dekabr 2025-ci il",
+      "lines": [
+        {
+          "materialName": "Laminat 8-lik",
+          "unit": "m²",
+          "qty": 2349.28,
+          "unitPrice": 8.5,
+          "amount": 19968.88,
+          "cashPaid": null,
+          "firmName": "Caspian Endovor",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "Şilte",
+          "unit": "metr",
+          "qty": 2350.0,
+          "unitPrice": 0.0,
+          "amount": 0.0,
+          "cashPaid": null,
+          "firmName": "Caspian Endovor",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "Şilte",
+          "unit": "metr",
+          "qty": 650.0,
+          "unitPrice": 0.21,
+          "amount": 136.5,
+          "cashPaid": null,
+          "firmName": "Caspian Endovor",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "Plintus 8sm",
+          "unit": "ədəd",
+          "qty": 1364.0,
+          "unitPrice": 1.95,
+          "amount": 2659.7999999999997,
+          "cashPaid": null,
+          "firmName": "Caspian Endovor",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "Aksesuar",
+          "unit": "ədəd",
+          "qty": 4000.0,
+          "unitPrice": 0.34,
+          "amount": 1360.0,
+          "cashPaid": null,
+          "firmName": "Caspian Endovor",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "Alçipan 10-luq ağ (optimal)",
+          "unit": "ədəd",
+          "qty": 1000.0,
+          "unitPrice": 6.53,
+          "amount": 6530.0,
+          "cashPaid": null,
+          "firmName": "Tvist Tovver",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "Profil C 0,45",
+          "unit": "metr",
+          "qty": 8016.0,
+          "unitPrice": 0.72,
+          "amount": 5771.5199999999995,
+          "cashPaid": null,
+          "firmName": "Tvist Tovver",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "Profil U 0,45",
+          "unit": "metr",
+          "qty": 3024.0,
+          "unitPrice": 0.47,
+          "amount": 1421.28,
+          "cashPaid": null,
+          "firmName": "Tvist Tovver",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "Əqrəb-15 (6)",
+          "unit": "ədəd",
+          "qty": 10000.0,
+          "unitPrice": 0.16,
+          "amount": 1600.0,
+          "cashPaid": null,
+          "firmName": "Tvist Tovver",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "Şurup knauf TN-25",
+          "unit": "paçka",
+          "qty": 70.0,
+          "unitPrice": 7.203389830508475,
+          "amount": 504.23728813559325,
+          "cashPaid": null,
+          "firmName": "Tvist Tovver",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "Şurup knauf LN-11",
+          "unit": "paçka",
+          "qty": 60.0,
+          "unitPrice": 7.203389830508475,
+          "amount": 432.2033898305085,
+          "cashPaid": null,
+          "firmName": "Tvist Tovver",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "KREST ZAJİM (1) (18.12.25)",
+          "unit": "PK",
+          "qty": 20.0,
+          "unitPrice": 5.0,
+          "amount": 100.0,
+          "cashPaid": null,
+          "firmName": "TMP",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "PAZ",
+          "unit": "PK",
+          "qty": 15.0,
+          "unitPrice": 5.0,
+          "amount": 75.0,
+          "cashPaid": null,
+          "firmName": "TMP",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "REZAK",
+          "unit": "ADET",
+          "qty": 20.0,
+          "unitPrice": 1.5,
+          "amount": 30.0,
+          "cashPaid": null,
+          "firmName": "TMP",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "NASADKA",
+          "unit": "ADET",
+          "qty": 20.0,
+          "unitPrice": 1.5,
+          "amount": 30.0,
+          "cashPaid": null,
+          "firmName": "TMP",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "VILKA",
+          "unit": "ADET",
+          "qty": 20.0,
+          "unitPrice": 1.5,
+          "amount": 30.0,
+          "cashPaid": null,
+          "firmName": "TMP",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "TIYORKA",
+          "unit": "ADET",
+          "qty": 100.0,
+          "unitPrice": 1.8,
+          "amount": 180.0,
+          "cashPaid": null,
+          "firmName": "TMP",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "SEP MATOPİLA",
+          "unit": "ADET",
+          "qty": 5.0,
+          "unitPrice": 15.0,
+          "amount": 75.0,
+          "cashPaid": null,
+          "firmName": "TMP",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "ALMAZ (115)",
+          "unit": "ADET",
+          "qty": 10.0,
+          "unitPrice": 6.0,
+          "amount": 60.0,
+          "cashPaid": null,
+          "firmName": "TMP",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "SVERLO 18 X 600",
+          "unit": "ADET",
+          "qty": 10.0,
+          "unitPrice": 14.0,
+          "amount": 140.0,
+          "cashPaid": null,
+          "firmName": "TMP",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "PIKA",
+          "unit": "ADET",
+          "qty": 5.0,
+          "unitPrice": 4.0,
+          "amount": 20.0,
+          "cashPaid": null,
+          "firmName": "TMP",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "SPATEL DEKOR",
+          "unit": "ADET",
+          "qty": 5.0,
+          "unitPrice": 6.0,
+          "amount": 30.0,
+          "cashPaid": null,
+          "firmName": "TMP",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "PISTON DUBEL",
+          "unit": "PK",
+          "qty": 20.0,
+          "unitPrice": 6.0,
+          "amount": 120.0,
+          "cashPaid": null,
+          "firmName": "TMP",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "PALATKA",
+          "unit": "ADET",
+          "qty": 5.0,
+          "unitPrice": 25.0,
+          "amount": 125.0,
+          "cashPaid": null,
+          "firmName": "TMP",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "TEFAL",
+          "unit": "ADET",
+          "qty": 5.0,
+          "unitPrice": 14.0,
+          "amount": 70.0,
+          "cashPaid": null,
+          "firmName": "TMP",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "DEKOR (30)",
+          "unit": "ADET",
+          "qty": 10.0,
+          "unitPrice": 7.0,
+          "amount": 70.0,
+          "cashPaid": null,
+          "firmName": "TMP",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "PROFIL C",
+          "unit": "MT",
+          "qty": 200.0,
+          "unitPrice": 1.8,
+          "amount": 360.0,
+          "cashPaid": null,
+          "firmName": "TMP",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "PROFIL U",
+          "unit": "MT",
+          "qty": 102.0,
+          "unitPrice": 1.6,
+          "amount": 163.20000000000002,
+          "cashPaid": null,
+          "firmName": "TMP",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "QUPKA",
+          "unit": "ADET",
+          "qty": 30.0,
+          "unitPrice": 0.5,
+          "amount": 15.0,
+          "cashPaid": null,
+          "firmName": "TMP",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "KURTKA",
+          "unit": "ADET",
+          "qty": 2.0,
+          "unitPrice": 38.0,
+          "amount": 76.0,
+          "cashPaid": null,
+          "firmName": "TMP",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "BOTINKA",
+          "unit": "ADET",
+          "qty": 2.0,
+          "unitPrice": 28.0,
+          "amount": 56.0,
+          "cashPaid": null,
+          "firmName": "TMP",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "FƏHLƏ PULU",
+          "unit": "manat",
+          "qty": 1.0,
+          "unitPrice": 20.0,
+          "amount": 20.0,
+          "cashPaid": null,
+          "firmName": "TMP",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "Taxta 5x15x6x44əd (18.12.25)",
+          "unit": "m³",
+          "qty": 1.98,
+          "unitPrice": 295.0,
+          "amount": 584.1,
+          "cashPaid": null,
+          "firmName": "İsayev Xankişi",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "Taxta 5x10x6x100əd",
+          "unit": "m³",
+          "qty": 3.0,
+          "unitPrice": 295.0,
+          "amount": 885.0,
+          "cashPaid": null,
+          "firmName": "İsayev Xankişi",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "Taxta 3x10x6x200əd",
+          "unit": "m³",
+          "qty": 3.6,
+          "unitPrice": 295.0,
+          "amount": 1062.0,
+          "cashPaid": null,
+          "firmName": "İsayev Xankişi",
+          "note": "",
+          "sender": ""
+        }
+      ],
+      "total": 44760.72
+    },
+    {
+      "sheet": "06.01.2026 Tapdıq (45 Ev) +",
+      "objectName": "Xocalı evlər (45 Ev)",
+      "person": "Tapdıq",
+      "dateLabel": "06 yanvar 2026-ci il",
+      "lines": [
+        {
+          "materialName": "Mata 25 kq",
+          "unit": "Ədəd",
+          "qty": 216.0,
+          "unitPrice": 4.49,
+          "amount": 969.84,
+          "cashPaid": null,
+          "firmName": "Uğur İndustry MMC",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "Mismar (50)",
+          "unit": "Kq",
+          "qty": 20.0,
+          "unitPrice": 2.5,
+          "amount": 50.0,
+          "cashPaid": null,
+          "firmName": "SR and Co-TMP",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "Antipas",
+          "unit": "Ədəd",
+          "qty": 10.0,
+          "unitPrice": 38.0,
+          "amount": 380.0,
+          "cashPaid": null,
+          "firmName": "SR and Co-TMP",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "Emulsiya Fasad",
+          "unit": "Ədəd",
+          "qty": 100.0,
+          "unitPrice": 34.0,
+          "amount": 3400.0,
+          "cashPaid": null,
+          "firmName": "SR and Co-TMP",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "Piston Dubel",
+          "unit": "Paçka",
+          "qty": 30.0,
+          "unitPrice": 8.0,
+          "amount": 240.0,
+          "cashPaid": null,
+          "firmName": "SR and Co-TMP",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "Əlcək",
+          "unit": "Ədəd",
+          "qty": 600.0,
+          "unitPrice": 0.5,
+          "amount": 300.0,
+          "cashPaid": null,
+          "firmName": "SR and Co-TMP",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "Parakontakt",
+          "unit": "Ədəd",
+          "qty": 10.0,
+          "unitPrice": 28.0,
+          "amount": 280.0,
+          "cashPaid": null,
+          "firmName": "SR and Co-TMP",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "Binder 10 Lt",
+          "unit": "Ədəd",
+          "qty": 10.0,
+          "unitPrice": 16.0,
+          "amount": 160.0,
+          "cashPaid": null,
+          "firmName": "SR and Co-TMP",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "Rolik (10)",
+          "unit": "Ədəd",
+          "qty": 30.0,
+          "unitPrice": 1.5,
+          "amount": 45.0,
+          "cashPaid": null,
+          "firmName": "SR and Co-TMP",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "Çubuq (2M)",
+          "unit": "Ədəd",
+          "qty": 10.0,
+          "unitPrice": 4.0,
+          "amount": 40.0,
+          "cashPaid": null,
+          "firmName": "SR and Co-TMP",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "Dekor (25)",
+          "unit": "Ədəd",
+          "qty": 30.0,
+          "unitPrice": 7.0,
+          "amount": 210.0,
+          "cashPaid": null,
+          "firmName": "SR and Co-TMP",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "Kley Qranıt",
+          "unit": "Ədəd",
+          "qty": 30.0,
+          "unitPrice": 5.5,
+          "amount": 165.0,
+          "cashPaid": null,
+          "firmName": "SR and Co-TMP",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "Kley Kontakt",
+          "unit": "Ədəd",
+          "qty": 20.0,
+          "unitPrice": 4.0,
+          "amount": 80.0,
+          "cashPaid": null,
+          "firmName": "SR and Co-TMP",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "Traktor (16)",
+          "unit": "Ədəd",
+          "qty": 20.0,
+          "unitPrice": 3.2,
+          "amount": 64.0,
+          "cashPaid": null,
+          "firmName": "SR and Co-TMP",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "Dekor Daraq (40)",
+          "unit": "Ədəd",
+          "qty": 5.0,
+          "unitPrice": 8.5,
+          "amount": 42.5,
+          "cashPaid": null,
+          "firmName": "SR and Co-TMP",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "Aradoldurucu Fıldısı",
+          "unit": "Kq",
+          "qty": 50.0,
+          "unitPrice": 1.8,
+          "amount": 90.0,
+          "cashPaid": null,
+          "firmName": "SR and Co-TMP",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "Kurtka",
+          "unit": "Ədəd",
+          "qty": 2.0,
+          "unitPrice": 38.0,
+          "amount": 76.0,
+          "cashPaid": null,
+          "firmName": "SR and Co-TMP",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "Botinka",
+          "unit": "Ədəd",
+          "qty": 2.0,
+          "unitPrice": 28.0,
+          "amount": 56.0,
+          "cashPaid": null,
+          "firmName": "SR and Co-TMP",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "Gips 30 Kq",
+          "unit": "Ədəd",
+          "qty": 10.0,
+          "unitPrice": 4.0,
+          "amount": 40.0,
+          "cashPaid": null,
+          "firmName": "SR and Co-TMP",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "Profil (3M Ağ)",
+          "unit": "Ədəd",
+          "qty": 10.0,
+          "unitPrice": 17.0,
+          "amount": 170.0,
+          "cashPaid": null,
+          "firmName": "SR and Co-TMP",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "Lezva (3)",
+          "unit": "Ədəd",
+          "qty": 5.0,
+          "unitPrice": 17.0,
+          "amount": 85.0,
+          "cashPaid": null,
+          "firmName": "SR and Co-TMP",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "Mişar (180)",
+          "unit": "Ədəd",
+          "qty": 5.0,
+          "unitPrice": 8.0,
+          "amount": 40.0,
+          "cashPaid": null,
+          "firmName": "SR and Co-TMP",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "Silikon Şəffaf",
+          "unit": "Ədəd",
+          "qty": 20.0,
+          "unitPrice": 4.5,
+          "amount": 90.0,
+          "cashPaid": null,
+          "firmName": "SR and Co-TMP",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "Araba Svarkalı",
+          "unit": "Ədəd",
+          "qty": 10.0,
+          "unitPrice": 48.0,
+          "amount": 480.0,
+          "cashPaid": null,
+          "firmName": "SR and Co-TMP",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "Vedrə",
+          "unit": "Ədəd",
+          "qty": 30.0,
+          "unitPrice": 1.8,
+          "amount": 54.0,
+          "cashPaid": null,
+          "firmName": "SR and Co-TMP",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "Vanna",
+          "unit": "Ədəd",
+          "qty": 30.0,
+          "unitPrice": 2.5,
+          "amount": 75.0,
+          "cashPaid": null,
+          "firmName": "SR and Co-TMP",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "Lapatka Çalo + Sap",
+          "unit": "Ədəd",
+          "qty": 20.0,
+          "unitPrice": 6.5,
+          "amount": 130.0,
+          "cashPaid": null,
+          "firmName": "SR and Co-TMP",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "Qayçı",
+          "unit": "Ədəd",
+          "qty": 1.0,
+          "unitPrice": 8.0,
+          "amount": 8.0,
+          "cashPaid": null,
+          "firmName": "SR and Co-TMP",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "Daş (230)",
+          "unit": "Ədəd",
+          "qty": 25.0,
+          "unitPrice": 2.0,
+          "amount": 50.0,
+          "cashPaid": null,
+          "firmName": "SR and Co-TMP",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "Mala",
+          "unit": "Ədəd",
+          "qty": 10.0,
+          "unitPrice": 1.8,
+          "amount": 18.0,
+          "cashPaid": null,
+          "firmName": "SR and Co-TMP",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "Karandaş",
+          "unit": "Paçka",
+          "qty": 3.0,
+          "unitPrice": 2.0,
+          "amount": 6.0,
+          "cashPaid": null,
+          "firmName": "SR and Co-TMP",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "Mikser Preforator üçün",
+          "unit": "Ədəd",
+          "qty": 20.0,
+          "unitPrice": 5.0,
+          "amount": 100.0,
+          "cashPaid": null,
+          "firmName": "SR and Co-TMP",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "Mismar (100 mm)",
+          "unit": "Kq",
+          "qty": 40.0,
+          "unitPrice": 1.4,
+          "amount": 56.0,
+          "cashPaid": null,
+          "firmName": "SR and Co-TMP",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "Mismar (120 mm)",
+          "unit": "Kq",
+          "qty": 40.0,
+          "unitPrice": 1.4,
+          "amount": 56.0,
+          "cashPaid": null,
+          "firmName": "SR and Co-TMP",
+          "note": "",
+          "sender": ""
+        },
+        {
+          "materialName": "Kəsər Sapı",
+          "unit": "Ədəd",
+          "qty": 4.0,
+          "unitPrice": 2.0,
+          "amount": 8.0,
+          "cashPaid": null,
+          "firmName": "SR and Co-TMP",
+          "note": "",
+          "sender": ""
+        }
+      ],
+      "total": 8114.34
+    }
+  ],
+  "adjustments": [
+    {
+      "materialName": "Şpaklyovka Astar (30Kq)",
+      "unit": "Kisə",
+      "qty": 400.0,
+      "unitPrice": 4.71,
+      "amount": 1884.0,
+      "diff": 0.25,
+      "diffAmount": 100.0,
+      "actLabel": "11.02.2026 (Sakit)"
+    },
+    {
+      "materialName": "Şpaklyovka Üzlük (25Kq)",
+      "unit": "Kisə",
+      "qty": 200.0,
+      "unitPrice": 4.71,
+      "amount": 942.0,
+      "diff": 0.25,
+      "diffAmount": 50.0,
+      "actLabel": "11.02.2026 (Sakit)"
+    },
+    {
+      "materialName": "Mata",
+      "unit": "Kisə",
+      "qty": 360.0,
+      "unitPrice": 3.36,
+      "amount": 1209.6,
+      "diff": 0.9,
+      "diffAmount": 324.0,
+      "actLabel": "11.02.2026 (Sakit)"
+    },
+    {
+      "materialName": "Mata",
+      "unit": "Kisə",
+      "qty": 1008.0,
+      "unitPrice": 3.36,
+      "amount": 3386.8799999999997,
+      "diff": 0.18,
+      "diffAmount": 181.44,
+      "actLabel": "15.03.2026 (Sakit)"
+    },
+    {
+      "materialName": "Şpaklyovka Astar (30Kq)",
+      "unit": "Kisə",
+      "qty": 600.0,
+      "unitPrice": 4.71,
+      "amount": 2826.0,
+      "diff": 0.25,
+      "diffAmount": 150.0,
+      "actLabel": "07.04.2026 (Sakit)"
+    },
+    {
+      "materialName": "Şpaklyovka Üzlük (25Kq)",
+      "unit": "Kisə",
+      "qty": 250.0,
+      "unitPrice": 4.71,
+      "amount": 1177.5,
+      "diff": 0.25,
+      "diffAmount": 62.5,
+      "actLabel": "07.04.2026 (Sakit)"
+    }
+  ]
+}

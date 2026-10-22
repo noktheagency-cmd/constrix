@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react"
 import { Link } from "react-router-dom"
-import { dateAZ, moneyShort } from "../format"
+import { dateAZ, money as moneyAZ, moneyShort, num } from "../format"
 import { Icon } from "../icons"
-import { Confirm, Empty, Meter, Modal, PageHead, RowMenu, Select, Tabs, useTitle } from "../ui"
+import { Badge, Confirm, Empty, Field, Meter, Modal, PageHead, RowMenu, Select, Tabs, useTitle } from "../ui"
 import {
   APPROVALS,
   CATEGORIES,
@@ -35,6 +35,19 @@ import * as XLSX from "xlsx"
 import { FILE_ACCEPT } from "../procure/engine"
 import { documentText, readProjectFile } from "../procure/read"
 import { GEAR_KINDS, METHODS, REGIONS, gearCost, laborQuote, regionMap, regionMaterial, rulesForMethod, type Complexity, type GearBasis, type Method } from "../procure/smeta"
+import {
+  chooseQuote,
+  deliverOrder,
+  openRfq,
+  orderFromRfq,
+  quoteCompareRows,
+  receiveOrder,
+  seedQuotes,
+  type MarketCartLine,
+  type MarketOrder,
+  type MarketRfq,
+} from "../domain/marketRfq"
+import { useStore } from "../store"
 
 const PARTY_LABEL: Record<Party, string> = {
   podratci: "Podratçı verir",
@@ -852,6 +865,40 @@ export function ETenderPage() {
   return (
     <div className="yoxlama etender">
       <PageHead kicker="Dövlət satınalması" title="e-Tender" text="Açıq elan, təminat və təsdiq bir yerdədir. Kartı seç, şərti aşağıda düzəlt.">
+        <button
+          type="button"
+          className="btn ghost"
+          onClick={() => {
+            const lines = [
+              `CONSTRIX tender paketi · ${live.number || number || "—"}`,
+              `Predmet: ${live.subject || tender.subject || "—"}`,
+              `Alıcı: ${live.buyer || tender.buyer || "—"}`,
+              `Son tarix: ${live.deadline || tender.deadline || "—"}`,
+              "",
+              "Sənəd siyahısı (portal bağlı — yerli hazırlıq):",
+              ...CHECKS.map((item, index) => {
+                const row = live.checks.find((check) => check.name === item)
+                const mark = row?.fit === "uygun" ? "[x]" : "[ ]"
+                return `${mark} ${index + 1}. ${item}${row ? ` · ${FIT_LABEL[row.fit]}` : ""}`
+              }),
+              "",
+              "Təsdiq zənciri:",
+              ...live.approvals.map((item) => `- ${item.role}: ${item.status}`),
+              "",
+              `Şirkət: ${companyLine || "—"}`,
+              "Qeyd: Etender portal sessiyası bağlıdır; bu fayl yerli yoxlama siyahısıdır.",
+            ]
+            const blob = new Blob([lines.join("\n")], { type: "text/plain;charset=utf-8" })
+            const url = URL.createObjectURL(blob)
+            const link = document.createElement("a")
+            link.href = url
+            link.download = `tender-paket-${(live.number || number || "draft").replace(/\W+/g, "_")}.txt`
+            link.click()
+            URL.revokeObjectURL(url)
+          }}
+        >
+          Paket siyahısı
+        </button>
         <button type="button" className="btn ghost" onClick={() => void refresh()}>Müddəti yoxla</button>
         <label className="btn ghost small boq-upload">
           {reading ? "Oxunur" : "Sənədi oxu"}
@@ -2666,7 +2713,7 @@ export function SpecPage() {
                   <Select ariaLabel={`${row.title} nəticəsi`} value={row.fit} onValueChange={(fit) => writeFit(row.name, fit as Fit)} options={FIT_OPTIONS} />
                 </label>
                 <p className="hint">{FIT_HINT[row.fit]}</p>
-                {row.name === "Sınaq və sertifikat" && <Link className="btn ghost small" to="/pasport">Material pasportuna keç</Link>}
+                {row.name === "Sınaq və sertifikat" && <Link className="btn ghost small" to="/anbar?tab=pasport">Material pasportuna keç</Link>}
               </article>
             ))}
           </div>
@@ -2838,6 +2885,13 @@ export function MarketPage() {
   const [editing, setEditing] = useState<string | null>(null)
   const [viewId, setViewId] = useState<string | null>(null)
   const [drop, setDrop] = useState<{ id: string; name: string } | null>(null)
+  const [desk, setDesk] = useState<"katalog" | "rfq" | "sifaris">("katalog")
+  const [cart, setCart] = useState<MarketCartLine[]>([])
+  const [rfqs, setRfqs] = useState<MarketRfq[]>([])
+  const [orders, setOrders] = useState<MarketOrder[]>([])
+  const [rfqForm, setRfqForm] = useState({ address: "Bakı sahəsi", needBy: "2026-11-01" })
+  const [rfqError, setRfqError] = useState("")
+  const [activeRfq, setActiveRfq] = useState<string | null>(null)
 
   useEffect(() => {
     api<{ id: string; name: string; category: string; unit: string; price: unknown; supplier?: string; regions?: string; validUntil?: string | null }[]>("/api/platform/market/products")
@@ -2939,11 +2993,163 @@ export function MarketPage() {
   const formCategories = form.category && !CATEGORIES.includes(form.category) ? [form.category, ...CATEGORIES] : CATEGORIES
   const viewed = market.find((item) => item.id === viewId) ?? null
 
+  function addToCart(item: (typeof market)[number]) {
+    setCart((prev) => {
+      const found = prev.find((row) => row.productId === item.id)
+      if (found) return prev.map((row) => (row.productId === item.id ? { ...row, qty: row.qty + 1 } : row))
+      return [...prev, { productId: item.id, name: item.name, unit: item.unit || "ədəd", supplier: item.source, qty: 1 }]
+    })
+    setDesk("rfq")
+  }
+
+  function submitRfq() {
+    const created = openRfq(cart, rfqForm.address, rfqForm.needBy, rfqs)
+    if (typeof created === "string") {
+      setRfqError(created)
+      return
+    }
+    const withQuotes = { ...created, status: "teklifler" as const, quotes: seedQuotes(created) }
+    setRfqs((prev) => [withQuotes, ...prev])
+    setActiveRfq(withQuotes.id)
+    setCart([])
+    setRfqError("")
+  }
+
+  const currentRfq = rfqs.find((item) => item.id === activeRfq) || rfqs[0]
+
   return (
     <div className="market-page">
-      <PageHead kicker="Təchizat" title="Material bazarı" text="İstənilən şirkət sifariş verir. Kabinet ödənişlidir. Qiymətin ƏDV vəziyyəti seçilir.">
-        <button type="button" className="btn" onClick={openNew}><Icon name="plus" /> Yeni</button>
+      <PageHead kicker="Təchizat" title="Material bazarı" text="Kataloq → RFQ → təklif müqayisəsi → sifariş → qəbul. Məhsul ödənişi tərəflər arasındadır; platforma komissiya tarifi AÇIQ-dır, burada hesablanmır.">
+        {desk === "katalog" && <button type="button" className="btn" onClick={openNew}><Icon name="plus" /> Yeni</button>}
       </PageHead>
+      <div className="toolbar">
+        <Tabs
+          value={desk}
+          onChange={(next) => setDesk(next as typeof desk)}
+          options={[
+            { id: "katalog", label: "Kataloq" },
+            { id: "rfq", label: `RFQ${cart.length || rfqs.length ? ` · ${cart.length || rfqs.length}` : ""}` },
+            { id: "sifaris", label: `Sifariş${orders.length ? ` · ${orders.length}` : ""}` },
+          ]}
+        />
+      </div>
+      {desk === "rfq" && (
+        <section className="panel pad">
+          <h2>RFQ səbəti</h2>
+          <p className="muted">İctimai sabit qiymət və ani checkout yoxdur — yalnız qiymət sorğusu.</p>
+          {cart.length === 0 && !rfqs.length && <Empty title="Səbət boşdur" text="Kataloqdan «RFQ-yə əlavə et» seçin." />}
+          {cart.map((line) => (
+            <p key={line.productId}>
+              <b>{line.name}</b> · {num(line.qty, 0)} {line.unit}
+              <button type="button" className="btn ghost small" onClick={() => setCart((prev) => prev.filter((row) => row.productId !== line.productId))}>Sil</button>
+            </p>
+          ))}
+          {cart.length > 0 && (
+            <>
+              <Field label="Ünvan"><input value={rfqForm.address} onChange={(event) => setRfqForm({ ...rfqForm, address: event.target.value })} /></Field>
+              <Field label="Tələb tarixi"><DateField value={rfqForm.needBy} onChange={(value) => setRfqForm({ ...rfqForm, needBy: value })} /></Field>
+              {rfqError && <p className="form-error">{rfqError}</p>}
+              <button type="button" className="btn" onClick={submitRfq}>RFQ göndər</button>
+            </>
+          )}
+          {rfqs.length > 0 && (
+            <>
+              <h3>Açıq RFQ</h3>
+              <Select
+                value={currentRfq?.id || ""}
+                onValueChange={setActiveRfq}
+                options={rfqs.map((item) => ({ value: item.id, label: `${item.number} · ${item.status}` }))}
+              />
+              {currentRfq && (
+                <>
+                  <p className="muted">{currentRfq.address} · {currentRfq.needBy} · {currentRfq.lines.length} sətir</p>
+                  {quoteCompareRows(currentRfq).map((quote) => (
+                    <p key={quote.id}>
+                      <b>{quote.supplier}</b> · {moneyAZ(quote.total)} · {quote.deliveryDays} gün · ƏDV {quote.vat}
+                      {quote.chosen ? " · seçilib" : (
+                        <button
+                          type="button"
+                          className="btn ghost small"
+                          onClick={() => {
+                            const next = chooseQuote(currentRfq, quote.id)
+                            if (typeof next === "string") { setRfqError(next); return }
+                            setRfqs((prev) => prev.map((item) => (item.id === next.id ? next : item)))
+                          }}
+                        >
+                          Seç
+                        </button>
+                      )}
+                    </p>
+                  ))}
+                  {currentRfq.status === "secilib" && (
+                    <button
+                      type="button"
+                      className="btn"
+                      onClick={() => {
+                        const order = orderFromRfq(currentRfq, orders)
+                        if (typeof order === "string") { setRfqError(order); return }
+                        setOrders((prev) => [order, ...prev])
+                        setRfqs((prev) => prev.map((item) => (item.id === currentRfq.id ? { ...item, status: "baglanib" } : item)))
+                        setDesk("sifaris")
+                      }}
+                    >
+                      Sifariş yarat
+                    </button>
+                  )}
+                </>
+              )}
+            </>
+          )}
+        </section>
+      )}
+      {desk === "sifaris" && (
+        <section className="panel pad">
+          <h2>Sifariş və qəbul</h2>
+          {orders.length === 0 && <Empty title="Sifariş yoxdur" text="RFQ-dən təklif seçib sifariş açın." />}
+          {orders.map((order) => {
+            const total = order.lines.reduce((sum, line) => sum + line.qty, 0)
+            return (
+              <div key={order.id} className="panel pad">
+                <p><b>{order.number}</b> · {order.supplier} · <Badge status={order.status} /></p>
+                <p className="muted">Çatdırılıb {num(order.deliveredQty, 0)} / {num(total, 0)} · qəbul {num(order.receivedQty, 0)} · mübahisə {num(order.disputeQty, 0)}</p>
+                <div className="form-actions">
+                  {order.status !== "baglanib" && order.deliveredQty < total && (
+                    <button
+                      type="button"
+                      className="btn ghost"
+                      onClick={() => {
+                        const next = deliverOrder(order, Math.max(1, total - order.deliveredQty))
+                        if (typeof next === "string") return
+                        setOrders((prev) => prev.map((item) => (item.id === order.id ? next : item)))
+                      }}
+                    >
+                      Çatdırılma yaz
+                    </button>
+                  )}
+                  {order.deliveredQty > order.receivedQty + order.disputeQty && (
+                    <button
+                      type="button"
+                      className="btn"
+                      onClick={() => {
+                        const left = order.deliveredQty - order.receivedQty - order.disputeQty
+                        const accept = Math.max(0, left - (left > 5 ? 5 : 0))
+                        const dispute = left - accept
+                        const next = receiveOrder(order, accept, dispute)
+                        if (typeof next === "string") return
+                        setOrders((prev) => prev.map((item) => (item.id === order.id ? next : item)))
+                      }}
+                    >
+                      Qəbul et
+                    </button>
+                  )}
+                </div>
+              </div>
+            )
+          })}
+        </section>
+      )}
+      {desk === "katalog" && (
+      <>
       <section className="statstrip">
         <article>
           <span>Məhsul</span>
@@ -3040,6 +3246,7 @@ export function MarketPage() {
                       <td className="acts">
                         <RowMenu
                           items={[
+                            { id: "rfq", label: "RFQ-yə əlavə et", onClick: () => addToCart(item) },
                             { id: "edit", label: "Düzəlt", onClick: () => openEdit(item) },
                             { id: "delete", label: "Sil", onClick: () => setDrop({ id: item.id, name: item.name }) },
                           ]}
@@ -3052,6 +3259,8 @@ export function MarketPage() {
             </table>
           </div>
         </>
+      )}
+      </>
       )}
       {compose && (
         <Modal wide className="market-modal" title={editing ? "Sətri düzəlt" : "Yeni sətir"} onClose={() => { setCompose(false); setEditing(null) }}>
@@ -3085,6 +3294,7 @@ export function MarketPage() {
           </dl>
           <div className="form-actions">
             <button type="button" className="btn ghost" onClick={() => setViewId(null)}>Bağla</button>
+            <button type="button" className="btn ghost" onClick={() => { addToCart(viewed); setViewId(null) }}>RFQ-yə əlavə et</button>
             <button type="button" className="btn" onClick={() => { setViewId(null); openEdit(viewed) }}>Düzəlt</button>
           </div>
         </Modal>
@@ -3575,15 +3785,17 @@ function fitTone(fit: Fit) {
   return "stone"
 }
 
-export function PassportPage() {
-  useTitle("Pasport")
+export function PassportPage({ embedded = false, materialFilter = "" }: { embedded?: boolean; materialFilter?: string }) {
+  useTitle(embedded ? "Anbar" : "Pasport")
   const { passports } = useWorkspace()
-  const [form, setForm] = useState(emptyPassport)
+  const { materials } = useStore()
+  const [form, setForm] = useState(() => ({ ...emptyPassport, material: materialFilter }))
+  const [materialId, setMaterialId] = useState(() => materials.find((item) => item.name === materialFilter)?.id || "")
   const [ready, setReady] = useState(false)
   const [error, setError] = useState("")
   const [note, setNote] = useState("")
   const [busy, setBusy] = useState(false)
-  const [find, setFind] = useState("")
+  const [find, setFind] = useState(materialFilter)
   const [filter, setFilter] = useState("hamisi")
 
   function remember(rows: ApiPassport[]) {
@@ -3639,7 +3851,12 @@ export function PassportPage() {
 
   return (
     <div className="passport-page">
-      <PageHead kicker="Keyfiyyət" title="Material pasportu" text="Hər kart bazada saxlanan material sənədidir. Boş sahə «yazılmayıb» kimi durur, ona görə formadakı boş xanalar məlumat sayılmır." />
+      {!embedded && (
+        <PageHead kicker="Keyfiyyət" title="Material pasportu" text="Hər kart bazada saxlanan material sənədidir. Boş sahə «yazılmayıb» kimi durur, ona görə formadakı boş xanalar məlumat sayılmır." />
+      )}
+      {embedded && (
+        <p className="lede">Material pasportu və sertifikatlar anbar kartındadır. Boş sahə «yazılmayıb» sayılır.</p>
+      )}
       <section className="statstrip">
         <article>
           <span>Pasport</span>
@@ -3728,7 +3945,20 @@ export function PassportPage() {
         <h2>Yeni pasport</h2>
         <p className="lede">Bu forma hələ məlumat deyil. Saxlayanda kart yuxarıdakı siyahıya düşür.</p>
         <div className="form-row wide">
-          <label>Material<input value={form.material} onChange={(event) => setForm({ ...form, material: event.target.value })} placeholder="məsələn, Armatur A500 Ø16" /></label>
+          {materials.length > 0 && (
+            <label>Anbar kartı
+              <Select
+                value={materialId}
+                onValueChange={(id) => {
+                  setMaterialId(id)
+                  const row = materials.find((item) => item.id === id)
+                  if (row) setForm((current) => ({ ...current, material: row.name }))
+                }}
+                options={[{ value: "", label: "Kataloqdan seç" }, ...materials.map((item) => ({ value: item.id, label: item.name }))]}
+              />
+            </label>
+          )}
+          <label>Material<input value={form.material} onChange={(event) => { setMaterialId(""); setForm({ ...form, material: event.target.value }) }} placeholder="məsələn, Armatur A500 Ø16" /></label>
           <label>İstehsalçı<input value={form.maker} onChange={(event) => setForm({ ...form, maker: event.target.value })} /></label>
           <label>Standart<input value={form.standard} onChange={(event) => setForm({ ...form, standard: event.target.value })} /></label>
           <label>Sertifikat nömrəsi<input value={form.certificate} onChange={(event) => setForm({ ...form, certificate: event.target.value })} /></label>

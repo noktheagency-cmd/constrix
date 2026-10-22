@@ -42,9 +42,9 @@ const emptyDraft = (projectId = ""): Draft => ({
   photo: "",
 })
 
-export default function Reports() {
+export default function Reports({ embedded = false, projectId }: { embedded?: boolean; projectId?: string }) {
   const { t } = usePrefs()
-  useTitle(t("page.daily.title"))
+  useTitle(embedded ? t("page.site.title") : t("page.daily.title"))
   const { query, reports, projects, smetas, people, assets, plants, journal, actor, allowed, saveDaily, removeDaily, submitDaily, returnDaily, approveDaily, addNote, editNote, removeNote } = useStore()
   const [tab, setTab] = useState<Tab>("gundelik")
   const [openId, setOpenId] = useState("")
@@ -58,8 +58,10 @@ export default function Reports() {
   const assetOf = (id: string) => assets.find((item) => item.id === id)
   const lineOf = (projectId: string, lineId: string) => smetas.find((item) => item.projectId === projectId)?.lines.find((item) => item.id === lineId)
 
-  const rows = reports.filter((item) => hit(query, item.id, item.note, item.author, item.date, projectOf(item.projectId)?.name))
-  const volumes = projects.flatMap((project) => {
+  const scoped = projectId ? reports.filter((item) => item.projectId === projectId) : reports
+  const rows = scoped.filter((item) => hit(query, item.id, item.note, item.author, item.date, projectOf(item.projectId)?.name))
+  const volumeProjects = projectId ? projects.filter((item) => item.id === projectId) : projects
+  const volumes = volumeProjects.flatMap((project) => {
     const lines = smetas.find((item) => item.projectId === project.id)?.lines || []
     return lines.flatMap((line) => {
       const mine = reports.filter((item) => item.projectId === project.id && item.lines.some((row) => row.smetaLineId === line.id))
@@ -89,7 +91,7 @@ export default function Reports() {
   function startCreate() {
     setError("")
     setOpenId("")
-    setForm(emptyDraft(projects[0]?.id || ""))
+    setForm(emptyDraft(projectId || projects[0]?.id || ""))
   }
 
   function startEdit(item: DailyReport) {
@@ -163,17 +165,26 @@ export default function Reports() {
 
   return (
     <>
-      <PageHead kicker={t("page.daily.kicker")} title={t("page.daily.title")} text={t("page.daily.text")}>
-        {tab === "qeyd" ? (
-          <button type="button" className="btn" onClick={() => { setError(""); setNote({ id: "", site: places[0] || "", text: "" }) }}>
-            <Icon name="plus" /> Qeyd
-          </button>
-        ) : allowed("site") ? (
+      {!embedded && (
+        <PageHead kicker={t("page.daily.kicker")} title={t("page.daily.title")} text={t("page.daily.text")}>
+          {tab === "qeyd" ? (
+            <button type="button" className="btn" onClick={() => { setError(""); setNote({ id: "", site: places[0] || "", text: "" }) }}>
+              <Icon name="plus" /> Qeyd
+            </button>
+          ) : allowed("site") ? (
+            <button type="button" className="btn" onClick={startCreate}>
+              <Icon name="plus" /> Gündəlik
+            </button>
+          ) : null}
+        </PageHead>
+      )}
+      {embedded && allowed("site") && (
+        <div className="toolbar" style={{ marginBottom: 8 }}>
           <button type="button" className="btn" onClick={startCreate}>
             <Icon name="plus" /> Gündəlik
           </button>
-        ) : null}
-      </PageHead>
+        </div>
+      )}
       <div className="toolbar">
         <Tabs
           value={tab}

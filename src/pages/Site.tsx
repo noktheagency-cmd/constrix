@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from "react"
 import { DateField } from "../DateField"
-import { Link } from "react-router-dom"
+import { useSearchParams } from "react-router-dom"
 import { isAway, PERSON_STATUSES } from "../domain/places"
 import type { PersonStatus, Weather } from "../domain/types"
 import { TODAY } from "../domain/ops"
@@ -10,11 +10,13 @@ import { usePrefs } from "../i18n"
 import { useStore } from "../store"
 import { Badge, Empty, Field, Meter, Modal, PageHead, RowMenu, Select, StockBar, Tabs, useTitle } from "../ui"
 import { PhaseTrack } from "./projectParts"
+import Reports from "./Reports"
 
 const ASSET_TYPES = ["Kran", "Ekskavator", "Beton", "Nəqliyyat", "Anbar", "Dəzgah"]
 const emptyPerson = { id: "", name: "", role: "", crew: "", phone: "", status: "sahede" as PersonStatus }
 
-type Tab = "icmal" | "hesabat" | "hecm" | "briqada" | "texnika" | "material" | "qeyd"
+type Tab = "icmal" | "hesabat" | "gundelik" | "hecm" | "briqada" | "texnika" | "material" | "qeyd"
+const SITE_TABS: Tab[] = ["icmal", "hesabat", "gundelik", "hecm", "briqada", "texnika", "material", "qeyd"]
 
 const blank = {
   weather: "gunesli" as Weather,
@@ -31,9 +33,23 @@ export default function Site() {
   const { t } = usePrefs()
   useTitle(t("page.site.title"))
   const { query, projects, smetas, assets, people, materials, stocks, locations, requests, reports, journal, documents, saveDaily, addNote, createRequest, assignToSite, editCrew, releaseFromSite, pullAsset, editAsset, releaseAsset } = useStore()
+  const [search, setSearch] = useSearchParams()
+  const tabParam = search.get("tab")
   const [projectId, setProjectId] = useState(projects.find((item) => item.status === "aktiv")?.id || projects[0]?.id || "")
-  const [tab, setTab] = useState<Tab>("icmal")
+  const [tab, setTab] = useState<Tab>(() => (SITE_TABS.includes(tabParam as Tab) ? (tabParam as Tab) : "icmal"))
   const [form, setForm] = useState(blank)
+
+  useEffect(() => {
+    if (SITE_TABS.includes(tabParam as Tab) && tabParam !== tab) setTab(tabParam as Tab)
+  }, [tabParam, tab])
+
+  function openSiteTab(next: string) {
+    const value = next as Tab
+    setTab(value)
+    setError("")
+    if (value === "gundelik") setSearch({ tab: "gundelik" })
+    else if (search.get("tab")) setSearch({})
+  }
   const [ask, setAsk] = useState<{ materialId: string; qty: string } | null>(null)
   const [note, setNote] = useState<string | null>(null)
   const [person, setPerson] = useState(emptyPerson)
@@ -114,15 +130,15 @@ export default function Site() {
             <Icon name="plus" /> Cəlb et
           </button>
         )}
-        {tab === "hesabat" && <Link to="/gundelik" className="btn ghost">Gündəliklər</Link>}
       </PageHead>
       <div className="toolbar">
         <Tabs
           value={tab}
-          onChange={(next) => { setTab(next as Tab); setError("") }}
+          onChange={openSiteTab}
           options={[
             { id: "icmal", label: "İcmal" },
             { id: "hesabat", label: "Hesabat" },
+            { id: "gundelik", label: "Gündəliklər" },
             { id: "hecm", label: "Həcm" },
             { id: "briqada", label: "Briqada" },
             { id: "texnika", label: "Texnika" },
@@ -253,13 +269,17 @@ export default function Site() {
               <p className="block-title">Bu obyektin gündəlikləri</p>
               <div className="mini-list">
                 {mineReports.map((item) => (
-                  <article key={item.id}>{item.id} · {dateAZ(item.date)} · {t(`weather.${item.weather}`)} · {item.author} <Badge status={item.status} /></article>
+                  <button type="button" key={item.id} className="click" onClick={() => openSiteTab("gundelik")}>
+                    {item.id} · {dateAZ(item.date)} · {t(`weather.${item.weather}`)} · {item.author} <Badge status={item.status} />
+                  </button>
                 ))}
               </div>
             </>
           )}
         </form>
       )}
+
+      {project && tab === "gundelik" && <Reports embedded projectId={projectId} />}
 
       {project && tab === "hecm" && (
         <div className="table-wrap">

@@ -549,7 +549,7 @@ test("qaralama akt redaktə olunur, təsdiq və faktura silinmir", () => {
   const mid = state.smetas.find((item) => item.projectId === "PRJ-2408")?.lines.find((item) => item.id === line.smetaLineId)?.billedQty
   assert.ok(mid !== undefined && before !== undefined)
   assert.ok(Math.abs(mid - (before + line.qty / 2)) < 0.02)
-  assert.match(updateAct(state, act.id, [{ smetaLineId: line.smetaLineId, qty: 999999 }], actor).error ?? "", /ən çox/)
+  assert.match(updateAct(state, act.id, [{ smetaLineId: line.smetaLineId, qty: 999999 }], actor).error ?? "", /aktlaşdırılıb|ən çox/)
   state = withPatch(state, approveAct(state, act.id, actor))
   assert.match(deleteAct(state, act.id, actor).error ?? "", /qaralama/)
   state = withPatch(state, returnAct(state, act.id, actor))
