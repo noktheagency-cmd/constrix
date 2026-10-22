@@ -36,14 +36,10 @@ export const MODULE_NAV: Record<ModuleId, { label: string; items: NavItem[] }[]>
       label: "nav.ops",
       items: [
         { to: "/", label: "nav.overview", icon: "grid", end: true, area: "dashboard" },
-        { to: "/kabinet", label: "nav.cabinet", icon: "office", area: "dashboard" },
         { to: "/layiheler", label: "nav.projects", icon: "crane", area: "projects" },
         { to: "/qrafik", label: "nav.schedule", icon: "calendar", area: "projects" },
-        { to: "/hava", label: "nav.weather", icon: "cloud", area: "weather" },
         { to: "/spesifikasiya", label: "nav.spec", icon: "list", area: "spec" },
-        { to: "/pasport", label: "nav.passport", icon: "badge", area: "spec" },
         { to: "/sahe", label: "nav.site", icon: "pin", area: "site" },
-        { to: "/gundelik", label: "nav.daily", icon: "clipboard", area: "reports" },
         { to: "/forma-2", label: "nav.forma2", icon: "form", area: "acts" },
         { to: "/forma-3", label: "nav.forma3", icon: "table", area: "acts" },
       ],
@@ -64,6 +60,7 @@ export const MODULE_NAV: Record<ModuleId, { label: string; items: NavItem[] }[]>
       label: "nav.resources",
       items: [
         { to: "/bazar", label: "nav.market", icon: "store", area: "supply" },
+        { to: "/alis-akti", label: "nav.purchaseActs", icon: "invoice", area: "supply" },
         { to: "/anbar", label: "nav.warehouse", icon: "warehouse", area: "warehouse" },
         { to: "/aktivler", label: "nav.assets", icon: "asset", area: "assets" },
         { to: "/zavod", label: "nav.plant", icon: "factory", area: "production" },
@@ -121,7 +118,7 @@ export const MODULE_NAV: Record<ModuleId, { label: string; items: NavItem[] }[]>
 
 const PROCURE_PATHS = new Set(["/sirket", "/layihe-fayl", "/kataloq", "/hesablama", "/dasima", "/teklif", "/sifaris-merhele", "/tarif", "/platforma"])
 const TENDER_PATHS = new Set(["/e-tender", "/boq", "/qarantiya", "/yoxlama"])
-const SUPPLY_PATHS = new Set(["/techizat", "/bazar", "/anbar", "/aktivler", "/zavod", "/sexler", "/reseptler"])
+const SUPPLY_PATHS = new Set(["/techizat", "/bazar", "/alis-akti", "/anbar", "/aktivler", "/zavod", "/sexler", "/reseptler"])
 const MONEY_PATHS = new Set(["/maliyye", "/pul-axini", "/emeliyyatlar", "/hesablar", "/qaimeler", "/bank", "/emek-haqqi", "/vesaitler", "/terefler", "/hesabatlar", "/partnyorlar", "/sigorta"])
 const HR_PATHS = new Set(["/isciler", "/davamiyyet", "/mezuniyyet", "/odenisler", "/sobeler", "/mesgulluq"])
 const CLUB_PATHS = new Set(["/emekdasliq", "/abune", "/sifarisci", "/senedler", "/sablonlar", "/admin"])

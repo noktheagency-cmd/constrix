@@ -125,7 +125,17 @@ import {
   advanceShipment,
 } from "./domain/ops"
 import { loadBooks } from "./books"
-import { createEmptyState } from "./domain/seed"
+import { syncBooks } from "./syncBooks"
+import { createEmptyState, createInitialState } from "./domain/seed"
+import {
+  approvePurchaseAct,
+  createPurchaseAct,
+  deletePurchaseAct,
+  returnPurchaseAct,
+  updatePurchaseAct,
+  type PurchaseActForm,
+} from "./domain/purchaseActs"
+import { applySmetaImport, type SmetaImportRow } from "./domain/smetaIo"
 import type {
   AppState,
   Area,
@@ -318,6 +328,12 @@ export interface StoreValue extends AppState {
   returnAct: (id: string) => string
   editAct: (id: string, lines: { smetaLineId: string; qty: number | string }[]) => string
   removeAct: (id: string) => string
+  makePurchaseAct: (form: PurchaseActForm) => string
+  editPurchaseAct: (id: string, form: PurchaseActForm) => string
+  approvePurchaseAct: (id: string, locationId?: string) => string
+  returnPurchaseAct: (id: string) => string
+  removePurchaseAct: (id: string) => string
+  importSmeta: (projectId: string, rows: SmetaImportRow[]) => string
   approveForma3Doc: (id: string) => string
   returnForma3Doc: (id: string) => string
   removeForma3: (id: string) => string
@@ -409,8 +425,14 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     if (session?.userId) dispatch({ type: "USER", id: session.userId })
   }, [session])
   const reload = useCallback(() => {
-    if (!session?.userId) return
-    loadBooks().then((patch) => dispatch({ type: "PATCH", patch }))
+    if (!session?.userId) {
+      dispatch({ type: "PATCH", patch: createInitialState() })
+      return
+    }
+    loadBooks().then((patch) => {
+      const hasProjects = Array.isArray(patch.projects) && patch.projects.length > 0
+      dispatch({ type: "PATCH", patch: hasProjects ? patch : createInitialState() })
+    })
   }, [session?.userId])
   useEffect(() => {
     reload()
@@ -428,7 +450,6 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }
 
   function run(result: OpResult, okMessage?: string) {
-    if (result.patch) dispatch({ type: "PATCH", patch: result.patch })
     if (result.error) {
       toast(result.error)
       return result.error
@@ -436,6 +457,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     if (!result.patch) {
       toast("Əməliyyat alınmadı")
       return "Əməliyyat alınmadı"
+    }
+    const before = state
+    dispatch({ type: "PATCH", patch: result.patch })
+    if (session?.userId) {
+      void syncBooks(before, result.patch)
     }
     if (okMessage) toast(okMessage)
     return ""
@@ -732,6 +758,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     returnAct: (id) => run(returnAct(state, id, actor), "Forma-2 qaralamaya qaytarıldı"),
     editAct: (id, lines) => run(updateAct(state, id, lines, actor), "Forma-2 redaktə olundu"),
     removeAct: (id) => run(deleteAct(state, id, actor), "Forma-2 silindi"),
+    makePurchaseAct: (form) => run(createPurchaseAct(state, form, actor), "Alış aktı açıldı"),
+    editPurchaseAct: (id, form) => run(updatePurchaseAct(state, id, form, actor), "Alış aktı yazıldı"),
+    approvePurchaseAct: (id, locationId) => run(approvePurchaseAct(state, id, actor, locationId), "Alış aktı təsdiqləndi, anbara düşdü"),
+    returnPurchaseAct: (id) => run(returnPurchaseAct(state, id, actor), "Alış aktı qaralamaya qaytarıldı"),
+    removePurchaseAct: (id) => run(deletePurchaseAct(state, id, actor), "Alış aktı silindi"),
+    importSmeta: (projectId, rows) => run(applySmetaImport(state, projectId, rows, actor), "Smeta Excel-dən yükləndi"),
     approveForma3Doc: (id) => run(approveForma3(state, id, actor), "Forma-3 təsdiqləndi və dondu"),
     returnForma3Doc: (id) => run(returnForma3(state, id, actor), "Forma-3 qaralamaya qaytarıldı"),
     removeForma3: (id) => run(deleteForma3(state, id, actor), "Forma-3 silindi"),

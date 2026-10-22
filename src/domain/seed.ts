@@ -39,6 +39,7 @@ import type {
 } from "./types"
 import { hrmRecords } from "./hrm"
 import { approveAct, approveForma3, createAct, createForma3, saveReport, smetaProgress } from "./ops"
+import { buildSalmanogluBundle } from "./salmanogluSeed"
 
 const PHASES: {
   code: string
@@ -151,6 +152,9 @@ function buildSmeta(project: Project): Smeta {
       billedQty: Math.round(doneQty * 0.9 * 10) / 10,
       laborHours: phase.laborHours,
       recipe: phase.recipe || "",
+      kind: "work" as const,
+      houseNo: "",
+      section: "",
     }
   })
   return {
@@ -259,23 +263,37 @@ const fleetDocs: FleetDoc[] = [
 ]
 
 function buildState(): AppState {
-  const smetas = seedProjects.map(buildSmeta)
-  const projects = seedProjects.map((project) => {
-    const smeta = smetas.find((item) => item.projectId === project.id)
-    if (!smeta) throw new Error("Smeta tapılmadı")
-    return { ...project, smetaId: smeta.id, progress: smetaProgress(smeta) }
-  })
-  const contracts = projects.map((project) => {
-    const smeta = smetas.find((item) => item.id === project.smetaId)
-    if (!smeta) throw new Error("Smeta tapılmadı")
-    return contractFor(project, smeta)
-  })
-  const acts = projects.flatMap((project) => {
-    const smeta = smetas.find((item) => item.id === project.smetaId)
-    if (!smeta) return []
-    const act = archiveAct(project, smeta)
-    return act ? [act] : []
-  })
+  const salman = buildSalmanogluBundle()
+  const smetas = [...seedProjects.map(buildSmeta), salman.smeta]
+  const projects = [
+    ...seedProjects.map((project) => {
+      const smeta = smetas.find((item) => item.projectId === project.id)
+      if (!smeta) throw new Error("Smeta tapılmadı")
+      return { ...project, smetaId: smeta.id, progress: smetaProgress(smeta) }
+    }),
+    { ...salman.project, progress: smetaProgress(salman.smeta) },
+  ]
+  const contracts = [
+    ...projects
+      .filter((project) => project.id !== salman.project.id)
+      .map((project) => {
+        const smeta = smetas.find((item) => item.id === project.smetaId)
+        if (!smeta) throw new Error("Smeta tapılmadı")
+        return contractFor(project, smeta)
+      }),
+    salman.contract,
+  ]
+  const acts = [
+    ...projects
+      .filter((project) => project.id !== salman.project.id)
+      .flatMap((project) => {
+        const smeta = smetas.find((item) => item.id === project.smetaId)
+        if (!smeta) return []
+        const act = archiveAct(project, smeta)
+        return act ? [act] : []
+      }),
+    salman.act,
+  ]
   const locations: Location[] = [
     { id: "LOC-MERKEZ", name: "Mərkəzi anbar", kind: "merkez" },
     { id: "LOC-ZAVOD", name: "Beton zavodu", kind: "zavod" },
@@ -333,6 +351,7 @@ function buildState(): AppState {
       materialId: PO_MATERIAL[order.id] || "",
       receivedQty: order.status === "qebul" ? order.qty : 0,
     })),
+    purchaseActs: salman.purchaseActs,
     requests: [
       {
         id: "TLB-014",
@@ -670,6 +689,7 @@ export function createEmptyState(): AppState {
     movements: [],
     shipments: [],
     purchaseOrders: [],
+    purchaseActs: [],
     requests: [],
     recipes: [],
     orders: [],

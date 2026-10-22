@@ -67,6 +67,7 @@ export const ROUTE_AREAS: Record<string, Area | Area[]> = {
   suppliers: 'supply',
   quotes: 'supply',
   'purchase-orders': 'supply',
+  'purchase-acts': 'supply',
   requests: ['supply', 'warehouse'],
   smetas: ['acts', 'projects'],
   contracts: ['acts', 'projects'],

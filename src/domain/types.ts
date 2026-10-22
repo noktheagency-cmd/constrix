@@ -674,6 +674,8 @@ export interface FormulaLine {
   qty: string | number
 }
 
+export type SmetaLineKind = "work" | "house" | "section"
+
 export interface SmetaLine {
   id: string
   code: string
@@ -685,6 +687,52 @@ export interface SmetaLine {
   billedQty: number
   laborHours: number
   recipe: string
+  kind?: SmetaLineKind
+  houseNo?: string
+  section?: string
+}
+
+export type PurchaseActStatus = "qaralama" | "tesdiq"
+
+export interface PurchaseActLine {
+  id: string
+  materialName: string
+  unit: string
+  qty: number
+  unitPrice: number
+  amount: number
+  cashPaid?: number | null
+  firmName: string
+  note: string
+  sender: string
+  materialId?: string
+}
+
+export interface PurchaseActAdjust {
+  id: string
+  materialName: string
+  unit: string
+  qty: number
+  unitPrice: number
+  amount: number
+  diff: number
+  diffAmount: number
+  actLabel: string
+}
+
+export interface PurchaseAct {
+  id: string
+  number: string
+  projectId?: string
+  project: string
+  objectName: string
+  person: string
+  date: string
+  status: PurchaseActStatus
+  net: number
+  note: string
+  lines: PurchaseActLine[]
+  adjustments: PurchaseActAdjust[]
 }
 
 export interface Smeta {
@@ -1082,6 +1130,7 @@ export interface AppState {
   movements: Movement[]
   shipments: Shipment[]
   purchaseOrders: PurchaseOrder[]
+  purchaseActs: PurchaseAct[]
   requests: MaterialRequest[]
   recipes: Recipe[]
   orders: WorkOrder[]

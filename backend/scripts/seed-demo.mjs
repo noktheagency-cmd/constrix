@@ -31,13 +31,18 @@ await prisma.$disconnect();
 
 if (projects >= 10 && taxes > 0) {
   console.log(`Demo data already loaded (${projects} projects)`);
-  process.exit(0);
+} else {
+  const result = spawnSync(process.execPath, [path.join(root, 'prisma', 'seed.mjs')], {
+    cwd: root,
+    stdio: 'inherit',
+    env: { ...process.env, DATABASE_URL: direct },
+  });
+  if (result.status) process.exit(result.status);
 }
 
-const result = spawnSync(process.execPath, [path.join(root, 'prisma', 'seed.mjs')], {
+const xocali = spawnSync(process.execPath, [path.join(root, 'prisma', 'load-xocali.mjs')], {
   cwd: root,
   stdio: 'inherit',
   env: { ...process.env, DATABASE_URL: direct },
 });
-
-process.exit(result.status ?? 1);
+process.exit(xocali.status ?? 1);

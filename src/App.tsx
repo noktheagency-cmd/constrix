@@ -33,14 +33,13 @@ import Zavod from "./pages/Zavod"
 import ProjectDetail from "./pages/ProjectDetail"
 import PhaseDetail from "./pages/PhaseDetail"
 import Projects from "./pages/Projects"
-import Reports from "./pages/Reports"
 import Site from "./pages/Site"
 import Supply from "./pages/Supply"
+import PurchaseActs from "./pages/PurchaseActs"
 import Settings from "./pages/Settings"
 import Warehouse from "./pages/Warehouse"
-import { AdminPage, BoqPage, CabinetPage, CashflowPage, CoopPage, ETenderPage, GuaranteePage, MarketPage, PassportPage, RegistryPage, SchedulePage, SpecPage, SubscribePage, TemplatesPage } from "./pages/platform"
+import { AdminPage, BoqPage, CabinetPage, CashflowPage, CoopPage, ETenderPage, GuaranteePage, MarketPage, RegistryPage, SchedulePage, SpecPage, SubscribePage, TemplatesPage } from "./pages/platform"
 import { ChecksPage } from "./pages/Checks"
-import { WeatherPage } from "./pages/Weather"
 import { EmploymentPage } from "./pages/Employment"
 import { InsurancePage } from "./pages/records"
 import { CompanyCreatePage } from "./company-onboard"
@@ -76,9 +75,9 @@ export default function App() {
             <Route index element={<Gate area="dashboard"><Dashboard /></Gate>} />
             <Route path="kabinet" element={<Gate area="dashboard"><CabinetPage /></Gate>} />
             <Route path="qrafik" element={<Gate area="projects"><SchedulePage /></Gate>} />
-            <Route path="hava" element={<Gate area="weather"><WeatherPage /></Gate>} />
+            <Route path="hava" element={<Navigate to="/" replace />} />
             <Route path="spesifikasiya" element={<Gate area="spec"><SpecPage /></Gate>} />
-            <Route path="pasport" element={<Gate area="spec"><PassportPage /></Gate>} />
+            <Route path="pasport" element={<Navigate to="/anbar?tab=pasport" replace />} />
             <Route path="e-tender" element={<Gate area="tender"><ETenderPage /></Gate>} />
             <Route path="yoxlama" element={<Gate area="tender"><ChecksPage /></Gate>} />
             <Route path="boq" element={<Gate area="boq"><BoqPage /></Gate>} />
@@ -105,7 +104,7 @@ export default function App() {
             <Route path="sablonlar" element={<Gate area="club"><TemplatesPage /></Gate>} />
             <Route path="admin" element={<Gate area="audit"><AdminPage /></Gate>} />
             <Route path="sahe" element={<Gate area="site"><Site /></Gate>} />
-            <Route path="gundelik" element={<Gate area="reports"><Reports /></Gate>} />
+            <Route path="gundelik" element={<Navigate to="/sahe?tab=gundelik" replace />} />
             <Route path="sifarisci" element={<Gate area="clients"><Crm /></Gate>} />
             <Route path="forma-2" element={<Gate area="acts"><Forma2 /></Gate>} />
             <Route path="forma-3" element={<Gate area="acts"><Forma3Page /></Gate>} />
@@ -128,6 +127,7 @@ export default function App() {
             <Route path="sexler" element={<Gate area="production"><Sexler /></Gate>} />
             <Route path="istehsalat" element={<Navigate to="/zavod" replace />} />
             <Route path="anbar" element={<Gate area="warehouse"><Warehouse /></Gate>} />
+            <Route path="alis-akti" element={<Gate area="supply"><PurchaseActs /></Gate>} />
             <Route path="techizat" element={<Gate area="supply"><Supply /></Gate>} />
             <Route path="isciler" element={<Gate area="people"><People /></Gate>} />
             <Route path="isciler/:id" element={<Gate area="people"><PersonPage /></Gate>} />

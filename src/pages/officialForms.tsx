@@ -42,6 +42,19 @@ export function downloadWord(filename: string, node: HTMLDivElement | null) {
   URL.revokeObjectURL(url)
 }
 
+/** Opens the official sheet in a print window so the user can save as PDF (brauzer «PDF kimi saxla»). */
+export function downloadPdf(filename: string, node: HTMLDivElement | null) {
+  if (!node) return
+  const title = filename.replace(/\.pdf$/i, "")
+  const popup = window.open("", "_blank", "noopener,noreferrer,width=900,height=1100")
+  if (!popup) {
+    window.print()
+    return
+  }
+  popup.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>${title}</title><style>${officialCss}@page{size:A4;margin:14mm}body{margin:0;padding:12mm;background:#fff}</style></head><body><div class="official-sheet">${node.innerHTML}</div><script>window.onload=function(){window.focus();window.print()}</script></body></html>`)
+  popup.document.close()
+}
+
 function Sheet({ sheetRef, children }: { sheetRef: RefObject<HTMLDivElement | null>; children: ReactNode }) {
   return (
     <div ref={sheetRef} className="official-sheet">

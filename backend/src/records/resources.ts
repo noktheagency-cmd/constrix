@@ -67,6 +67,14 @@ export const resources: ResourceSpec[] = [
     children: [{ field: 'lines', foreignKey: 'shipmentId' }],
   },
   { route: 'purchase-orders', delegate: 'purchaseOrder' },
+  {
+    route: 'purchase-acts',
+    delegate: 'purchaseAct',
+    children: [
+      { field: 'lines', foreignKey: 'actId' },
+      { field: 'adjustments', foreignKey: 'actId' },
+    ],
+  },
   { route: 'requests', delegate: 'materialRequest' },
   {
     route: 'recipes',

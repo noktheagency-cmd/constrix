@@ -13,6 +13,7 @@ const routes: [keyof AppState, string][] = [
   ["movements", "/api/movements"],
   ["shipments", "/api/shipments"],
   ["purchaseOrders", "/api/purchase-orders"],
+  ["purchaseActs", "/api/purchase-acts"],
   ["requests", "/api/requests"],
   ["recipes", "/api/recipes"],
   ["orders", "/api/work-orders"],
