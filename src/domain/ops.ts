@@ -123,7 +123,7 @@ export function syncMaterials(materials: Material[], stocks: Stock[]) {
   }))
 }
 
-function audit(state: AppState, actor: Actor | undefined, action: string, detail: string) {
+export function audit(state: AppState, actor: Actor | undefined, action: string, detail: string) {
   return [
     {
       id: nextId("AUD", state.audit),
@@ -137,11 +137,11 @@ function audit(state: AppState, actor: Actor | undefined, action: string, detail
   ]
 }
 
-function fail(error: string): OpResult {
+export function fail(error: string): OpResult {
   return { error }
 }
 
-function addStock(stocks: Stock[], materialId: string, locationId: string, qty: number): Stock[] {
+export function addStock(stocks: Stock[], materialId: string, locationId: string, qty: number): Stock[] {
   const next = stocks.map((row) => ({ ...row }))
   const row = next.find((item) => item.materialId === materialId && item.locationId === locationId)
   if (row) row.qty = roundQty(row.qty + qty)
@@ -612,7 +612,8 @@ export function createAct(state: AppState, projectId: string, actor: Actor): OpR
   if (state.acts.some((act) => act.projectId === projectId && act.status === "qaralama")) {
     return fail("Bu layihədə açıq Forma-2 var.")
   }
-  const lines = smeta.lines
+  const workLines = smeta.lines.filter((line) => (line.kind || "work") === "work")
+  const lines = workLines
     .map((line) => {
       const qty = roundQty(line.doneQty - line.billedQty)
       return {
@@ -626,7 +627,12 @@ export function createAct(state: AppState, projectId: string, actor: Actor): OpR
       }
     })
     .filter((line) => line.qty > 0)
-  if (!lines.length) return fail("Forma-2 üçün təsdiqlənmiş, hələ bağlanmamış həcm yoxdur.")
+  if (!lines.length) {
+    const done = workLines.some((line) => line.doneQty > 0)
+    const fullyBilled = done && workLines.every((line) => roundQty(line.doneQty - line.billedQty) <= 0)
+    if (fullyBilled) return fail("Bu həcmlər artıq aktlaşdırılıb. Eyni həcm ikinci dəfə Forma-2-yə düşmür.")
+    return fail("Forma-2 üçün təsdiqlənmiş, hələ bağlanmamış həcm yoxdur.")
+  }
   const net = roundMoney(lines.reduce((sum, line) => sum + line.qty * line.unitPrice, 0))
   const vat = roundMoney(net * VAT)
   const period = TODAY.slice(0, 7)
@@ -704,11 +710,14 @@ export function updateAct(state: AppState, actId: string, form: { smetaLineId: s
     if (qty < 0) return fail("Miqdar mənfi ola bilməz.")
     const line = smeta.lines.find((item) => item.id === row.smetaLineId)
     if (!line) return fail("Smeta sətri tapılmadı.")
+    if ((line.kind || "work") !== "work") return fail("Ev/bölmə sətirləri akta yazılmır.")
     if (seen.has(line.id)) return fail("Hər iş yalnız bir dəfə yazıla bilər.")
     seen.add(line.id)
     const old = act.lines.find((item) => item.smetaLineId === line.id)?.qty || 0
     const room = roundQty(line.doneQty - line.billedQty + old)
-    if (qty > room + 1e-9) return fail(`${line.name} üçün ən çox ${room} ${line.unit} yazıla bilər.`)
+    if (qty > room + 1e-9) {
+      return fail(`${line.name}: bu həcm artıq aktlaşdırılıb (ən çox ${room} ${line.unit}).`)
+    }
     if (!(qty > 0)) continue
     nextLines.push({
       smetaLineId: line.id,
