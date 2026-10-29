@@ -1,3 +1,4 @@
+import { DataTable } from '../components/DataTable'
 import { Button, Disclosure, Input, Metric, Panel, StatGrid, TableContainer } from "../components/primitives"
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react"
 import { ApiError, api, dec } from "../api"
@@ -450,7 +451,7 @@ export function LogisticsPage() {
             {loaded && !loadError && rows.length === 0 && <p className="calc-meta">Bazada saxlanmış daşıma yoxdur.</p>}
             {loaded && !loadError && rows.length > 0 && shown.length === 0 && <p className="calc-meta">Bu axtarışa uyğun daşıma yoxdur.</p>}
             <TableContainer className="calc-table-wrap">
-              <table className="calc-table">
+              <DataTable className="calc-table">
                 <thead>
                   <tr>
                     <th>Marşrut</th>
@@ -475,7 +476,7 @@ export function LogisticsPage() {
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </DataTable>
             </TableContainer>
           </Panel>
         )}

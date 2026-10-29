@@ -1,7 +1,8 @@
+import { DataTable } from '../components/DataTable'
 import { SourceWorkbookViewer } from "../components/SourceWorkbookViewer"
 import { DocumentSummary } from "../components/DocumentSummary"
 import { Button, Input, TableContainer, Toolbar } from "../components/primitives"
-import { useMemo, useRef, useState } from "react"
+import { Fragment, useMemo, useRef, useState } from "react"
 import { company } from "../data"
 import { nakopitelBook, nakopitelTotals } from "../domain/nakopitel"
 import { actSettlement, roundMoney, roundQty } from "../domain/ops"
@@ -40,7 +41,6 @@ export default function Forma2() {
   const [projectId, setProjectId] = useState(projects.find((item) => item.id === "source-xocali-60")?.id || projects.find((item) => item.id === "PRJ-XOCA")?.id || projects[0]?.id || "")
   const [nakoPeriod, setNakoPeriod] = useState("2026-04")
   const [nakoHouse, setNakoHouse] = useState("")
-  const [nakoPage, setNakoPage] = useState(1)
   const [error, setError] = useState("")
   const fileRef = useRef<HTMLInputElement>(null)
   const q = query.trim().toLowerCase()
@@ -54,9 +54,6 @@ export default function Forma2() {
   const nakoSum = useMemo(() => nakopitelTotals(nakoRows), [nakoRows])
   const nakoHouses = [...new Set(nakoRows.map(row => row.houseNo).filter(Boolean))]
   const filteredNako = nakoRows.filter(row => (!nakoHouse || row.houseNo === nakoHouse) && (!q || `${row.name} ${row.code} ${row.houseNo} ${row.section}`.toLocaleLowerCase("az").includes(q)))
-  const nakoPages = Math.max(1, Math.ceil(filteredNako.length / 100))
-  const currentNakoPage = Math.min(nakoPage, nakoPages)
-  const visibleNako = filteredNako.slice((currentNakoPage - 1) * 100, currentNakoPage * 100)
   const periodOptions = useMemo(() => {
     const periods = new Set(acts.filter((act) => act.projectId === nakoProject?.id).map((act) => act.period).filter(Boolean))
     periods.add(nakoPeriod)
@@ -171,33 +168,25 @@ export default function Forma2() {
           {nakoProject?.id === "source-xocali-60" && <p className="muted">İdxal edilmiş F2-lər yoxlama üçün qaralamadır. Bu cədvəl yalnız təsdiqlənmiş aktları hesablayır. Excel-dəki tarixi dövrlərə və F2-1/F2-2/F2-3 sütunlarına “Excel mənbəsi” tabından baxın.</p>}
           <Toolbar>
             <Field label="Layihə">
-              <Select value={nakoProject?.id || ""} onValueChange={value => { setProjectId(value); setNakoHouse(""); setNakoPage(1) }} options={projects.map((project) => ({ value: project.id, label: project.name }))} />
+              <Select value={nakoProject?.id || ""} onValueChange={value => { setProjectId(value); setNakoHouse("") }} options={projects.map((project) => ({ value: project.id, label: project.name }))} />
             </Field>
             <Field label="Hesabat ayı">
               <Select value={nakoPeriod} onValueChange={setNakoPeriod} options={periodOptions.map((period) => ({ value: period, label: monthAZ(period) }))} />
             </Field>
-            <Field label="Ev / obyekt"><Select value={nakoHouse} onValueChange={value => { setNakoHouse(value); setNakoPage(1) }} options={[{value:"",label:"Bütün evlər"},...nakoHouses.map(value=>({value,label:`Ev №${value}`}))]} /></Field>
+            <Field label="Ev / obyekt"><Select value={nakoHouse} onValueChange={value => { setNakoHouse(value) }} options={[{value:"",label:"Bütün evlər"},...nakoHouses.map(value=>({value,label:`Ev №${value}`}))]} /></Field>
           </Toolbar>
-          {filteredNako.length > 100 && <Toolbar><span>{filteredNako.length} sətir · {currentNakoPage} / {nakoPages}</span><Button className="ghost" disabled={currentNakoPage <= 1} onClick={() => setNakoPage(currentNakoPage - 1)}>Əvvəlki 100 sətir</Button><Button className="ghost" disabled={currentNakoPage >= nakoPages} onClick={() => setNakoPage(currentNakoPage + 1)}>Növbəti 100 sətir</Button></Toolbar>}
           <TableContainer className="wide">
-            <table>
+            <DataTable className="nakopitel-table">
               <thead>
-                <tr>
-                  <th>№</th>
-                  <th>İşlərin adı</th>
-                  <th>Ölçü</th>
-                  <th className="num">Həcm</th>
-                  <th className="num">Qiymət</th>
-                  <th className="num">Cəmi</th>
-                  <th className="num">Əvvəlki miqdar</th><th className="num">Əvvəlki məbləğ</th><th className="num">Yığılan miqdar</th><th className="num">Yığılan məbləğ</th><th className="num">Bu ay miqdar</th><th className="num">Bu ay məbləğ</th><th className="num">Qalıq miqdar</th><th className="num">Qalıq məbləğ</th>
-                </tr>
+                <tr><th rowSpan={2}>№</th><th rowSpan={2}>İşlərin adı / ev və bölmə</th><th rowSpan={2}>Ölçü</th><th className="num" rowSpan={2}>Həcm</th><th className="num" rowSpan={2}>Qiymət</th><th className="num" rowSpan={2}>Cəmi</th><th colSpan={2}>Əvvəlki dövr</th><th colSpan={2}>Yığılan</th><th colSpan={2}>Bu ay</th><th colSpan={2}>Qalıq</th></tr>
+                <tr>{["prior", "cumulative", "period", "remain"].map(group => <Fragment key={group}><th className="num">Miqdar</th><th className="num">Məbləğ</th></Fragment>)}</tr>
               </thead>
               <tbody>
-                {visibleNako.map((row) => (
+                {filteredNako.filter(row => row.kind === "work").map((row) => (
                   <tr key={row.id} className={row.kind === "house" || row.kind === "section" || row.kind === "sectionTotal" ? "muted" : undefined}>
                     <td>{row.code || ""}</td>
                     <td>
-                      {row.kind === "house" || row.kind === "section" || row.kind === "sectionTotal" ? <b>{row.name}</b> : row.name}
+                      {row.name}<div className="muted">{[row.houseNo && `Ev №${row.houseNo}`, row.section].filter(Boolean).join(" · ")}</div>
                     </td>
                     <td>{row.unit}</td>
                     <td className="num">{row.kind === "work" ? num(row.smetaQty, 2) : ""}</td>
@@ -209,7 +198,7 @@ export default function Forma2() {
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </DataTable>
             {nakoRows.length === 0 && <Empty title="Nakopitel boşdur" text="Bu layihədə ev/bölmə smetası yoxdur. Layihəni dəyişin və ya smeta idxal edin." />}
           </TableContainer>
           {nakoRows.length > 0 && (
@@ -220,7 +209,7 @@ export default function Forma2() {
 
       {tab === "aktlar" && (
         <TableContainer className="wide">
-          <table>
+          <DataTable>
             <thead>
               <tr>
                 <th>Sənəd</th>
@@ -255,14 +244,14 @@ export default function Forma2() {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </DataTable>
           {rows.length === 0 && <Empty title="Forma-2 yoxdur" text="Təsdiqlənmiş gündəlikdən sonra bu ayın aktını açın." />}
         </TableContainer>
       )}
 
       {tab === "hecm" && (
         <TableContainer>
-          <table>
+          <DataTable>
             <thead>
               <tr>
                 <th>Layihə</th>
@@ -284,14 +273,14 @@ export default function Forma2() {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </DataTable>
           {openJobs.length === 0 && <Empty title="Açıq həcm yoxdur" text="Təsdiqlənmiş gündəlik smeta həcmini artırır. Aktlaşmamış hissə burada durur." />}
         </TableContainer>
       )}
 
       {tab === "smeta" && (
         <TableContainer>
-          <table>
+          <DataTable>
             <thead>
               <tr>
                 <th>Layihə</th>
@@ -312,13 +301,13 @@ export default function Forma2() {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </DataTable>
         </TableContainer>
       )}
 
       {tab === "hesablasma" && (
         <TableContainer>
-          <table>
+          <DataTable>
             <thead>
               <tr>
                 <th>Layihə</th>
@@ -339,13 +328,13 @@ export default function Forma2() {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </DataTable>
         </TableContainer>
       )}
 
       {tab === "faktura" && (
         <TableContainer>
-          <table>
+          <DataTable>
             <thead>
               <tr>
                 <th>Akt</th>
@@ -367,7 +356,7 @@ export default function Forma2() {
                 )
               })}
             </tbody>
-          </table>
+          </DataTable>
           {bills.length === 0 && <Empty title="Faktura yoxdur" text="Təsdiqlənmiş aktdan faktura açılınca burada durur." />}
         </TableContainer>
       )}
@@ -412,7 +401,7 @@ export default function Forma2() {
               <p key={item} className="form-error">{item}</p>
             ))}
             <TableContainer>
-              <table>
+              <DataTable>
                 <thead>
                   <tr>
                     <th>Növ</th>
@@ -422,7 +411,7 @@ export default function Forma2() {
                   </tr>
                 </thead>
                 <tbody>
-                  {reading.rows.slice(0, 40).map((row, index) => (
+                  {reading.rows.map((row, index) => (
                     <tr key={`${row.kind}-${index}`}>
                       <td>{row.kind}</td>
                       <td>{row.name}{row.warning ? <div className="muted">{row.warning}</div> : null}</td>
@@ -431,7 +420,7 @@ export default function Forma2() {
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </DataTable>
             </TableContainer>
             {error && <p className="form-error">{error}</p>}
             <div className="form-actions">
@@ -595,10 +584,10 @@ function ActRead({
               <span className="muted">{line.unit} · ən çox {num(line.room, 1)}</span>
             </div>
           </div>
-        )) : <TableContainer className="document-lines"><table><thead><tr><th>İş</th><th>Vahid</th><th className="num">Həcm</th><th className="num">Qiymət</th><th className="num">Məbləğ</th><th className="num">Əvvəlindən</th><th className="num">Qalıq</th></tr></thead><tbody>{act.lines.map((line) => {
+        )) : <TableContainer className="document-lines"><DataTable><thead><tr><th>İş</th><th>Vahid</th><th className="num">Həcm</th><th className="num">Qiymət</th><th className="num">Məbləğ</th><th className="num">Əvvəlindən</th><th className="num">Qalıq</th></tr></thead><tbody>{act.lines.map((line) => {
           const smeta = smetaLines.find((item) => item.id === line.smetaLineId)
           return <tr key={line.smetaLineId}><td><strong>{line.name}</strong><span className="document-line-code">{line.code}</span></td><td>{line.unit}</td><td className="num">{num(line.qty,1)}</td><td className="num">{money(line.unitPrice)}</td><td className="num">{money(line.qty * line.unitPrice)}</td><td className="num">{num(line.cumulativeQty,1)}</td><td className="num">{smeta ? num(roundQty(smeta.qty-line.cumulativeQty),1) : "—"}</td></tr>
-        })}</tbody></table></TableContainer>}
+        })}</tbody></DataTable></TableContainer>}
         <DocumentSummary rows={[{label:"Xalis məbləğ",value:money(act.net)},{label:"ƏDV",value:money(act.vat)}]} totalLabel="Yekun məbləğ" total={money(act.gross)} />
         {settlement && (
           <p className="muted">Fakturada saxlanc {money(settlement.retention)}, avans tutulması {money(settlement.advance)}. Ödəniləcək {money(settlement.payable)}, ondan ƏDV {money(settlement.vat)}.</p>

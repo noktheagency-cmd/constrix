@@ -1,3 +1,4 @@
+import { DataTable } from '../components/DataTable'
 import { Button, Disclosure, Input, Metric, Panel, SectionHeader, StatGrid, TableContainer } from "../components/primitives"
 import { useState } from "react"
 import { ApiError, api } from "../api"
@@ -443,7 +444,7 @@ export function WeatherPage() {
           <span className="muted">{journal.length} yazı</span>
         </SectionHeader>
         <TableContainer className="flat">
-          <table className="hava-table">
+          <DataTable className="hava-table">
             <thead>
               <tr>
                 <th>Tarix</th>
@@ -472,7 +473,7 @@ export function WeatherPage() {
                 )
               })}
             </tbody>
-          </table>
+          </DataTable>
         </TableContainer>
       </Panel>
     </div>

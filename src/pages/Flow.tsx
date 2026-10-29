@@ -1,3 +1,4 @@
+import { DataTable } from '../components/DataTable'
 import { StageBadge } from "../components/StageBadge"
 import { Link, useNavigate, useSearchParams } from "react-router-dom"
 import { Button, Disclosure, Input, Panel, SearchInput, TableContainer, Toolbar } from "../components/primitives"
@@ -299,7 +300,7 @@ function FlowTable({
       {loaded && !loadError && total === 0 && <p className="calc-meta">Bazada saxlanmış sifariş yoxdur.</p>}
       {loaded && !loadError && total > 0 && rows.length === 0 && <p className="calc-meta">Bu axtarışa uyğun sifariş yoxdur.</p>}
       <TableContainer className="calc-table-wrap">
-        <table className="calc-table flow-table">
+        <DataTable className="calc-table flow-table">
           <thead>
             <tr>
               <th>Sifariş</th>
@@ -325,7 +326,7 @@ function FlowTable({
               )
             })}
           </tbody>
-        </table>
+        </DataTable>
       </TableContainer>
     </>
   )

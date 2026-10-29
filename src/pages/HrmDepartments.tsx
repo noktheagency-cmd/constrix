@@ -1,3 +1,4 @@
+import { DataTable } from '../components/DataTable'
 import { Button, Input, TableContainer } from "../components/primitives"
 import { useState, type FormEvent } from "react"
 import { placeGroups } from "../domain/places"
@@ -46,7 +47,7 @@ export default function HrmDepartments() {
       </PageHead>
       {error && !modal && <p className="form-error">{error}</p>}
       <TableContainer>
-        <table>
+        <DataTable>
           <thead>
             <tr>
               <th>Şöbə</th>
@@ -76,7 +77,7 @@ export default function HrmDepartments() {
               </tr>
             ))}
           </tbody>
-        </table>
+        </DataTable>
         {rows.length === 0 && <Empty title="Şöbə yoxdur" text="İdarəetmə, sahə və ya istehsal şöbəsi açın." />}
       </TableContainer>
 

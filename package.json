@@ -9,7 +9,7 @@
     "dev:api": "npm run start:dev --prefix backend",
     "build": "tsc --noEmit && vite build",
     "typecheck": "tsc --noEmit",
-    "test": "tsx --test src/domain/ops.test.ts src/domain/smetaIo.test.ts src/domain/marketRfq.test.ts src/domain/financeView.test.ts src/domain/crm.test.ts src/domain/hrm.test.ts src/procure/engine.test.ts src/procure/files.test.ts src/procure/smeta.test.ts src/procure/read.test.ts src/procure/demo.test.ts",
+    "test": "tsx --test src/domain/ops.test.ts src/domain/smetaIo.test.ts src/domain/marketRfq.test.ts src/domain/financeView.test.ts src/domain/crm.test.ts src/domain/hrm.test.ts src/procure/engine.test.ts src/procure/files.test.ts src/procure/smeta.test.ts src/procure/read.test.ts src/procure/demo.test.ts src/components/DataTable.test.tsx",
     "lint": "oxlint",
     "preview": "vite preview"
   },

@@ -1,3 +1,4 @@
+import { DataTable } from '../components/DataTable'
 import { Button, Input, Panel, SearchInput, TableContainer, Textarea, Toolbar } from "../components/primitives"
 import { useEffect, useState } from "react"
 import { ApiError, api } from "../api"
@@ -190,15 +191,15 @@ export function ChecksPage() {
         {view === "journal" && <Select ariaLabel="Mövzu filtri" value={topicFilter} onValueChange={setTopicFilter} options={[{value:"all",label:"Bütün mövzular"},...TOPICS.map((item) => ({value:item.id,label:item.label}))]} />}
         <Select ariaLabel="Nəticə statusu" value={filter} onValueChange={setFilter} options={filters} />
       </Toolbar>
-      {view === "topics" ? <TableContainer className="checks-table checks-topics-table"><table><thead><tr><th>Mövzu</th><th>Son sənəd</th><th>Tarix</th><th>Status</th><th><span className="sr-only">Detala bax</span></th></tr></thead><tbody>
+      {view === "topics" ? <TableContainer className="checks-table checks-topics-table"><DataTable><thead><tr><th>Mövzu</th><th>Son sənəd</th><th>Tarix</th><th>Status</th><th><span className="sr-only">Detala bax</span></th></tr></thead><tbody>
         {shownTopics.map((item) => <tr key={item.id} tabIndex={0} onClick={() => setSelected({topic:item.id,row:item.row})} onKeyDown={(event) => {if(event.key === "Enter" || event.key === " ") {event.preventDefault();setSelected({topic:item.id,row:item.row})}}}>
           <td><strong>{item.label}</strong><small>{item.ask}</small></td><td>{item.row?.document || "Sənəd yoxdur"}<small>{item.paper}</small></td><td>{item.row?.asOf ? dateAZ(dayOf(item.row.asOf)) : "—"}</td><td><CheckStatus row={item.row} /></td><td><Icon name="chevron" /></td>
         </tr>)}
-      </tbody></table>{!shownTopics.length && <Empty title="Uyğun mövzu yoxdur" text="Axtarış və ya status filtrini dəyişin." />}</TableContainer> : <>
+      </tbody></DataTable>{!shownTopics.length && <Empty title="Uyğun mövzu yoxdur" text="Axtarış və ya status filtrini dəyişin." />}</TableContainer> : <>
         <p className="checks-count">{shown.length} qeyd</p>
-        <TableContainer className="checks-table checks-journal-table"><table><thead><tr><th>Tarix</th><th>Mövzu</th><th>Sənəd və mənbə</th><th>Nəticə</th><th><span className="sr-only">Detala bax</span></th></tr></thead><tbody>{shown.map((row) => <tr key={row.id} tabIndex={0} onClick={() => setSelected({topic:row.topic,row})} onKeyDown={(event) => {if(event.key === "Enter" || event.key === " ") {event.preventDefault();setSelected({topic:row.topic,row})}}}>
+        <TableContainer className="checks-table checks-journal-table"><DataTable><thead><tr><th>Tarix</th><th>Mövzu</th><th>Sənəd və mənbə</th><th>Nəticə</th><th><span className="sr-only">Detala bax</span></th></tr></thead><tbody>{shown.map((row) => <tr key={row.id} tabIndex={0} onClick={() => setSelected({topic:row.topic,row})} onKeyDown={(event) => {if(event.key === "Enter" || event.key === " ") {event.preventDefault();setSelected({topic:row.topic,row})}}}>
           <td>{row.asOf ? dateAZ(dayOf(row.asOf)) : "—"}</td><td><strong>{topicOf(row.topic)?.label || row.topic}</strong><small>{row.id}</small></td><td>{row.document || "Sənəd yoxdur"}<small>{row.source || "Mənbə yoxdur"}</small></td><td><CheckStatus row={row} /><small className="checks-result-preview">{row.resultNote || "Nəticə yazılmayıb"}</small></td><td><Icon name="chevron" /></td>
-        </tr>)}</tbody></table>{!shown.length && <Empty title="Uyğun qeyd yoxdur" text="Başqa filtr seçin və ya yeni sənəd qeydi əlavə edin." />}</TableContainer>
+        </tr>)}</tbody></DataTable>{!shown.length && <Empty title="Uyğun qeyd yoxdur" text="Başqa filtr seçin və ya yeni sənəd qeydi əlavə edin." />}</TableContainer>
       </>}
       <p className="checks-footnote">Məlumat şirkətin təqdim etdiyi sənədlərə əsaslanır. Xarici reyestrə avtomatik sorğu göndərilmir.</p>
       {selected && <Modal title={detailTopic?.label || selected.topic} className="checks-detail-modal" onClose={() => setSelected(null)}>

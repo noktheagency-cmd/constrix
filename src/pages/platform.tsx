@@ -1,3 +1,4 @@
+import { DataTable } from '../components/DataTable'
 import { SourceWorkbookViewer } from "../components/SourceWorkbookViewer"
 import { Checkbox } from "../components/Checkbox"
 import { Button, Disclosure, Input, Metric, Panel, SearchInput, SectionHeader, StatGrid, TableContainer, Textarea, Toolbar } from "../components/primitives"
@@ -985,11 +986,11 @@ export function ETenderPage() {
 
       {!detail && <>
         <Toolbar className="tender-list-toolbar"><SearchInput aria-label="Tender axtar" value={query} placeholder="Elan, alıcı və ya nömrə axtar" onChange={(event) => setQuery(event.target.value)} /><Select ariaLabel="Tender vəziyyəti" value={status} onValueChange={setStatus} options={[{value:"all",label:"Bütün elanlar"},{value:"open",label:"Açıq elanlar"},{value:"ready",label:"Hazır paket"},{value:"expired",label:"Müddət keçib"}]} /></Toolbar>
-        <TableContainer className="tender-library"><table><thead><tr><th>Elan</th><th>Alıcı</th><th>Son tarix</th><th className="num">Ehtimal qiymət</th><th>Vəziyyət</th><th>Aç</th></tr></thead><tbody>
+        <TableContainer className="tender-library"><DataTable><thead><tr><th>Elan</th><th>Alıcı</th><th>Son tarix</th><th className="num">Ehtimal qiymət</th><th>Vəziyyət</th><th>Aç</th></tr></thead><tbody>
           {shownBoard.map((item) => { const state = stageOf(item); return <tr key={item.key} tabIndex={0} onClick={() => choose(item.key)} onKeyDown={(event) => {if(event.key === "Enter" || event.key === " "){event.preventDefault();choose(item.key)}}}>
             <td><span className="tender-number">{item.number}</span><strong>{item.subject}</strong></td><td>{item.buyer}</td><td>{item.deadline ? clock(item.deadline) : "—"}<span className="tender-due">{dueWord(item.deadline)}</span></td><td className="num">{moneyShort(Number(item.price) || 0)}</td><td><span className={pillClass(state.tone)}>{state.word}</span></td><td><Icon name="chevron" /></td>
           </tr>})}
-        </tbody></table></TableContainer>
+        </tbody></DataTable></TableContainer>
         {shownBoard.length === 0 && <Empty title="Elan tapılmadı" text="Axtarışı və ya vəziyyət filtrini dəyişin." />}
         <p className="tender-list-note">{shownBoard.length} elan · Elanın sətrinə klikləyərək məlumatları və sənəd paketini açın.</p>
       </>}
@@ -1569,7 +1570,7 @@ export function BoqPage() {
           </div>
         ))}
         </div><Disclosure title="Rayonlar üzrə qiymət müqayisəsi">        <TableContainer className="flat">
-          <table className="boq-table">
+          <DataTable className="boq-table">
             <thead>
               <tr>
                 <th>Material</th>
@@ -1584,7 +1585,7 @@ export function BoqPage() {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </DataTable>
         </TableContainer></Disclosure>
       </Panel>)}
       {view === "lines" && <div className="boq-split">
@@ -1613,7 +1614,7 @@ export function BoqPage() {
           )}
           {shown.length > 0 && (
             <TableContainer className="flat">
-              <table className="boq-table">
+              <DataTable className="boq-table">
                 <thead>
                   <tr>
                     <th><Checkbox aria-label="Görünən aktual sətirləri təsdiqlə" checked={eligible.length > 0 && confirmedCount === eligible.length} indeterminate={confirmedCount > 0 && confirmedCount < eligible.length} disabled={!eligible.length} onChange={(event) => confirmVisible(event.target.checked)} /></th>
@@ -1666,7 +1667,7 @@ export function BoqPage() {
                     <td />
                   </tr>
                 </tfoot>
-              </table>
+              </DataTable>
             </TableContainer>
           )}
         </Panel>
@@ -2293,14 +2294,14 @@ export function GuaranteePage() {
           <Select ariaLabel="Layihə statusu" value={filter} onValueChange={setFilter} options={[{value:"hamisi",label:"Hamısı"},{value:"gozleme",label:"Gözləyir"},{value:"paket",label:"Paket hazırdır"},{value:"tesdiq",label:"Təsdiq"},{value:"legv",label:"Ləğv"}]} />
         </Toolbar>
         <TableContainer className="guarantee-table">
-          <table><thead><tr><th>Layihə</th><th>Növ</th><th>Bank</th><th>Təminat, AZN</th><th>Bitmə tarixi</th><th>Status</th><th><span className="sr-only">Aç</span></th></tr></thead><tbody>
+          <DataTable><thead><tr><th>Layihə</th><th>Növ</th><th>Bank</th><th>Təminat, AZN</th><th>Bitmə tarixi</th><th>Status</th><th><span className="sr-only">Aç</span></th></tr></thead><tbody>
             {projectRows.map((item) => <tr key={item.id} tabIndex={0} onClick={() => openCase(item)} onKeyDown={(event) => { if(event.key === "Enter" || event.key === " ") {event.preventDefault(); openCase(item)} }}>
               <td><strong>{item.project}</strong><small>{item.id} · {item.buyer}</small></td><td>{KIND_LABEL[item.kind]}</td><td>{BOND_BANKS.find((row) => row.name === item.bank)?.short || item.bank}</td><td className="num">{money(bondMath(item).applied)}</td><td>{dateAZ(item.until)}</td><td><span className={`guarantee-status status-${item.status}`}>{BOND_STATUS[item.status].word}</span></td><td><Icon name="chevron" /></td>
             </tr>)}
-          </tbody></table>
+          </tbody></DataTable>
           {!projectRows.length && <Empty title="Uyğun layihə yoxdur" text="Axtarış və status filtrini dəyişin." />}
         </TableContainer>
-        {filter === "hamisi" && !projectQueryText && liveRows.length > 0 && <Disclosure title={`Bazadakı digər paketlər · ${liveRows.length}`}><TableContainer><table><thead><tr><th>Layihə</th><th>Növ</th><th>Bank</th><th>Məbləğ, AZN</th></tr></thead><tbody>{liveRows.map((item) => <tr key={item.id}><td>{item.title || "Adsız paket"}</td><td>{KIND_LABEL[item.kind] || item.kind}</td><td>{item.partner?.name || "Bank yoxdur"}</td><td>{money(Number(dec(item.amount)) || 0)}</td></tr>)}</tbody></table></TableContainer></Disclosure>}
+        {filter === "hamisi" && !projectQueryText && liveRows.length > 0 && <Disclosure title={`Bazadakı digər paketlər · ${liveRows.length}`}><TableContainer><DataTable><thead><tr><th>Layihə</th><th>Növ</th><th>Bank</th><th>Məbləğ, AZN</th></tr></thead><tbody>{liveRows.map((item) => <tr key={item.id}><td>{item.title || "Adsız paket"}</td><td>{KIND_LABEL[item.kind] || item.kind}</td><td>{item.partner?.name || "Bank yoxdur"}</td><td>{money(Number(dec(item.amount)) || 0)}</td></tr>)}</tbody></DataTable></TableContainer></Disclosure>}
       </> : <>
         <Panel className="guarantee-summary">
           <div><span>{active.id} · {KIND_LABEL[active.kind]}</span><h2>{active.project}</h2><p>{active.buyer}</p></div>
@@ -2346,7 +2347,7 @@ export function GuaranteePage() {
         </Panel>}
         {view === "banks" && <>
           <Toolbar className="guarantee-toolbar"><SearchInput value={bankQuery} onChange={(event) => setBankQuery(event.target.value)} placeholder="Bank axtar" /><Link className="btn ghost" to="/partnyorlar">Bank reyestri</Link></Toolbar>
-          <TableContainer className="guarantee-bank-table"><table><thead><tr><th>Seçim</th><th>Bank</th><th>Komissiya</th><th>Müddət</th><th>Status</th></tr></thead><tbody>{bankRows.map((item) => <tr key={item.id}><td><input type="radio" name="guarantee-bank" aria-label={item.name} checked={item.id === guarantee.bankId} onChange={() => patch((state) => ({...state, guarantee:{...state.guarantee,bankId:item.id,packed:false}}))} /></td><td><strong>{item.name}</strong></td><td>{item.commission.trim() ? `${item.commission}%` : "—"}</td><td>{item.term}</td><td>{bankTone(item).word}</td></tr>)}</tbody></table>{!bankRows.length && <p className="lede">Uyğun bank yoxdur.</p>}</TableContainer>
+          <TableContainer className="guarantee-bank-table"><DataTable><thead><tr><th>Seçim</th><th>Bank</th><th>Komissiya</th><th>Müddət</th><th>Status</th></tr></thead><tbody>{bankRows.map((item) => <tr key={item.id}><td><input type="radio" name="guarantee-bank" aria-label={item.name} checked={item.id === guarantee.bankId} onChange={() => patch((state) => ({...state, guarantee:{...state.guarantee,bankId:item.id,packed:false}}))} /></td><td><strong>{item.name}</strong></td><td>{item.commission.trim() ? `${item.commission}%` : "—"}</td><td>{item.term}</td><td>{bankTone(item).word}</td></tr>)}</tbody></DataTable>{!bankRows.length && <p className="lede">Uyğun bank yoxdur.</p>}</TableContainer>
           {bank && (
             <section className="panel pad guarantee-bank-detail">
               <header>
@@ -2517,12 +2518,12 @@ export function SpecPage() {
       <Select ariaLabel="Nəticə filtri" value={filter} onValueChange={setFilter} options={[{value:"hamisi",label:"Bütün nəticələr"},{value:"el",label:"Yoxlanılmayıb"},{value:"problem",label:"Problem"},{value:"gozleyir",label:"Gözləyir"},{value:"uygun",label:"Uyğundur"}]} />
     </Toolbar>
     {notice && <p className="spec-notice" role="status">{notice}</p>}
-    {shown.length === 0 ? <Empty title="Uyğun bölmə tapılmadı" text="Axtarışı və ya filtrləri dəyişin." /> : <TableContainer className="spec-library"><table>
+    {shown.length === 0 ? <Empty title="Uyğun bölmə tapılmadı" text="Axtarışı və ya filtrləri dəyişin." /> : <TableContainer className="spec-library"><DataTable>
       <thead><tr><th>Kod</th><th>Bölmə</th><th>Sənəd</th><th>Nəticə</th><th>Aç</th></tr></thead>
       <tbody>{shown.map((row) => <tr key={row.name} tabIndex={0} onClick={() => openRow(row.name, row.fit)} onKeyDown={(event) => {if(event.key === "Enter" || event.key === " "){event.preventDefault();openRow(row.name,row.fit)}}}>
         <td className="mono">{row.code || "—"}</td><td><strong>{row.title}</strong><span className="spec-row-group">{row.group}</span></td><td>{row.paper}</td><td><span className={"badge spec-fit fit-" + row.fit}>{row.fit === "el" ? "Yoxlanılmayıb" : FIT_LABEL[row.fit]}</span></td><td><Icon name="chevron" /></td>
       </tr>)}</tbody>
-    </table></TableContainer>}
+    </DataTable></TableContainer>}
     <p className="spec-list-count">{shown.length} / {rows.length} bölmə</p>
     <Disclosure title="Yoxlama qaydası" className="spec-help"><p>Bölməni seçin, göstərilən sənədi tələblə tutuşdurun və nəticəni saxlayın. Kodlar şablona aiddir; yoxlama siyahısı bütün layihələr üçün eynidir.</p><div className="spec-help-results">{(Object.keys(FIT_HINT) as Fit[]).map((key) => <div key={key}><span className={"badge " + fitTone(key)}>{FIT_LABEL[key]}</span><p>{FIT_HINT[key]}</p></div>)}</div></Disclosure>
     {open && <Modal title={open.title} onClose={() => setSelected("")} className="spec-result-modal">
@@ -2624,16 +2625,16 @@ export function SchedulePage() {
         </div>
         <div className="step-row"><span>Hava ehtiyatı</span><strong>{reserve} gün</strong></div>
         <TableContainer  style={{ marginTop: 14 }}>
-          <table>
+          <DataTable>
             <thead><tr><th>İş</th><th>Başlanğıc</th><th>Bitmə</th><th>Hava ilə bitmə</th></tr></thead>
             <tbody>
-              {schedule.rows.length === 0 && <tr><td colSpan={4}>Qrafik boşdur.</td></tr>}
+              {schedule.rows.length === 0 && <tr data-table-empty><td colSpan={4}>Qrafik boşdur.</td></tr>}
               {schedule.rows.map((row) => {
                 const shifted = shiftedDay(row.end, reserve)
                 return <tr key={row.id}><td>{row.name}</td><td>{row.start || "—"}</td><td>{row.end || "—"}</td><td>{shifted || "Gün rəqəm deyil"}</td></tr>
               })}
             </tbody>
-          </table>
+          </DataTable>
         </TableContainer>
       </Panel>
     </>
@@ -2904,7 +2905,7 @@ export function MarketPage() {
               {currentRfq && (
                 <>
                   <p className="muted">{currentRfq.address}{currentRfq.needBy ? ` · ${currentRfq.needBy}` : ""} · {currentRfq.lines.length} sətir</p>
-                  <TableContainer className="flat"><table><thead><tr><th>Məhsul</th><th>Miqdar</th><th>Vahid</th></tr></thead><tbody>{currentRfq.lines.map((line) => <tr key={line.productId}><td>{line.name}</td><td>{num(line.qty, 0)}</td><td>{line.unit}</td></tr>)}</tbody></table></TableContainer>
+                  <TableContainer className="flat"><DataTable><thead><tr><th>Məhsul</th><th>Miqdar</th><th>Vahid</th></tr></thead><tbody>{currentRfq.lines.map((line) => <tr key={line.productId}><td>{line.name}</td><td>{num(line.qty, 0)}</td><td>{line.unit}</td></tr>)}</tbody></DataTable></TableContainer>
                   {!currentRfq.quotes.length && <p className="muted">Təchizatçı təklifləri gözlənilir.</p>}
                   {quoteCompareRows(currentRfq).map((quote) => (
                     <p key={quote.id}>
@@ -3035,7 +3036,7 @@ export function MarketPage() {
         <>
           <p className="market-count">{shown.length} məhsul{shown.length !== market.length ? ` · ${market.length} içindən` : ""}</p>
           <TableContainer className="pricebook">
-            <table>
+            <DataTable>
               <thead>
                 <tr>
                   <th>Məhsul</th>
@@ -3089,7 +3090,7 @@ export function MarketPage() {
                   )
                 })}
               </tbody>
-            </table>
+            </DataTable>
           </TableContainer>
         </>
       )}
@@ -3329,7 +3330,7 @@ export function CoopPage() {
     <Panel className="employment-summary">{[{icon:"files" as const,label:"Bütün sorğular",value:rows.length},{icon:"clock" as const,label:"Təhlildə",value:open},{icon:"check" as const,label:"Razılaşıb",value:agreed},{icon:"close" as const,label:"Dayanıb",value:held}].map((item) => <div key={item.label}><Icon name={item.icon} /><div><strong>{item.value}</strong><span>{item.label}</span></div></div>)}</Panel>
     <Toolbar className="finance-list-toolbar"><SearchInput value={find} onChange={(event) => setFind(event.target.value)} placeholder="Şirkət, məsul və ya nəticə axtar" /><Select ariaLabel="Əməkdaşlıq statusu" value={filter} onValueChange={setFilter} options={[{value:"hamisi",label:"Bütün statuslar"},{value:"tehlil",label:"Təhlil olunur"},{value:"netice",label:"Nəticə yazılıb"},{value:"razi",label:"Razılaşıb"},{value:"dayanib",label:"Dayanıb"}]} /></Toolbar>
     {error && !compose && !selected && <p className="form-error" role="alert">{error}</p>}{message && <p className="lede" role="status">{message}</p>}
-    <TableContainer className="finance-records-table"><table><thead><tr><th>Şirkət</th><th>Modul</th><th>Məsul</th><th>Status</th><th>Tarix</th><th><span className="sr-only">Sorğunu aç</span></th></tr></thead><tbody>{shown.map((row) => <tr key={row.id} tabIndex={0} onClick={() => {setError("");setFinding({...finding,id:row.id})}} onKeyDown={(event) => {if(event.key === "Enter" || event.key === " "){event.preventDefault();setFinding({...finding,id:row.id})}}}><td><strong>{row.company}</strong><small>{row.note || "Sorğu mətni yazılmayıb"}</small></td><td>{row.module || "—"}</td><td>{row.owner || "—"}</td><td><span className={`badge ${coopTone(row.status)}`}>{row.status || "Təhlil olunur"}</span></td><td>{coopWhen(row.createdAt) || "—"}</td><td><Icon name="chevron" /></td></tr>)}</tbody></table>{!shown.length && <Empty title={ready ? "Sorğu tapılmadı" : "Sorğular oxunur"} text="Axtarışı dəyişin və ya yeni sorğu əlavə edin." />}</TableContainer>
+    <TableContainer className="finance-records-table"><DataTable><thead><tr><th>Şirkət</th><th>Modul</th><th>Məsul</th><th>Status</th><th>Tarix</th><th><span className="sr-only">Sorğunu aç</span></th></tr></thead><tbody>{shown.map((row) => <tr key={row.id} tabIndex={0} onClick={() => {setError("");setFinding({...finding,id:row.id})}} onKeyDown={(event) => {if(event.key === "Enter" || event.key === " "){event.preventDefault();setFinding({...finding,id:row.id})}}}><td><strong>{row.company}</strong><small>{row.note || "Sorğu mətni yazılmayıb"}</small></td><td>{row.module || "—"}</td><td>{row.owner || "—"}</td><td><span className={`badge ${coopTone(row.status)}`}>{row.status || "Təhlil olunur"}</span></td><td>{coopWhen(row.createdAt) || "—"}</td><td><Icon name="chevron" /></td></tr>)}</tbody></DataTable>{!shown.length && <Empty title={ready ? "Sorğu tapılmadı" : "Sorğular oxunur"} text="Axtarışı dəyişin və ya yeni sorğu əlavə edin." />}</TableContainer>
     {compose && <Modal title="Yeni əməkdaşlıq sorğusu" className="finance-record-modal" onClose={() => {if(!busy)setCompose(false)}}><form onSubmit={(event) => {event.preventDefault();void accept()}}><div className="finance-form-grid"><label className="full">Şirkət<Input required value={form.company} onChange={(event) => setForm({...form,company:event.target.value})} /></label><label>Modul<Select value={form.module} onValueChange={(module) => setForm({...form,module})} options={COOP_MODULES.map((item) => ({value:item,label:item}))} /></label><label>Məsul<Input value={form.owner} onChange={(event) => setForm({...form,owner:event.target.value})} /></label><label className="full">Sorğu<Textarea value={form.note} onChange={(event) => setForm({...form,note:event.target.value})} rows={4} /></label></div>{error && <p className="form-error" role="alert">{error}</p>}<div className="form-actions"><Button className="ghost" disabled={busy} onClick={() => setCompose(false)}>Ləğv et</Button><Button type="submit" disabled={busy || !form.company.trim()}>{busy ? "Saxlanılır…" : "Sorğunu saxla"}</Button></div></form></Modal>}
     {selected && <Modal title={selected.company} className="coop-detail-modal" onClose={() => {if(!busy)setFinding({...finding,id:""})}}><div className="coop-detail-meta"><span className={`badge ${coopTone(selected.status)}`}>{selected.status}</span><span>{selected.module || "Modul yazılmayıb"}</span><span>{selected.owner || "Məsul yazılmayıb"}</span></div><p className="coop-request-text">{selected.note || "Sorğu mətni yazılmayıb"}</p>{selected.result && <p className="coop-result-text">{selected.result}</p>}<h3>Tapıntılar · {selected.findings.length}</h3><div className="coop-findings">{selected.findings.map((item) => <article key={item.id}><strong>{item.topic}</strong><p>{item.finding}</p><small>{coopWhen(item.createdAt)}</small></article>)}{!selected.findings.length && <p className="muted">Hələ tapıntı əlavə edilməyib.</p>}</div><Disclosure title="Tapıntı əlavə et"><form onSubmit={(event) => {event.preventDefault();void writeFinding()}}><div className="finance-form-grid"><label>Mövzu<Input value={finding.topic} onChange={(event) => setFinding({...finding,topic:event.target.value})} /></label><label>Status<Select value={finding.status} onValueChange={(status) => setFinding({...finding,status})} options={COOP_STATUSES.map((item) => ({value:item,label:item}))} /></label><label className="full">Nəticə<Textarea required value={finding.text} onChange={(event) => setFinding({...finding,text:event.target.value})} rows={3} /></label></div>{error && <p className="form-error" role="alert">{error}</p>}<div className="form-actions"><Button type="submit" disabled={busy || !finding.text.trim()}>{busy ? "Saxlanılır…" : "Tapıntını saxla"}</Button></div></form></Disclosure></Modal>}
   </div>
@@ -3407,7 +3408,7 @@ export function SubscribePage() {
     {state && state.locked.length > 0 && <Disclosure title={`Bağlı modullar · ${state.locked.length}`}><p className="muted">{state.locked.join(", ")}</p></Disclosure>}
     {note && !selected && <p className="lede" role="status">{note}</p>}
     <Tabs value={view} onChange={setView} options={[{id:"packages",label:"Paketlər"},{id:"payment",label:"Ödəniş sənədi"}]} />
-    {view === "packages" ? <TableContainer className="finance-records-table subscription-packages"><table><thead><tr><th>Paket</th><th>Məbləğ</th><th>İstifadəçi</th><th>Layihə</th><th><span className="sr-only">Paketə bax</span></th></tr></thead><tbody>{packs.map((pack) => <tr key={pack.id} tabIndex={0} onClick={() => {setNote("");setSelectedId(pack.id)}} onKeyDown={(event) => {if(event.key === "Enter" || event.key === " "){event.preventDefault();setSelectedId(pack.id)}}}><td><strong>{pack.name}</strong>{state?.package?.id === pack.id && <small><span className="badge pine">Cari paket</span></small>}</td><td>{pack.amount == null ? "Məbləğ göstərilməyib" : `${money(Number(pack.amount)||0)} AZN`}</td><td>{pack.userLimit ?? "Limitsiz"}</td><td>{pack.smetaLimit ?? "Limitsiz"}</td><td><Button className="ghost small" onClick={(event) => {event.stopPropagation();setNote("");setSelectedId(pack.id)}}>Ətraflı</Button></td></tr>)}</tbody></table>{!packs.length && <Empty title="Paketlər oxunur" text="Mövcud paketlər burada göstəriləcək." />}</TableContainer> : <Panel className="pad subscription-payment"><h2>Ödəniş sənədi</h2><p className="lede">Ödəniş sənəd kimi qeydə alınır. Kartdan pul tutulmur.</p><form onSubmit={(event) => {event.preventDefault();void pay()}}><div className="finance-form-grid"><label>Cari paket<Input readOnly value={state?.package?.name || "Paket seçilməyib"} /></label><label>Müddət<Select ariaLabel="Ödəniş müddəti" value={months} onValueChange={setMonths} options={monthOptions} /></label><label className="full">Sənəd və ya qəbz nömrəsi<Input value={invoice} onChange={(event) => setInvoice(event.target.value)} placeholder="Qaimə və ya qəbz nömrəsi" /></label></div><div className="form-actions"><Button type="submit" disabled={busy || !state?.package}>{busy ? "Saxlanılır…" : "Ödənişi qeyd et"}</Button></div></form></Panel>}
+    {view === "packages" ? <TableContainer className="finance-records-table subscription-packages"><DataTable><thead><tr><th>Paket</th><th>Məbləğ</th><th>İstifadəçi</th><th>Layihə</th><th><span className="sr-only">Paketə bax</span></th></tr></thead><tbody>{packs.map((pack) => <tr key={pack.id} tabIndex={0} onClick={() => {setNote("");setSelectedId(pack.id)}} onKeyDown={(event) => {if(event.key === "Enter" || event.key === " "){event.preventDefault();setSelectedId(pack.id)}}}><td><strong>{pack.name}</strong>{state?.package?.id === pack.id && <small><span className="badge pine">Cari paket</span></small>}</td><td>{pack.amount == null ? "Məbləğ göstərilməyib" : `${money(Number(pack.amount)||0)} AZN`}</td><td>{pack.userLimit ?? "Limitsiz"}</td><td>{pack.smetaLimit ?? "Limitsiz"}</td><td><Button className="ghost small" onClick={(event) => {event.stopPropagation();setNote("");setSelectedId(pack.id)}}>Ətraflı</Button></td></tr>)}</tbody></DataTable>{!packs.length && <Empty title="Paketlər oxunur" text="Mövcud paketlər burada göstəriləcək." />}</TableContainer> : <Panel className="pad subscription-payment"><h2>Ödəniş sənədi</h2><p className="lede">Ödəniş sənəd kimi qeydə alınır. Kartdan pul tutulmur.</p><form onSubmit={(event) => {event.preventDefault();void pay()}}><div className="finance-form-grid"><label>Cari paket<Input readOnly value={state?.package?.name || "Paket seçilməyib"} /></label><label>Müddət<Select ariaLabel="Ödəniş müddəti" value={months} onValueChange={setMonths} options={monthOptions} /></label><label className="full">Sənəd və ya qəbz nömrəsi<Input value={invoice} onChange={(event) => setInvoice(event.target.value)} placeholder="Qaimə və ya qəbz nömrəsi" /></label></div><div className="form-actions"><Button type="submit" disabled={busy || !state?.package}>{busy ? "Saxlanılır…" : "Ödənişi qeyd et"}</Button></div></form></Panel>}
     {selected && <Modal title={selected.name} className="subscription-package-modal" onClose={() => {if(!busy)setSelectedId("")}}><div className="subscription-package-price"><strong>{selected.amount == null ? "Məbləğ göstərilməyib" : `${money(Number(selected.amount)||0)} AZN`}</strong><span>Paket məbləği</span></div><h3>Paketə daxildir</h3><p className="subscription-features">{selected.features}</p><dl className="finance-breakdown"><div><dt>İstifadəçi limiti</dt><dd>{selected.userLimit ?? "Limitsiz"}</dd></div><div><dt>Layihə limiti</dt><dd>{selected.smetaLimit ?? "Limitsiz"}</dd></div></dl><label className="finance-status-edit">Abunəlik müddəti<Select value={months} onValueChange={setMonths} options={monthOptions} /></label><p className="tax-form-hint">Paket seçimi ödəniş sənədi qeyd olunana qədər gözləmə vəziyyətində qalır.</p>{note && <p className="form-error" role="alert">{note}</p>}<div className="form-actions"><Button className="ghost" disabled={busy} onClick={() => setSelectedId("")}>Bağla</Button><Button disabled={busy} onClick={() => void choose(selected.id)}>{busy ? "Saxlanılır…" : "Seçimi təsdiqlə"}</Button></div></Modal>}
   </div>
 }
@@ -3744,7 +3745,7 @@ export function RegistryPage() {
     <p className="finance-list-count">{partners.length} tərəfdaş · {partners.filter((row) => row.kind === "Bank").length} bank · {partners.filter((row) => row.kind === "Sığorta").length} sığortaçı</p>
     <Toolbar className="finance-list-toolbar"><SearchInput value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Tərəfdaş axtar" /><Select ariaLabel="Tərəfdaş növü" value={kind} onValueChange={setKind} options={[{value:"all",label:"Bütün növlər"},...PARTNER_KINDS.map((item) => ({value:item,label:item}))]} /></Toolbar>
     {note && <p className="lede" role="status">{note}</p>}
-    <TableContainer className="finance-records-table"><table><thead><tr><th>Tərəfdaş</th><th>Növ</th><th>Komissiya</th><th>Güzəşt</th><th>Status</th><th><span className="sr-only">Kartı aç</span></th></tr></thead><tbody>{shown.map((row) => {const tone=bankTone(row);return <tr key={row.id} tabIndex={0} onClick={() => openPartner(row)} onKeyDown={(event) => {if(event.key === "Enter" || event.key === " "){event.preventDefault();openPartner(row)}}}><td><strong>{row.name}</strong><small>{row.note || "Qeyd yoxdur"}</small></td><td><span className="badge stone">{row.kind}</span></td><td>{row.commission ? `${row.commission}%` : "—"}</td><td>{row.discount ? `${row.discount}%` : "—"}</td><td><span className={`badge bank ${tone.color}`}>{tone.word}</span></td><td><Icon name="chevron" /></td></tr>})}</tbody></table>{!shown.length && <Empty title="Tərəfdaş tapılmadı" text="Axtarışı dəyişin və ya yeni tərəfdaş əlavə edin." />}</TableContainer>
+    <TableContainer className="finance-records-table"><DataTable><thead><tr><th>Tərəfdaş</th><th>Növ</th><th>Komissiya</th><th>Güzəşt</th><th>Status</th><th><span className="sr-only">Kartı aç</span></th></tr></thead><tbody>{shown.map((row) => {const tone=bankTone(row);return <tr key={row.id} tabIndex={0} onClick={() => openPartner(row)} onKeyDown={(event) => {if(event.key === "Enter" || event.key === " "){event.preventDefault();openPartner(row)}}}><td><strong>{row.name}</strong><small>{row.note || "Qeyd yoxdur"}</small></td><td><span className="badge stone">{row.kind}</span></td><td>{row.commission ? `${row.commission}%` : "—"}</td><td>{row.discount ? `${row.discount}%` : "—"}</td><td><span className={`badge bank ${tone.color}`}>{tone.word}</span></td><td><Icon name="chevron" /></td></tr>})}</tbody></DataTable>{!shown.length && <Empty title="Tərəfdaş tapılmadı" text="Axtarışı dəyişin və ya yeni tərəfdaş əlavə edin." />}</TableContainer>
     {compose && <Modal title={editing ? form.name : "Yeni tərəfdaş"} className="finance-record-modal" onClose={() => {if(!busy)setCompose(false)}}><form onSubmit={(event) => {event.preventDefault();void savePartner()}}><div className="finance-form-grid">
       <label>Növ<Select value={form.kind} onValueChange={(kind) => setForm({...form,kind})} options={PARTNER_KINDS.map((item) => ({value:item,label:item}))} disabled={!!editing} /></label><label>Ad<Input required value={form.name} onChange={(event) => setForm({...form,name:event.target.value})} /></label><label className="full">Qeyd<Textarea value={form.note} onChange={(event) => setForm({...form,note:event.target.value})} rows={3} /></label>
     </div><Disclosure title="Təsdiq və bank şərtləri"><div className="finance-form-grid"><label>Komissiya, %<Input value={form.commission} onChange={(event) => setForm({...form,commission:event.target.value})} /></label><label>Güzəşt, %<Input value={form.discount} onChange={(event) => setForm({...form,discount:event.target.value})} /></label><label>Status<Select value={form.light} onValueChange={(light) => setForm({...form,light:light as Partner["light"]})} options={[{value:"gozleme",label:"Gözləmə"},{value:"tesdiq",label:"Təsdiq"},{value:"legv",label:"Ləğv"}]} /></label><label>Sənəd tarixi<Input type="date" value={form.proofDate} onChange={(event) => setForm({...form,proofDate:event.target.value})} /></label><label className="full">Təsdiq sənədi<Input value={form.proof} onChange={(event) => setForm({...form,proof:event.target.value})} /></label><label className="full">Loqo ünvanı<Input value={form.logo} onChange={(event) => setForm({...form,logo:event.target.value})} /></label></div><p className="muted">Təsdiq statusu üçün sənəd və tarix tələb olunur. Bank kanalı sənəd mübadiləsi ilə işləyir.</p></Disclosure>{error && <p className="form-error" role="alert">{error}</p>}<div className="form-actions"><Button className="ghost" disabled={busy} onClick={() => setCompose(false)}>Bağla</Button><Button type="submit" disabled={busy}>{busy ? "Saxlanılır…" : "Kartı saxla"}</Button></div></form></Modal>}
@@ -4050,7 +4051,7 @@ export function TemplatesPage() {
     {!detail ? <>
       <Panel className="employment-summary">{[{icon:"files" as const,label:"Bütün şablonlar",value:library.length},{icon:"check" as const,label:"Baxılıb",value:reviewed},{icon:"clock" as const,label:"Gözləyir",value:waiting},{icon:"close" as const,label:"Geri qaytarılıb",value:returned}].map((item) => <div key={item.label}><Icon name={item.icon} /><div><strong>{item.value}</strong><span>{item.label}</span></div></div>)}</Panel>
       <Toolbar className="finance-list-toolbar"><SearchInput value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Ad, tərəf və ya mətn axtar" /><Select ariaLabel="Şablon növü" value={kindFilter} onValueChange={setKindFilter} options={[{value:"hamisi",label:"Bütün növlər"},...TEMPLATE_KINDS.map((item) => ({value:item,label:item}))]} /></Toolbar>
-      <TableContainer className="finance-records-table template-library-table"><table><thead><tr><th>Şablon</th><th>Növ</th><th>Versiya</th><th>Hüquq yoxlaması</th><th>Tarix</th><th><span className="sr-only">Şablonu aç</span></th></tr></thead><tbody>{filtered.map((row) => <tr key={row.id} tabIndex={0} onClick={() => openRow(row)} onKeyDown={(event) => {if(event.key === "Enter" || event.key === " "){event.preventDefault();openRow(row)}}}><td><strong>{row.name}</strong><small>{templateExcerpt(row.body)}</small></td><td><span className={`badge ${kindTone(row.kind)}`}>{kindLabel(row.kind)}</span></td><td>v.{row.version || "—"}</td><td><span className={`badge ${legalTone(row.legal)}`}>{legalLabel(row.legal)}</span></td><td>{row.updatedOn ? dateAZ(row.updatedOn.slice(0,10)) : "—"}</td><td><Icon name="chevron" /></td></tr>)}</tbody></table>{!filtered.length && <Empty title="Şablon tapılmadı" text="Axtarışı və ya növ filtrini dəyişin." />}</TableContainer>
+      <TableContainer className="finance-records-table template-library-table"><DataTable><thead><tr><th>Şablon</th><th>Növ</th><th>Versiya</th><th>Hüquq yoxlaması</th><th>Tarix</th><th><span className="sr-only">Şablonu aç</span></th></tr></thead><tbody>{filtered.map((row) => <tr key={row.id} tabIndex={0} onClick={() => openRow(row)} onKeyDown={(event) => {if(event.key === "Enter" || event.key === " "){event.preventDefault();openRow(row)}}}><td><strong>{row.name}</strong><small>{templateExcerpt(row.body)}</small></td><td><span className={`badge ${kindTone(row.kind)}`}>{kindLabel(row.kind)}</span></td><td>v.{row.version || "—"}</td><td><span className={`badge ${legalTone(row.legal)}`}>{legalLabel(row.legal)}</span></td><td>{row.updatedOn ? dateAZ(row.updatedOn.slice(0,10)) : "—"}</td><td><Icon name="chevron" /></td></tr>)}</tbody></DataTable>{!filtered.length && <Empty title="Şablon tapılmadı" text="Axtarışı və ya növ filtrini dəyişin." />}</TableContainer>
     </> : <>
       <div className="template-context"><span className={`badge ${kindTone(form.kind)}`}>{form.kind}</span><span className={`badge ${legalTone(form.legal)}`}>{form.legal}</span><span>{owned ? "Şirkət şablonu" : editingId ? "Ümumi kitabxana · dəyişikliklər nüsxə kimi saxlanır" : "Yeni şablon"}</span></div>
       <Tabs value={studioTab} onChange={setStudioTab} options={[{id:"edit",label:"Mətn"},{id:"fill",label:"Sənədi doldur"},{id:"preview",label:"Önizləmə"}]} />
@@ -4142,7 +4143,7 @@ export function AdminPage() {
     <PageHead title="Platforma idarəsi" text="Abunə paketlərinin qiymət və limitlərini idarə edin." />
     <Tabs value={view} onChange={setView} options={[{id:"packages",label:"Paketlər"},{id:"general",label:"Ümumi məlumat"}]} />
     {note && !selected && <p className="lede" role="status">{note}</p>}
-    {view === "packages" ? <TableContainer className="finance-records-table"><table><thead><tr><th>Paket</th><th>Məbləğ, AZN</th><th>İstifadəçi limiti</th><th>Layihə limiti</th><th><span className="sr-only">Redaktə et</span></th></tr></thead><tbody>{packs.map((pack) => <tr key={pack.id} tabIndex={0} onClick={() => openPackage(pack)} onKeyDown={(event) => {if(event.key === "Enter" || event.key === " "){event.preventDefault();openPackage(pack)}}}><td><strong>{pack.name}</strong><small>{pack.features}</small></td><td>{pack.amount == null ? "Göstərilməyib" : money(Number(pack.amount)||0)}</td><td>{pack.userLimit ?? "Limitsiz"}</td><td>{pack.smetaLimit ?? "Limitsiz"}</td><td><Button className="ghost small" onClick={(event) => {event.stopPropagation();openPackage(pack)}}><Icon name="edit" />Redaktə et</Button></td></tr>)}</tbody></table>{!packs.length && <Empty title="Paket yoxdur" text="Paket məlumatları burada görünəcək." />}</TableContainer> : <>
+    {view === "packages" ? <TableContainer className="finance-records-table"><DataTable><thead><tr><th>Paket</th><th>Məbləğ, AZN</th><th>İstifadəçi limiti</th><th>Layihə limiti</th><th><span className="sr-only">Redaktə et</span></th></tr></thead><tbody>{packs.map((pack) => <tr key={pack.id} tabIndex={0} onClick={() => openPackage(pack)} onKeyDown={(event) => {if(event.key === "Enter" || event.key === " "){event.preventDefault();openPackage(pack)}}}><td><strong>{pack.name}</strong><small>{pack.features}</small></td><td>{pack.amount == null ? "Göstərilməyib" : money(Number(pack.amount)||0)}</td><td>{pack.userLimit ?? "Limitsiz"}</td><td>{pack.smetaLimit ?? "Limitsiz"}</td><td><Button className="ghost small" onClick={(event) => {event.stopPropagation();openPackage(pack)}}><Icon name="edit" />Redaktə et</Button></td></tr>)}</tbody></DataTable>{!packs.length && <Empty title="Paket yoxdur" text="Paket məlumatları burada görünəcək." />}</TableContainer> : <>
       <Panel className="employment-summary admin-summary">{[{icon:"office" as const,label:"Açıq kabinet",value:cabinet.code ? 1 : 0},{icon:"users" as const,label:"Əməkdaşlıq sorğusu",value:coop.length},{icon:"files" as const,label:"Növbədəki tender paketi",value:tender.confirmed ? 1 : 0}].map((item) => <div key={item.label}><Icon name={item.icon} /><div><strong>{item.value}</strong><span>{item.label}</span></div></div>)}</Panel><Panel className="pad"><h2 className="block-title">Kabinet</h2><dl className="finance-breakdown"><div><dt>Şirkət</dt><dd>{cabinet.name || "—"}</dd></div><div><dt>Kod</dt><dd>{cabinet.code || "—"}</dd></div></dl></Panel>
     </>}
     {selected && <Modal title={`${selected.name} paketi`} className="finance-record-modal" onClose={() => {if(!busy)setEditing("")}}><form onSubmit={(event) => {event.preventDefault();void save(selected.id)}}><div className="finance-form-grid"><label className="full">Məbləğ, AZN<Input inputMode="decimal" value={draft[selected.id]?.amount || ""} onChange={(event) => setDraft({...draft,[selected.id]:{...draft[selected.id],amount:event.target.value}})} placeholder="Məbləğ göstərilməyib" /></label><label>İstifadəçi limiti<Input type="number" min="1" value={draft[selected.id]?.userLimit || ""} onChange={(event) => setDraft({...draft,[selected.id]:{...draft[selected.id],userLimit:event.target.value}})} placeholder="Limitsiz" /></label><label>Layihə limiti<Input type="number" min="1" value={draft[selected.id]?.smetaLimit || ""} onChange={(event) => setDraft({...draft,[selected.id]:{...draft[selected.id],smetaLimit:event.target.value}})} placeholder="Limitsiz" /></label></div><p className="tax-form-hint">Limit boş saxlanıldıqda məhdudiyyət tətbiq edilmir.</p>{note && <p className="form-error" role="alert">{note}</p>}<div className="form-actions"><Button className="ghost" disabled={busy} onClick={() => setEditing("")}>Ləğv et</Button><Button type="submit" disabled={busy}>{busy ? "Saxlanılır…" : "Dəyişiklikləri saxla"}</Button></div></form></Modal>}

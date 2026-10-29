@@ -1,3 +1,4 @@
+import { DataTable } from '../components/DataTable'
 import { TableContainer } from "../components/primitives"
 import { hit } from "../format"
 import { ROLES } from "../domain/access"
@@ -15,7 +16,7 @@ export default function Audit() {
     <>
       <PageHead kicker={t("page.audit.kicker")} title={t("page.audit.title")} text={t("page.audit.text")} />
       <TableContainer>
-        <table>
+        <DataTable>
           <thead>
             <tr>
               <th>Vaxt</th>
@@ -37,7 +38,7 @@ export default function Audit() {
               </tr>
             ))}
           </tbody>
-        </table>
+        </DataTable>
         {rows.length === 0 && <Empty title="Qeyd yoxdur" text="Axtarışa uyğun əməliyyat tapılmadı." />}
       </TableContainer>
     </>

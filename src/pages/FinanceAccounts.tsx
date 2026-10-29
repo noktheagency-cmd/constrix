@@ -1,3 +1,4 @@
+import { DataTable } from '../components/DataTable'
 import { Disclosure, Panel, SectionHeader, TableContainer, Toolbar } from "../components/primitives"
 import { useState } from "react"
 import { balanceLines, cashAccounts, moneyMoves } from "../domain/financeView"
@@ -35,7 +36,7 @@ export default function FinanceAccounts() {
             <Columns rows={cash.map((item) => ({ label: item.name, value: item.balance, tone: item.kind === "bank" ? "pine" : "copper" }))} />
           </Panel></Disclosure>
           <TableContainer  style={{ marginTop: 14 }}>
-          <table>
+          <DataTable>
             <thead>
               <tr>
                 <th>Hesab</th>
@@ -58,7 +59,7 @@ export default function FinanceAccounts() {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </DataTable>
           {cash.length === 0 && <Empty title="Hesab yoxdur" text="Axtarışa uyğun pul hesabı tapılmadı." />}
         </TableContainer>
         </>
@@ -70,7 +71,7 @@ export default function FinanceAccounts() {
             <Columns rows={lines.map((item) => ({ label: item.name, value: item.amount, tone: item.id === "kreditor" ? "rose" : "copper" }))} />
           </Panel></Disclosure>
           <TableContainer  style={{ marginTop: 14 }}>
-          <table>
+          <DataTable>
             <thead>
               <tr>
                 <th>Hesab</th>
@@ -89,7 +90,7 @@ export default function FinanceAccounts() {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </DataTable>
           {lines.length === 0 && <Empty title="Sətir yoxdur" text="Axtarışa uyğun balans sətri tapılmadı." />}
         </TableContainer>
         </>

@@ -1,3 +1,4 @@
+import { DataTable } from '../components/DataTable'
 import { Button, Input, Metric, StatGrid, TableContainer, Toolbar } from "../components/primitives"
 import { useEffect, useState } from "react"
 import { DateField } from "../DateField"
@@ -246,7 +247,7 @@ export default function Zavod({ kind = "zavod" }: { kind?: PlantKind }) {
           </div>
           <h2 className="block-title">Heyət</h2>
           <TableContainer>
-            <table>
+            <DataTable>
               <thead>
                 <tr>
                   <th>Ad</th>
@@ -263,7 +264,7 @@ export default function Zavod({ kind = "zavod" }: { kind?: PlantKind }) {
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </DataTable>
             {crew.length === 0 && <Empty title="Heyət yoxdur" text="Bu növbəyə usta yazılmayıb." />}
           </TableContainer>
           <h2 className="block-title">Günün hədəfi</h2>
@@ -302,7 +303,7 @@ export default function Zavod({ kind = "zavod" }: { kind?: PlantKind }) {
           {planError && <p className="form-error">{planError}</p>}
           <h2 className="block-title">{kind === "zavod" ? "Bu günün tökmələri" : "Bu günün işi"}</h2>
           <TableContainer className="wide">
-            <table>
+            <DataTable>
               <thead>
                 <tr>
                   <th>Əmr</th>
@@ -327,7 +328,7 @@ export default function Zavod({ kind = "zavod" }: { kind?: PlantKind }) {
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </DataTable>
             {todayOrders.length === 0 && <Empty title="Bu günə əmr yoxdur" text="Tarixi bu gün olan iş əmri yazılmayıb." />}
           </TableContainer>
           <h2 className="block-title">Hadisə jurnalı</h2>
@@ -349,7 +350,7 @@ export default function Zavod({ kind = "zavod" }: { kind?: PlantKind }) {
           </form>
           {noteError && <p className="form-error">{noteError}</p>}
           <TableContainer>
-            <table>
+            <DataTable>
               <thead>
                 <tr>
                   <th>Saat</th>
@@ -364,7 +365,7 @@ export default function Zavod({ kind = "zavod" }: { kind?: PlantKind }) {
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </DataTable>
           </TableContainer>
         </section>
       )}
@@ -400,7 +401,7 @@ export default function Zavod({ kind = "zavod" }: { kind?: PlantKind }) {
           </form>
           {orderError && <p className="form-error">{orderError}</p>}
           <TableContainer className="wide">
-            <table>
+            <DataTable>
               <thead>
                 <tr>
                   <th>Əmr</th>
@@ -450,7 +451,7 @@ export default function Zavod({ kind = "zavod" }: { kind?: PlantKind }) {
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </DataTable>
           </TableContainer>
         </section>
       )}
@@ -458,7 +459,7 @@ export default function Zavod({ kind = "zavod" }: { kind?: PlantKind }) {
       {tab === "teleb" && (
         <section>
           <TableContainer className="wide">
-            <table>
+            <DataTable>
               <thead>
                 <tr>
                   <th>Tələb</th>
@@ -481,7 +482,7 @@ export default function Zavod({ kind = "zavod" }: { kind?: PlantKind }) {
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </DataTable>
           </TableContainer>
         </section>
       )}
@@ -509,7 +510,7 @@ export default function Zavod({ kind = "zavod" }: { kind?: PlantKind }) {
           </form>
           {receiptError && <p className="form-error">{receiptError}</p>}
           <TableContainer>
-            <table>
+            <DataTable>
               <thead>
                 <tr>
                   <th>Material</th>
@@ -532,7 +533,7 @@ export default function Zavod({ kind = "zavod" }: { kind?: PlantKind }) {
                   )
                 })}
               </tbody>
-            </table>
+            </DataTable>
           </TableContainer>
         </section>
       )}
@@ -562,7 +563,7 @@ export default function Zavod({ kind = "zavod" }: { kind?: PlantKind }) {
             <Button className="ghost small" type="submit">Dayanacaq əlavə et</Button>
           </form>
           <TableContainer  style={{ marginBottom: 12 }}>
-            <table>
+            <DataTable>
               <thead>
                 <tr>
                   <th>Material</th>
@@ -604,7 +605,7 @@ export default function Zavod({ kind = "zavod" }: { kind?: PlantKind }) {
                   )
                 })}
               </tbody>
-            </table>
+            </DataTable>
           </TableContainer>
           <div className="row-actions" style={{ justifyContent: "space-between", marginBottom: 12 }}>
             <Button type="button" className="ghost small" onClick={() => { setLines([...lines, { key: lineKey, materialId: "", qty: "", price: "" }]); setLineKey(lineKey + 1) }}>Material əlavə et</Button>
@@ -627,7 +628,7 @@ export default function Zavod({ kind = "zavod" }: { kind?: PlantKind }) {
           </Button>
           <h2 className="block-title">Yoldakı və çatan sənədlər</h2>
           <TableContainer className="wide">
-            <table>
+            <DataTable>
               <thead>
                 <tr>
                   <th>Sənəd</th>
@@ -650,7 +651,7 @@ export default function Zavod({ kind = "zavod" }: { kind?: PlantKind }) {
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </DataTable>
           </TableContainer>
         </section>
       )}
@@ -659,7 +660,7 @@ export default function Zavod({ kind = "zavod" }: { kind?: PlantKind }) {
         <section>
           <p className="muted" style={{ marginBottom: 12 }}>{kind === "zavod" ? "Zavodun mikseri, nasosu və daşıyan texnikası." : "Bu sexin dəzgahı və maşını."} Status sətirin özündən dəyişir.</p>
           <TableContainer>
-            <table>
+            <DataTable>
               <thead>
                 <tr>
                   <th>Texnika</th>
@@ -691,7 +692,7 @@ export default function Zavod({ kind = "zavod" }: { kind?: PlantKind }) {
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </DataTable>
           </TableContainer>
         </section>
       )}
@@ -724,7 +725,7 @@ export default function Zavod({ kind = "zavod" }: { kind?: PlantKind }) {
           </form>
           {wasteError && <p className="form-error">{wasteError}</p>}
           <TableContainer>
-            <table>
+            <DataTable>
               <thead>
                 <tr>
                   <th>Tarix</th>
@@ -748,7 +749,7 @@ export default function Zavod({ kind = "zavod" }: { kind?: PlantKind }) {
                   )
                 })}
               </tbody>
-            </table>
+            </DataTable>
             {losses.length === 0 && <Empty title="İtki yoxdur" text="Bu növbədə silinmiş xammal yoxdur." />}
           </TableContainer>
         </section>

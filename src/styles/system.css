@@ -214,7 +214,7 @@ input.text-input, textarea.text-input { min-width: 0; border: 1px solid var(--li
 .panel-head, .calc-card-head { align-items: center; margin-bottom: 16px; gap: 12px; }
 .panel-head h2, .panel h2 { font-size: 14px; font-weight: 600; letter-spacing: -.015em; }
 .table-wrap { border-radius: var(--control-radius); box-shadow: none; scrollbar-width: thin; }
-.table-wrap > table { font-size: 13px; }
+.table-wrap table { font-size: 13px; }
 .table-wrap th { height: 42px; color: var(--muted); background: var(--field); font-size: 12px; font-weight: 500; padding: 0 16px; white-space: nowrap; }
 .table-wrap td { height: 50px; padding: 9px 16px; line-height: 1.4; border-color: var(--row-rule); }
 .table-wrap tbody tr:hover td { background: var(--hover); }
@@ -1316,3 +1316,31 @@ input.text-input, textarea.text-input { min-width: 0; border: 1px solid var(--li
 .source-sheet-table td{min-width:100px;max-width:420px;white-space:normal;overflow-wrap:anywhere;vertical-align:top}
 .source-sheet-table th:first-child{position:sticky;left:0;background:var(--surface,#fff);z-index:1}
 .source-cell-error{color:#bd334f!important;font-weight:700}
+
+/* Shared table viewport and footer across every module. */
+.table-wrap:has(> .data-table), .market-table-wrap:has(> .data-table) { overflow: visible; min-width: 0; }
+.data-table { width: 100%; min-width: 0; }
+.data-table-scroll { width: 100%; overflow-x: auto; scrollbar-width: thin; }
+.data-table-scroll > table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.data-table-footer { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 16px; border-top: 1px solid var(--line); background: var(--surface, var(--field)); font-size: 12px; }
+.data-table-pagination { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.data-table-pagination button { width: 30px; height: 30px; border: 1px solid var(--line); border-radius: 7px; background: transparent; color: inherit; cursor: pointer; font-size: 18px; }
+.data-table-pagination button:disabled { opacity: .35; cursor: default; }
+.data-table-pagination button:not(:disabled):hover { background: var(--hover); }
+.data-table-size { display: flex; align-items: center; gap: 10px; white-space: nowrap; }
+.data-table-size .ui-select { width: 80px; min-width: 80px; }
+.nakopitel-table { min-width: 1800px; }
+.nakopitel-table thead tr:first-child th:nth-child(2), .nakopitel-table td:nth-child(2) { min-width: 360px; width: 360px; }
+.nakopitel-table td:nth-child(2) { color: var(--text); line-height: 1.6; }
+.nakopitel-table td.num { white-space: nowrap; font-variant-numeric: tabular-nums; }
+.nakopitel-table th:nth-child(n+7), .nakopitel-table td:nth-child(n+7) { border-left: 1px solid var(--row-rule); }
+@media(max-width: 640px) { .data-table-footer { align-items: flex-start; flex-direction: column; } .data-table-size { align-self: flex-end; } }
+@media print { .data-table-footer { display: none; } .data-table-scroll { overflow: visible; } }
+
+.table-wrap.wide .nakopitel-table { min-width: 1800px; }
+.nakopitel-table thead th[colspan] { text-align: center; border-left: 1px solid var(--line); border-bottom: 1px solid var(--line); color: var(--text); }
+.data-table-scroll:has(> .nakopitel-table) { max-height: min(600px, calc(100dvh - 320px)); min-height: 240px; overflow: auto; }
+.nakopitel-table thead th { position: sticky; top: 0; z-index: 2; }
+.nakopitel-table thead tr:nth-child(2) th { top: 42px; }
+.nakopitel-table thead th[rowspan] { z-index: 3; }
+@media print { .data-table-scroll:has(> .nakopitel-table) { max-height: none; overflow: visible; } .nakopitel-table thead th { position: static; } }

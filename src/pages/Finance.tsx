@@ -1,3 +1,4 @@
+import { DataTable } from '../components/DataTable'
 import { Checkbox } from "../components/Checkbox"
 import { DateField } from "../DateField"
 import { Icon } from "../icons"
@@ -33,7 +34,7 @@ export default function Finance() {
   const flow = periods(position.moves, state.closedPeriods).slice().reverse().map((row) => ({ label: monthWord(row.id), inn: row.inflow, out: row.outflow }))
   const projects = state.projects.filter((item) => hit(state.query, item.name, item.client))
   const selectedProject = projects.find((item) => item.id === projectId) || projects[0]
-  const latest = position.moves.filter((item) => hit(state.query, item.id, item.party, item.project, item.category)).slice(0, 6)
+  const latest = position.moves.filter((item) => hit(state.query, item.id, item.party, item.project, item.category))
 
   return (
     <div className="finance-workspace">
@@ -78,7 +79,7 @@ export default function Finance() {
             <Link to="/emeliyyatlar">Hamısı</Link>
           </SectionHeader>
           <TableContainer className="flat">
-            <table>
+            <DataTable>
               <thead>
                 <tr>
                   <th>Tərəf</th>
@@ -100,7 +101,7 @@ export default function Finance() {
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </DataTable>
           </TableContainer>
         </Panel>
         <Panel className="pad">
@@ -135,7 +136,7 @@ export default function Finance() {
           <Meter value={selectedProject.budget ? Math.round(selectedProject.spent / selectedProject.budget * 100) : 0} tone={selectedProject.budget && selectedProject.spent / selectedProject.budget * 100 > selectedProject.progress + 15 ? "rose" : "copper"} />
           <p className="muted">{selectedProject.budget ? Math.round(selectedProject.spent / selectedProject.budget * 100) : 0}% istifadə olunub · İşin irəliləyişi {selectedProject.progress}%</p>
         </Panel>}
-        <TableContainer className="finance-project-table"><table><thead><tr><th>Layihə</th><th>Büdcə</th><th>Xərclənib</th><th>Qalıq</th><th>İstifadə</th></tr></thead><tbody>{projects.map((project) => <tr key={project.id} tabIndex={0} className={project.id === selectedProject?.id ? "selected" : ""} onClick={() => setProjectId(project.id)} onKeyDown={(event) => {if(event.key === "Enter" || event.key === " "){event.preventDefault();setProjectId(project.id)}}}><td><strong>{project.name}</strong></td><td>{money(project.budget)}</td><td>{money(project.spent)}</td><td>{money(project.budget-project.spent)}</td><td>{project.budget ? Math.round(project.spent/project.budget*100) : 0}%</td></tr>)}</tbody></table>{!projects.length && <p className="lede">Uyğun layihə yoxdur.</p>}</TableContainer>
+        <TableContainer className="finance-project-table"><DataTable><thead><tr><th>Layihə</th><th>Büdcə</th><th>Xərclənib</th><th>Qalıq</th><th>İstifadə</th></tr></thead><tbody>{projects.map((project) => <tr key={project.id} tabIndex={0} className={project.id === selectedProject?.id ? "selected" : ""} onClick={() => setProjectId(project.id)} onKeyDown={(event) => {if(event.key === "Enter" || event.key === " "){event.preventDefault();setProjectId(project.id)}}}><td><strong>{project.name}</strong></td><td>{money(project.budget)}</td><td>{money(project.spent)}</td><td>{money(project.budget-project.spent)}</td><td>{project.budget ? Math.round(project.spent/project.budget*100) : 0}%</td></tr>)}</tbody></DataTable>{!projects.length && <p className="lede">Uyğun layihə yoxdur.</p>}</TableContainer>
       </div>}
       <div hidden={view !== "tax"}><TaxPanel /></div>
     </div>
@@ -191,7 +192,7 @@ function TaxPanel() {
   return <div className="tax-workspace">
     <SectionHeader><div><h2>Vergi qaydaları</h2><p className="muted">Dərəcələr və qüvvəyə minmə tarixçəsi.</p></div><Button onClick={() => {setNote("");setCompose(true)}}><Icon name="plus" />Yeni qayda</Button></SectionHeader>
     {note && !compose && <p className="lede" role="status">{note}</p>}
-    <TableContainer className="tax-rules-table"><table><thead><tr><th>Qayda</th><th>Kod</th><th>Dərəcə</th><th>Qüvvəyə minmə</th><th>Qeyd</th></tr></thead><tbody>{rows.map((row) => <tr key={row.id}><td><strong>{row.name}</strong></td><td><code>{row.code}</code></td><td><span className="badge copper">{dec(row.rate)}%</span></td><td>{dateAZ(row.effectiveOn.slice(0,10))}</td><td>{row.note || "—"}</td></tr>)}</tbody></table>{!rows.length && <Empty title="Qayda yoxdur" text="Yeni qayda düyməsi ilə məlumat əlavə edin." />}</TableContainer>
+    <TableContainer className="tax-rules-table"><DataTable><thead><tr><th>Qayda</th><th>Kod</th><th>Dərəcə</th><th>Qüvvəyə minmə</th><th>Qeyd</th></tr></thead><tbody>{rows.map((row) => <tr key={row.id}><td><strong>{row.name}</strong></td><td><code>{row.code}</code></td><td><span className="badge copper">{dec(row.rate)}%</span></td><td>{dateAZ(row.effectiveOn.slice(0,10))}</td><td>{row.note || "—"}</td></tr>)}</tbody></DataTable>{!rows.length && <Empty title="Qayda yoxdur" text="Yeni qayda düyməsi ilə məlumat əlavə edin." />}</TableContainer>
     <Disclosure title="Hesablama və izah"><div className="tax-calc-fields"><label>Vergi qaydası<Select ariaLabel="Hesablanacaq vergi qaydası" value={calc.code} onValueChange={(code) => setCalc({...calc,code})} options={[{value:"",label:"Qayda seçin"},...Array.from(new Map(rows.map((row) => [row.code,row])).values()).map((row) => ({value:row.code,label:row.name}))]} /></label><label>Hesablama tarixi<DateField ariaLabel="Hesablama tarixi" value={calc.on} onChange={(on) => setCalc({...calc,on})} /></label><label>Baza, AZN<Input inputMode="decimal" value={base} onChange={(event) => setBase(event.target.value)} /></label><Button disabled={!calc.code} onClick={() => void explainNow()}>Hesabla</Button></div>{explain && <p className="tax-explanation" role="status">{explain}</p>}</Disclosure>
     {compose && <Modal title="Yeni vergi qaydası" className="finance-record-modal tax-rule-modal" onClose={() => {if(!busy)setCompose(false)}}><form onSubmit={(event) => {event.preventDefault();void save()}}><div className="finance-form-grid"><label>Kod<Input required value={form.code} onChange={(event) => setForm({...form,code:event.target.value})} placeholder="Məs. edv" /></label><label>Ad<Input required value={form.name} onChange={(event) => setForm({...form,name:event.target.value})} /></label><label>Dərəcə, %<Input required inputMode="decimal" value={form.rate} onChange={(event) => setForm({...form,rate:event.target.value})} /></label><label>Qüvvəyə minmə<DateField ariaLabel="Qüvvəyə minmə tarixi" value={form.effectiveOn} onChange={(effectiveOn) => setForm({...form,effectiveOn})} /></label><label className="full">ƏDV rejimi<Select value={form.vatMode} onValueChange={(vatMode) => setForm({...form,vatMode})} options={[{value:"xaric",label:"ƏDV xaric"},{value:"daxil",label:"ƏDV daxil"}]} /></label><Checkbox className="full" label="Mühasib qaydanı yoxlayıb təsdiqləyib" checked={form.confirmed} onChange={(event) => setForm({...form,confirmed:event.target.checked})} /></div><p className="tax-form-hint">Yeni qayda tarixçəyə əlavə olunur. Bəyannamə göndərilmir.</p>{note && <p className="form-error" role="alert">{note}</p>}<div className="form-actions"><Button className="ghost" disabled={busy} onClick={() => setCompose(false)}>Ləğv et</Button><Button type="submit" disabled={busy}>{busy ? "Saxlanılır…" : "Qaydanı saxla"}</Button></div></form></Modal>}
   </div>

@@ -1,3 +1,4 @@
+import { DataTable } from '../components/DataTable'
 import { Button, Disclosure, Input, Panel, SectionHeader, TableContainer, Toolbar } from "../components/primitives"
 import { useState, type FormEvent } from "react"
 import { DateField } from "../DateField"
@@ -65,7 +66,7 @@ export default function FinanceMoves() {
       </Toolbar>
       {tab !== "qaralama" && (
         <TableContainer>
-          <table>
+          <DataTable>
             <thead>
               <tr>
                 <th>Sənəd</th>
@@ -106,13 +107,13 @@ export default function FinanceMoves() {
                 )
               })}
             </tbody>
-          </table>
+          </DataTable>
           {rows.length === 0 && <Empty title="Hərəkət yoxdur" text="Pul hesabına düşən sənəd tapılmadı." />}
         </TableContainer>
       )}
       {tab === "qaralama" && (
         <TableContainer>
-          <table>
+          <DataTable>
             <thead>
               <tr>
                 <th>Xərc</th>
@@ -146,7 +147,7 @@ export default function FinanceMoves() {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </DataTable>
           {drafts.length === 0 && <Empty title="Qaralama yoxdur" text="Yeni xərc əvvəl qaralama olur. Təsdiqdən sonra pula və layihə xərcinə düşür." />}
         </TableContainer>
       )}

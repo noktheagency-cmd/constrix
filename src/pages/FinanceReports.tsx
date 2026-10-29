@@ -1,3 +1,4 @@
+import { DataTable } from '../components/DataTable'
 import { Disclosure, Metric, Panel, SectionHeader, StatGrid, TableContainer, Toolbar } from "../components/primitives"
 import { useState } from "react"
 import { agingRows, cashRows, profitRows, vatRows } from "../domain/financeReports"
@@ -40,7 +41,7 @@ export default function FinanceReports() {
             <Columns rows={vat.map((row) => ({ label: monthWord(row.period), value: row.vat, tone: "copper" }))} />
           </Panel></Disclosure>
           <TableContainer  style={{ marginTop: 14 }}>
-          <table>
+          <DataTable>
             <thead>
               <tr>
                 <th>Dövr</th>
@@ -59,7 +60,7 @@ export default function FinanceReports() {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </DataTable>
           {vat.length === 0 && <Empty title="ƏDV bazası yoxdur" text="Təsdiqlənmiş Forma-2-lər burada toplanır." />}
         </TableContainer>
         </>
@@ -72,7 +73,7 @@ export default function FinanceReports() {
             <Columns rows={profit.map((row) => ({ label: row.project, value: Math.abs(row.margin), tone: row.margin < 0 ? "rose" : "pine" }))} />
           </Panel></Disclosure>
           <TableContainer  style={{ marginTop: 14 }}>
-          <table>
+          <DataTable>
             <thead>
               <tr>
                 <th>Layihə</th>
@@ -93,7 +94,7 @@ export default function FinanceReports() {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </DataTable>
         </TableContainer>
         </>
       )}
@@ -116,7 +117,7 @@ export default function FinanceReports() {
             })}
           </StatGrid>
           <TableContainer>
-            <table>
+            <DataTable>
               <thead>
                 <tr>
                   <th>Faktura</th>
@@ -137,7 +138,7 @@ export default function FinanceReports() {
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </DataTable>
             {aging.length === 0 && <Empty title="Açıq debitor yoxdur" text="Göndərilmiş və gecikən fakturalar burada görünür." />}
           </TableContainer>
         </div>
@@ -150,7 +151,7 @@ export default function FinanceReports() {
             <FlowBars rows={cash.map((row) => ({ label: monthWord(row.month), inn: row.inflow, out: row.outflow }))} />
           </Panel></Disclosure>
           <TableContainer  style={{ marginTop: 14 }}>
-          <table>
+          <DataTable>
             <thead>
               <tr>
                 <th>Ay</th>
@@ -169,7 +170,7 @@ export default function FinanceReports() {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </DataTable>
           {cash.length === 0 && <Empty title="Hərəkət yoxdur" text="Ödənilmiş faktura, mənzil ödənişi və xərc aylar üzrə yığılır." />}
         </TableContainer>
         </>

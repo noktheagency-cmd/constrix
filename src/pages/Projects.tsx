@@ -1,3 +1,4 @@
+import { DataTable } from '../components/DataTable'
 import { Button, Input, Metric, SearchInput, StatGrid, TableContainer, Textarea, Toolbar } from "../components/primitives"
 import { useState, type FormEvent } from "react"
 import { DateField } from "../DateField"
@@ -215,7 +216,7 @@ export default function Projects() {
 
       {tab === "reyestr" && (
         <TableContainer>
-          <table>
+          <DataTable>
             <thead>
               <tr>
                 <th>Layihə</th>
@@ -253,14 +254,14 @@ export default function Projects() {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </DataTable>
           {rows.length === 0 && <Empty title="Layihə tapılmadı" text="Yeni layihə açın və ya filtri dəyişin." />}
         </TableContainer>
       )}
 
       {tab === "hecm" && (
         <TableContainer>
-          <table>
+          <DataTable>
             <thead>
               <tr>
                 <th>Layihə</th>
@@ -293,13 +294,13 @@ export default function Projects() {
                 )
               })}
             </tbody>
-          </table>
+          </DataTable>
         </TableContainer>
       )}
 
       {tab === "sened" && (
         <TableContainer>
-          <table>
+          <DataTable>
             <thead>
               <tr>
                 <th>Sənəd</th>
@@ -344,14 +345,14 @@ export default function Projects() {
                 )
               })}
             </tbody>
-          </table>
+          </DataTable>
           {papers.length === 0 && <Empty title="Sənəd yoxdur" text="Yeni sənəd gözləyən statusu ilə açılır." />}
         </TableContainer>
       )}
 
       {tab === "jurnal" && (
         <TableContainer>
-          <table>
+          <DataTable>
             <thead>
               <tr>
                 <th>Tarix</th>
@@ -377,7 +378,7 @@ export default function Projects() {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </DataTable>
           {notes.length === 0 && <Empty title="Qeyd yoxdur" text="Layihə jurnalına qeyd yazın." />}
         </TableContainer>
       )}

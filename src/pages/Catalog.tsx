@@ -1,3 +1,4 @@
+import { DataTable } from '../components/DataTable'
 import { Button, Input, TableContainer, Toolbar } from "../components/primitives"
 import { useRef, useState, type ReactNode } from "react"
 import { Link, useNavigate, useParams } from "react-router-dom"
@@ -355,7 +356,7 @@ export function CatalogPage() {
       {visible.length > 0 && shown.length === 0 && <Empty title="Uyğun məhsul yoxdur" text="Axtarışı və ya kateqoriyanı dəyişin." />}
       {shown.length > 0 && (
         <TableContainer className="pricebook">
-          <table>
+          <DataTable>
             <thead>
               <tr>
                 <th>Məhsul</th>
@@ -411,7 +412,7 @@ export function CatalogPage() {
                 )
               })}
             </tbody>
-          </table>
+          </DataTable>
         </TableContainer>
       )}
       {drop && <Confirm title="Məhsulu sil" text={`${drop.name} kataloqdan silinəcək. Qiymət tarixçəsi də silinir.`} onClose={() => setDrop(null)} onYes={() => removeProduct(drop)} />}
@@ -553,7 +554,7 @@ export function CatalogDetail() {
         <h2>Qiymət şərtləri</h2>
         {product.breaks.length === 0 && <p className="doc-note">Əlavə şərt yoxdur. Əsas satış qiyməti tətbiq olunur.</p>}
         {product.breaks.length > 0 && (
-          <table className="breaks">
+          <DataTable className="breaks">
             <thead>
               <tr>
                 <th>Minimum</th>
@@ -576,7 +577,7 @@ export function CatalogDetail() {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </DataTable>
         )}
         {secret && (
           <div className="form-row wide doc-form">
@@ -598,7 +599,7 @@ export function CatalogDetail() {
             </label>
             {history.length === 0 && <p className="doc-note">Qiymət tarixçəsi yoxdur.</p>}
             {history.length > 0 && (
-              <table className="breaks">
+              <DataTable className="breaks">
                 <thead>
                   <tr>
                     <th>Tarix</th>
@@ -617,7 +618,7 @@ export function CatalogDetail() {
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </DataTable>
             )}
           </>
         )}

@@ -23,8 +23,8 @@ export class PlatformController {
   }
 
   @Get('source-sheets/:id')
-  async sourceRows(@Req() request: RequestUser, @Param('id') id: string, @Query('page') page: string, @Query('q') query: string) {
-    return this.platform.sourceRows(await this.ctx(request), id, page, query);
+  async sourceRows(@Req() request: RequestUser, @Param('id') id: string, @Query('page') page: string, @Query('q') query: string, @Query('pageSize') pageSize: string) {
+    return this.platform.sourceRows(await this.ctx(request), id, page, query, pageSize);
   }
 
   @Get('source-workbooks/:id/download')

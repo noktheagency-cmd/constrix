@@ -1,3 +1,4 @@
+import { DataTable } from '../components/DataTable'
 import { Button, Input, Panel, SearchInput, SectionHeader, StatGrid, TableContainer } from "../components/primitives"
 import { FileTile } from "../components/FileTile"
 import { Pagination } from "../components/Pagination"
@@ -1083,7 +1084,7 @@ export function TariffPage() {
             </label>
           </SectionHeader>
           <TableContainer>
-            <table>
+            <DataTable>
               <thead>
                 <tr>
                   <th>Kim</th>
@@ -1106,7 +1107,7 @@ export function TariffPage() {
                   <td className="num">{money(total)}</td>
                 </tr>
               </tbody>
-            </table>
+            </DataTable>
           </TableContainer>
           {showMine && active && (
             <p className="tariff-key"><i /> Açıq rəng {active.name} üçündür. Bu şirkətin hər haqqı eyni rəngdədir, ona görə yan-yana sətirlər eyni görünür.</p>
@@ -1115,12 +1116,12 @@ export function TariffPage() {
         </Panel>}
         {tab === "plans" && <>
           <p className="tariff-hint">{admin ? "Tarifi seçərək məbləği və izahı dəyişə bilərsiniz." : "Şirkətinizə uyğun tariflər işarələnib. Ətraflı məlumat üçün tarifi seçin."}</p>
-          <TableContainer className="tariff-library"><table>
+          <TableContainer className="tariff-library"><DataTable>
             <thead><tr><th>Tarif</th><th>Kim üçün</th><th>Ödəniş dövrü</th><th className="num">Qiymət</th>{showMine && <th>Uyğunluq</th>}<th>Aç</th></tr></thead>
             <tbody>{ordered.map((plan) => <tr key={plan.id} tabIndex={0} onClick={() => setSelectedId(plan.id)} onKeyDown={(event) => { if(event.key === "Enter" || event.key === " ") { event.preventDefault(); setSelectedId(plan.id) } }}>
               <td><strong>{plan.name}</strong></td><td>{TARIFF[plan.id]?.payer || "—"}</td><td>{TARIFF[plan.id]?.cadence || "—"}</td><td className="num">{feeText(plan)}</td>{showMine && <td>{paysTariff(kind, plan.id) ? <span className="badge pine">Uyğundur</span> : <span className="tariff-hint">—</span>}</td>}<td><Icon name="chevron" /></td>
             </tr>)}</tbody>
-          </table></TableContainer>
+          </DataTable></TableContainer>
         </>}
         {selected && <Modal title={selected.name} onClose={() => setSelectedId("")} className="tariff-detail-modal">
           {[selected].map((plan) => {
@@ -1168,7 +1169,7 @@ export function TariffPage() {
           {bills.length === 0 && <p className="lede">{admin ? "Şirkət tarifdən qaimə açanda burada görünəcək." : "Qaimə yaratmaq üçün Tariflər tabından şirkətinizə uyğun tarifi seçin."}</p>}
           {bills.length > 0 && (
             <TableContainer>
-              <table>
+              <DataTable>
                 <thead>
                   <tr>
                     <th>Qaimə</th>
@@ -1207,7 +1208,7 @@ export function TariffPage() {
                     )
                   })}
                 </tbody>
-              </table>
+              </DataTable>
             </TableContainer>
           )}
         </Panel>}

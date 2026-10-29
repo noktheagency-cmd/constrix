@@ -1,3 +1,4 @@
+import { DataTable } from '../components/DataTable'
 import { DocumentSummary } from "../components/DocumentSummary"
 import { Button, TableContainer, Toolbar } from "../components/primitives"
 import { useState } from "react"
@@ -110,7 +111,7 @@ export default function Forma3Page() {
 
       {tab === "icmallar" && (
         <TableContainer className="wide">
-          <table>
+          <DataTable>
             <thead>
               <tr>
                 <th>Sənəd</th>
@@ -149,14 +150,14 @@ export default function Forma3Page() {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </DataTable>
           {rows.length === 0 && <Empty title="Forma-3 yoxdur" text="Təsdiqlənmiş Forma-2-dən aralıq və ya yekun icmal açın." />}
         </TableContainer>
       )}
 
       {tab === "araliq" && (
         <TableContainer>
-          <table>
+          <DataTable>
             <thead>
               <tr>
                 <th>Layihə</th>
@@ -177,14 +178,14 @@ export default function Forma3Page() {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </DataTable>
           {interims.length === 0 && <Empty title="Aralıq üçün akt yoxdur" text="Təsdiqlənmiş və ya fakturalanmış Forma-2 olan layihə burada durur." />}
         </TableContainer>
       )}
 
       {tab === "yekun" && (
         <TableContainer>
-          <table>
+          <DataTable>
             <thead>
               <tr>
                 <th>Layihə</th>
@@ -201,13 +202,13 @@ export default function Forma3Page() {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </DataTable>
         </TableContainer>
       )}
 
       {tab === "odenis" && (
         <TableContainer className="wide">
-          <table>
+          <DataTable>
             <thead>
               <tr>
                 <th>İcmal</th>
@@ -230,7 +231,7 @@ export default function Forma3Page() {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </DataTable>
           {rows.length === 0 && <Empty title="Ödəniş yoxdur" text="İcmal açıldıqda avans, saxlanc və ödəniləcək məbləğ burada durur." />}
         </TableContainer>
       )}
@@ -356,7 +357,7 @@ function DocRead({
           {doc.status === "tesdiq" && <Button type="button" className="ghost" onClick={onReturn}>Qaralamaya qaytar</Button>}
         </div>
         <DocumentSummary rows={[{label:"Smeta",value:money(doc.smetaValue)},{label:"Əvvəlki dövrlər",value:money(doc.priorValue)},{label:"Cari dövr",value:money(doc.periodValue)},{label:"Əvvəlindən",value:money(doc.cumulativeValue)},{label:"Qalıq",value:money(doc.remainValue)},{label:"Avans qalığı",value:money(doc.advanceBalance)},{label:"Saxlanc",value:money(doc.retention)},{label:"ƏDV",value:money(doc.vat)}]} totalLabel="Ödənilməli məbləğ" total={money(roundMoney(doc.payable))} />
-        <TableContainer className="document-lines"><table><thead><tr><th>İş</th><th>Vahid</th><th className="num">Bu dövr</th><th className="num">Əvvəlindən</th><th className="num">Qalıq</th><th className="num">Məbləğ</th></tr></thead><tbody>{doc.lines.map((line) => <tr key={line.smetaLineId}><td><strong>{line.name}</strong><span className="document-line-code">{line.code}</span></td><td>{line.unit}</td><td className="num">{num(line.periodQty,1)}</td><td className="num">{num(line.cumulativeQty,1)}</td><td className="num">{num(line.remainQty,1)}</td><td className="num">{money(line.periodValue)}</td></tr>)}</tbody></table></TableContainer>
+        <TableContainer className="document-lines"><DataTable><thead><tr><th>İş</th><th>Vahid</th><th className="num">Bu dövr</th><th className="num">Əvvəlindən</th><th className="num">Qalıq</th><th className="num">Məbləğ</th></tr></thead><tbody>{doc.lines.map((line) => <tr key={line.smetaLineId}><td><strong>{line.name}</strong><span className="document-line-code">{line.code}</span></td><td>{line.unit}</td><td className="num">{num(line.periodQty,1)}</td><td className="num">{num(line.cumulativeQty,1)}</td><td className="num">{num(line.remainQty,1)}</td><td className="num">{money(line.periodValue)}</td></tr>)}</tbody></DataTable></TableContainer>
         <div className="sign-row">
           <div>Sifarişçi<span>{doc.client}</span></div>
           <div>Podratçı<span>{company.legal}</span></div>

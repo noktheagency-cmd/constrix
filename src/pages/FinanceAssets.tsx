@@ -1,3 +1,4 @@
+import { DataTable } from '../components/DataTable'
 import { Disclosure, Panel, SectionHeader, TableContainer } from "../components/primitives"
 import { assetRows } from "../domain/financeView"
 import { hit, money, moneyShort } from "../format"
@@ -21,7 +22,7 @@ export default function FinanceAssets() {
         <Columns rows={rows.filter((item) => item.capitalized).map((item) => ({ label: item.name, value: item.nbv, tone: "copper" }))} />
       </Panel></Disclosure>
       <TableContainer  style={{ marginTop: 14 }}>
-        <table>
+        <DataTable>
           <thead>
             <tr>
               <th>Vəsait</th>
@@ -49,7 +50,7 @@ export default function FinanceAssets() {
               </tr>
             ))}
           </tbody>
-        </table>
+        </DataTable>
         {rows.length === 0 && <Empty title="Vəsait yoxdur" text="Parkda texnika tapılmadı." />}
       </TableContainer>
     </>

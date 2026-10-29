@@ -1,3 +1,4 @@
+import { DataTable } from '../components/DataTable'
 import { Disclosure, Button, Metric, Panel, SectionHeader, StatGrid, TableContainer, Toolbar } from "../components/primitives"
 import { useState } from "react"
 import { payrollView } from "../domain/financeView"
@@ -61,7 +62,7 @@ export default function FinancePayroll() {
       </Toolbar>
       {tab === "stat" && (
         <TableContainer>
-          <table>
+          <DataTable>
             <thead>
               <tr>
                 <th>İşçi</th>
@@ -80,13 +81,13 @@ export default function FinancePayroll() {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </DataTable>
           {staff.length === 0 && <Empty title="Ştat yoxdur" text="Axtarışa uyğun işçi tapılmadı." />}
         </TableContainer>
       )}
       {tab === "odenis" && (
         <TableContainer>
-          <table>
+          <DataTable>
             <thead>
               <tr>
                 <th>Xərc</th>
@@ -110,7 +111,7 @@ export default function FinancePayroll() {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </DataTable>
           {paid.length === 0 && <Empty title="Ödəniş yoxdur" text="Əmək haqqı xərci tapılmadı." />}
         </TableContainer>
       )}
@@ -132,7 +133,7 @@ export default function FinancePayroll() {
               </SectionHeader>
               <p className="muted">{dateAZ(run.date)} · {money(run.total)}</p>
               <TableContainer>
-                <table>
+                <DataTable>
                   <thead>
                     <tr>
                       <th>İşçi</th>
@@ -149,7 +150,7 @@ export default function FinancePayroll() {
                       </tr>
                     ))}
                   </tbody>
-                </table>
+                </DataTable>
               </TableContainer>
             </Panel>
           ))}

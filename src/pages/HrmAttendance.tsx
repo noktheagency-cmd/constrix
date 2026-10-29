@@ -1,3 +1,4 @@
+import { DataTable } from '../components/DataTable'
 import { Button, Input, Metric, StatGrid, TableContainer, Toolbar } from "../components/primitives"
 import { useState, type FormEvent } from "react"
 import { MARKS } from "../domain/hrm"
@@ -65,7 +66,7 @@ export default function HrmAttendance() {
       </Toolbar>
       {error && !modal && <p className="form-error">{error}</p>}
       <TableContainer>
-        <table>
+        <DataTable>
           <thead>
             <tr>
               <th>İşçi</th>
@@ -101,7 +102,7 @@ export default function HrmAttendance() {
               )
             })}
           </tbody>
-        </table>
+        </DataTable>
         {rows.length === 0 && <Empty title="Bu gün boşdur" text="Terminaldan və ya əl ilə sətir yazın." />}
       </TableContainer>
 

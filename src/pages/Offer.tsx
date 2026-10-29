@@ -1,3 +1,4 @@
+import { DataTable } from '../components/DataTable'
 import { StageBadge } from "../components/StageBadge"
 import { Button, Disclosure, Panel, SearchInput, TableContainer, Toolbar } from "../components/primitives"
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react"
@@ -366,7 +367,7 @@ export function OfferPage() {
           {loadError && <p className="calc-meta" role="alert">{loadError}</p>}
           {loading && <p className="calc-meta" role="status">Təkliflər açılır…</p>}
           {!loading && !loadError && shown.length === 0 && <Panel className="pad offer-empty"><h2>{jobs.length ? "Təklif tapılmadı" : "Hələ təklif yoxdur"}</h2><p>{jobs.length ? "Başqa ad və ya ünvanla axtarın." : "Hesablamada yeni iş saxlayın. Təklif burada görünəcək."}</p></Panel>}
-          {shown.length > 0 && <TableContainer className="offer-library"><table className="offer-table">
+          {shown.length > 0 && <TableContainer className="offer-library"><DataTable className="offer-table">
             <thead><tr><th>Təklif</th><th>Layihə və ünvan</th><th>Tarix</th><th>Mərhələ</th><th className="num">Məbləğ</th><th><span className="sr-only">Aç</span></th></tr></thead>
             <tbody>{shown.map((item) => <tr key={item.id} tabIndex={0} aria-label={item.title + " təklifini aç"} onClick={(event) => { if ((event.target as HTMLElement).closest("a")) return; setTab("sened"); navigate("?offer=" + encodeURIComponent(item.id)) }} onKeyDown={(event) => { if (event.target !== event.currentTarget) return; if (event.key === "Enter" || event.key === " ") { event.preventDefault(); setTab("sened"); navigate("?offer=" + encodeURIComponent(item.id)) } }}>
               <td><Link to={"?offer=" + encodeURIComponent(item.id)} onClick={() => setTab("sened")}>{item.title}</Link></td>
@@ -374,7 +375,7 @@ export function OfferPage() {
               <td>{when(item.createdAt)}</td><td>{item.flow ? <StageBadge stage={item.flow.stage} /> : "—"}</td><td className="num">{azn(num(item.gross))}</td>
               <td><Link className="offer-open" aria-label={item.title + " təklifini aç"} to={"?offer=" + encodeURIComponent(item.id)} onClick={() => setTab("sened")}><Icon name="chevron" /></Link></td>
             </tr>)}</tbody>
-          </table></TableContainer>}
+          </DataTable></TableContainer>}
           <p className="calc-meta">Hesablamada saxlanmış işlər burada görünür.</p>
         </>}
         <div className="offer-detail">
@@ -430,7 +431,7 @@ export function OfferPage() {
                 <p className="offer-letter">
                   {job.address || "Göstərilən ünvan"} üzrə {job.title.toLocaleLowerCase("az")} işinin kommersiya təklifi. Yekun məbləğ saxlanmış maya, mənfəət və ƏDV-dən yığılır.
                 </p>
-                <TableContainer><table className="offer-table">
+                <TableContainer><DataTable className="offer-table">
                   <tbody>
                     <tr><td>Maya dəyəri</td><td className="num">{azn(num(job.cost))}</td></tr>
                     <tr><td>Mənfəət {job.profitMode === "marja" ? "(marja)" : "(faiz)"}</td><td className="num">{azn(num(job.profitAmount))}</td></tr>
@@ -438,21 +439,21 @@ export function OfferPage() {
                     <tr><td>ƏDV</td><td className="num">{azn(num(job.vatAmount))}</td></tr>
                     <tr className="offer-total"><td>Ödəniləcək məbləğ</td><td className="num">{azn(num(job.gross))}</td></tr>
                   </tbody>
-                </table></TableContainer>
+                </DataTable></TableContainer>
                 {math && !math.ready && <p className="offer-note">{math.blocked.join(" ")}</p>}
               </div>
 
               <div className={tab === "material" ? "offer-pane on" : "offer-pane"}>
                 {pieces.length === 0 && <p className="offer-note">Ölçü yazılmayıb, kəsim siyahısı açılmır.</p>}
                 {pieces.length > 0 && (
-                  <TableContainer><table className="offer-table">
+                  <TableContainer><DataTable className="offer-table">
                     <thead><tr><th>Parça</th><th className="num">Uzunluq</th><th className="num">Say</th></tr></thead>
                     <tbody>
                       {pieces.map((piece) => (
                         <tr key={piece.name}><td>{piece.name}</td><td className="num">{qty(piece.lengthMm)} mm</td><td className="num">{qty(piece.qty)}</td></tr>
                       ))}
                     </tbody>
-                  </table></TableContainer>
+                  </DataTable></TableContainer>
                 )}
                 <dl className="doc-spec">
                   <div><dt>Profil</dt><dd>{job.lengthM == null ? "—" : `${qty(job.lengthM)} m`}</dd></div>
@@ -465,7 +466,7 @@ export function OfferPage() {
               <div className={tab === "boq" ? "offer-pane on" : "offer-pane"}>
                 {job.lines.length === 0 && <p className="offer-note">Bu hesabın xərc sətirləri yazılmayıb.</p>}
                 {job.lines.length > 0 && (
-                  <TableContainer><table className="offer-table">
+                  <TableContainer><DataTable className="offer-table">
                     <thead>
                       <tr><th>Ad</th><th>Vahid</th><th className="num">Miqdar</th><th className="num">Qiymət</th><th className="num">Məbləğ</th></tr>
                     </thead>
@@ -481,7 +482,7 @@ export function OfferPage() {
                       ))}
                       <tr className="offer-total"><td colSpan={4}>Maya cəmi</td><td className="num">{azn(num(job.cost))}</td></tr>
                     </tbody>
-                  </table></TableContainer>
+                  </DataTable></TableContainer>
                 )}
               </div>
 
@@ -514,7 +515,7 @@ export function OfferPage() {
                 {related.length > 0 && (
                   <>
                     <h3 className="offer-sub">Kataloqdan digər qiymətlər</h3>
-                    <TableContainer><table className="offer-table">
+                    <TableContainer><DataTable className="offer-table">
                       <thead><tr><th>Məhsul</th><th>Təchizatçı</th><th className="num">Qiymət</th></tr></thead>
                       <tbody>
                         {related.map((item) => (
@@ -525,7 +526,7 @@ export function OfferPage() {
                           </tr>
                         ))}
                       </tbody>
-                    </table></TableContainer>
+                    </DataTable></TableContainer>
                   </>
                 )}
               </div>

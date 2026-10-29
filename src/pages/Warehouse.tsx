@@ -1,3 +1,4 @@
+import { DataTable } from '../components/DataTable'
 import { Button, Disclosure, Input, TableContainer, Toolbar } from "../components/primitives"
 import { useEffect, useState, type FormEvent } from "react"
 import { useSearchParams } from "react-router-dom"
@@ -231,7 +232,7 @@ export default function Warehouse() {
       {tab === "partiyalar" && <>
         <Toolbar className="warehouse-lot-toolbar"><div><strong>Material partiyaları</strong><p className="muted">QR kodlar, qalıqlar və vahid maya dəyəri.</p></div><label>Maya üsulu<Select ariaLabel="Maya üsulu" value={method} onValueChange={(value) => void saveMethod(value)} options={[{value:"orta",label:"Orta çəkili"},{value:"fifo",label:"FIFO"}]} /></label></Toolbar>
         {lotNote && !lotOpen && <p className="lede" role="status">{lotNote}</p>}
-        <TableContainer className="warehouse-lots"><table><thead><tr><th>Material kodu</th><th>Partiya</th><th>Anbar</th><th>Qalıq</th><th>Vahid maya</th><th>QR kod</th></tr></thead><tbody>{serverLots.filter((item) => Number(item.qty) > 0).map((item) => <tr key={item.id}><td><strong>{item.code}</strong></td><td>{item.batch || "—"}</td><td>{nameOf(item.locationId || "") || item.locationId || "—"}</td><td>{num(Number(item.qty))}</td><td>{num(Number(item.unitCost), 2)} AZN</td><td><code>{item.qr || "—"}</code></td></tr>)}</tbody></table>{!serverLots.some((item) => Number(item.qty) > 0) && <Empty title="Partiya yoxdur" text="Partiya hərəkəti düyməsi ilə ilk qəbulu daxil edin." />}</TableContainer>
+        <TableContainer className="warehouse-lots"><DataTable><thead><tr><th>Material kodu</th><th>Partiya</th><th>Anbar</th><th>Qalıq</th><th>Vahid maya</th><th>QR kod</th></tr></thead><tbody>{serverLots.filter((item) => Number(item.qty) > 0).map((item) => <tr key={item.id}><td><strong>{item.code}</strong></td><td>{item.batch || "—"}</td><td>{nameOf(item.locationId || "") || item.locationId || "—"}</td><td>{num(Number(item.qty))}</td><td>{num(Number(item.unitCost), 2)} AZN</td><td><code>{item.qr || "—"}</code></td></tr>)}</tbody></DataTable>{!serverLots.some((item) => Number(item.qty) > 0) && <Empty title="Partiya yoxdur" text="Partiya hərəkəti düyməsi ilə ilk qəbulu daxil edin." />}</TableContainer>
       </>}
       {lotOpen && <Modal title="Partiya hərəkəti" className="warehouse-lot-modal" onClose={() => {if(!lotBusy) setLotOpen(false)}}>
         <form onSubmit={(event) => {event.preventDefault(); void runAct()}}>
@@ -252,7 +253,7 @@ export default function Warehouse() {
 
       {(tab === "qaliq" || tab === "kritik") && (
         <TableContainer>
-          <table>
+          <DataTable>
             <thead>
               <tr>
                 <th>Material</th>
@@ -289,7 +290,7 @@ export default function Warehouse() {
                 )
               })}
             </tbody>
-          </table>
+          </DataTable>
           {stockRows.length === 0 && <Empty title="Material tapılmadı" text="Kritik filtrdə və ya axtarışda nəticə yoxdur." />}
         </TableContainer>
       )}
@@ -311,7 +312,7 @@ export default function Warehouse() {
 
       {tab === "transfer" && (
         <TableContainer className="wide">
-          <table>
+          <DataTable>
             <thead>
               <tr>
                 <th>Sənəd</th>
@@ -344,14 +345,14 @@ export default function Warehouse() {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </DataTable>
           {routes.length === 0 && <Empty title="Transfer yoxdur" text="Marşrut yazılanda sənəd burada durur." />}
         </TableContainer>
       )}
 
       {tab === "hereket" && (
         <TableContainer>
-          <table>
+          <DataTable>
             <thead>
               <tr>
                 <th>Sənəd</th>
@@ -381,14 +382,14 @@ export default function Warehouse() {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </DataTable>
           {moves.length === 0 && <Empty title="Hərəkət yoxdur" text="Axtarışa uyğun anbar hərəkəti tapılmadı." />}
         </TableContainer>
       )}
 
       {tab === "anbarlar" && (
         <TableContainer>
-          <table>
+          <DataTable>
             <thead>
               <tr>
                 <th>Anbar</th>
@@ -409,7 +410,7 @@ export default function Warehouse() {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </DataTable>
           {houses.length === 0 && <Empty title="Anbar tapılmadı" text="Axtarışa uyğun anbar yoxdur." />}
         </TableContainer>
       )}

@@ -1,3 +1,4 @@
+import { DataTable } from '../components/DataTable'
 import { Button, Input, Metric, StatGrid, TableContainer, Toolbar } from "../components/primitives"
 import { useState, type FormEvent } from "react"
 import type { Client } from "../domain/types"
@@ -112,7 +113,7 @@ export default function Crm() {
 
       {tab === "musteri" && (
         <TableContainer>
-          <table>
+          <DataTable>
             <thead>
               <tr>
                 <th>Şirkət</th>
@@ -152,14 +153,14 @@ export default function Crm() {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </DataTable>
           {visibleClients.length === 0 && <Empty title="Müştəri tapılmadı" text="Axtarışı dəyişin və ya yeni müştəri əlavə edin." />}
         </TableContainer>
       )}
 
       {tab === "muqavile" && (
         <TableContainer>
-          <table>
+          <DataTable>
             <thead>
               <tr>
                 <th>Müqavilə</th>
@@ -182,14 +183,14 @@ export default function Crm() {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </DataTable>
           {papers.length === 0 && <Empty title="Müqavilə yoxdur" text="Sövdə müqavilə mərhələsindən layihə açıldıqda müqavilə burada durur." />}
         </TableContainer>
       )}
 
       {tab === "portfel" && (
         <TableContainer>
-          <table>
+          <DataTable>
             <thead>
               <tr>
                 <th>Sifarişçi</th>
@@ -210,7 +211,7 @@ export default function Crm() {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </DataTable>
         </TableContainer>
       )}
 

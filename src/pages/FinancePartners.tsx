@@ -1,3 +1,4 @@
+import { DataTable } from '../components/DataTable'
 import { Disclosure, Metric, Panel, SectionHeader, StatGrid, TableContainer, Toolbar } from "../components/primitives"
 import { useState } from "react"
 import { payablesAging, receivables } from "../domain/financeView"
@@ -51,7 +52,7 @@ export default function FinancePartners() {
         />
       </Toolbar>
       <TableContainer>
-        <table>
+        <DataTable>
           <thead>
             <tr>
               <th>{tab === "debitor" ? "Sifarişçi" : "Təchizatçı"}</th>
@@ -74,7 +75,7 @@ export default function FinancePartners() {
               </tr>
             ))}
           </tbody>
-        </table>
+        </DataTable>
         {rows.length === 0 && <Empty title="Tərəf yoxdur" text="Açıq borc tapılmadı." />}
       </TableContainer>
     </>

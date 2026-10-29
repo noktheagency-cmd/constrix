@@ -1,3 +1,4 @@
+import { DataTable } from '../components/DataTable'
 import { Button, Input, TableContainer } from "../components/primitives"
 import { useState } from "react"
 import type { FormulaLine, Recipe } from "../domain/types"
@@ -54,7 +55,7 @@ export default function Recipes() {
       </form>
       {error && <p className="form-error">{error}</p>}
       <TableContainer>
-        <table>
+        <DataTable>
           <thead>
             <tr>
               <th>Məhsul</th>
@@ -102,7 +103,7 @@ export default function Recipes() {
               )
             })}
           </tbody>
-        </table>
+        </DataTable>
         {recipes.length === 0 && <Empty title="Məhsul yoxdur" text="Cədvəlin üstündən məhsul yazın, normasını redaktədə doldurun." />}
       </TableContainer>
       {open && (

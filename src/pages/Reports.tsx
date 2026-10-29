@@ -1,3 +1,4 @@
+import { DataTable } from '../components/DataTable'
 import { Button, Input, TableContainer, Textarea, Toolbar } from "../components/primitives"
 import { useState, type FormEvent } from "react"
 import { DateField } from "../DateField"
@@ -205,7 +206,7 @@ export default function Reports({ embedded = false, projectId }: { embedded?: bo
 
       {tab === "gundelik" && (
         <TableContainer>
-          <table>
+          <DataTable>
             <thead>
               <tr>
                 <th>Sənəd</th>
@@ -235,14 +236,14 @@ export default function Reports({ embedded = false, projectId }: { embedded?: bo
                 </tr>
               ))}
             </tbody>
-          </table>
+          </DataTable>
           {rows.length === 0 && <Empty title="Gündəlik yoxdur" text="Yeni gündəlik açın və ya axtarışı dəyişin." />}
         </TableContainer>
       )}
 
       {tab === "hecm" && (
         <TableContainer>
-          <table>
+          <DataTable>
             <thead>
               <tr>
                 <th>İş</th>
@@ -263,14 +264,14 @@ export default function Reports({ embedded = false, projectId }: { embedded?: bo
                 </tr>
               ))}
             </tbody>
-          </table>
+          </DataTable>
           {volumes.length === 0 && <Empty title="Həcm yoxdur" text="Gündəlik smeta sətrinə həcm yazılanda burada görünür." />}
         </TableContainer>
       )}
 
       {tab === "tabel" && (
         <TableContainer>
-          <table>
+          <DataTable>
             <thead>
               <tr>
                 <th>İşçi</th>
@@ -291,14 +292,14 @@ export default function Reports({ embedded = false, projectId }: { embedded?: bo
                 </tr>
               ))}
             </tbody>
-          </table>
+          </DataTable>
           {times.length === 0 && <Empty title="Tabel boşdur" text="Gündəliyə işçi saatı yazılanda burada dayanır." />}
         </TableContainer>
       )}
 
       {tab === "texnika" && (
         <TableContainer>
-          <table>
+          <DataTable>
             <thead>
               <tr>
                 <th>Texnika</th>
@@ -319,14 +320,14 @@ export default function Reports({ embedded = false, projectId }: { embedded?: bo
                 </tr>
               ))}
             </tbody>
-          </table>
+          </DataTable>
           {machines.length === 0 && <Empty title="Texnika yoxdur" text="Gündəliyə moto-saat yazılanda burada görünür." />}
         </TableContainer>
       )}
 
       {tab === "qeyd" && (
         <TableContainer>
-          <table>
+          <DataTable>
             <thead>
               <tr>
                 <th>Vaxt</th>
@@ -352,7 +353,7 @@ export default function Reports({ embedded = false, projectId }: { embedded?: bo
                 </tr>
               ))}
             </tbody>
-          </table>
+          </DataTable>
           {notes.length === 0 && <Empty title="Qeyd yoxdur" text="Sahədən qısa qeyd yazın." />}
         </TableContainer>
       )}

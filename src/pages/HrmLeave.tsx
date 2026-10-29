@@ -1,3 +1,4 @@
+import { DataTable } from '../components/DataTable'
 import { Button, TableContainer, Textarea, Toolbar } from "../components/primitives"
 import { useState, type FormEvent } from "react"
 import { LEAVE_KINDS } from "../domain/hrm"
@@ -60,7 +61,7 @@ export default function HrmLeave() {
       </Toolbar>
       {error && !modal && <p className="form-error">{error}</p>}
       <TableContainer>
-        <table>
+        <DataTable>
           <thead>
             <tr>
               <th>İşçi</th>
@@ -94,7 +95,7 @@ export default function HrmLeave() {
               </tr>
             ))}
           </tbody>
-        </table>
+        </DataTable>
         {rows.length === 0 && <Empty title="Məzuniyyət yoxdur" text="İşçi üçün aralıq yazın." />}
       </TableContainer>
 

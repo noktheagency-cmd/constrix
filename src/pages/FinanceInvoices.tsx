@@ -1,3 +1,4 @@
+import { DataTable } from '../components/DataTable'
 import { Button, Disclosure, Input, Panel, SectionHeader, TableContainer, Toolbar } from "../components/primitives"
 import { useState, type FormEvent } from "react"
 import { DateField } from "../DateField"
@@ -75,7 +76,7 @@ export default function FinanceInvoices() {
         <Tabs value={tab} onChange={setTab} options={[{ id: "satis", label: "Satış" }, { id: "alis", label: "Alış" }]} />
       </Toolbar>
       <TableContainer>
-        <table>
+        <DataTable>
           <thead>
             <tr>
               <th>Qaimə</th>
@@ -136,7 +137,7 @@ export default function FinanceInvoices() {
               </tr>
             ))}
           </tbody>
-        </table>
+        </DataTable>
         {rows.length === 0 && <Empty title="Qaimə yoxdur" text="Bu tərəfdə sənəd tapılmadı." />}
       </TableContainer>
 

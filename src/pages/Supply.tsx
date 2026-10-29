@@ -1,3 +1,4 @@
+import { DataTable } from '../components/DataTable'
 import { Button, Input, TableContainer, Toolbar } from "../components/primitives"
 import { useState, type FormEvent } from "react"
 import { DateField } from "../DateField"
@@ -149,7 +150,7 @@ export default function Supply() {
             />
           </Toolbar>
           <TableContainer>
-            <table>
+            <DataTable>
               <thead>
                 <tr>
                   <th>Təchizat</th>
@@ -180,7 +181,7 @@ export default function Supply() {
                     </tr>
                   ))}
               </tbody>
-            </table>
+            </DataTable>
             {gear.filter((item) => shelf === "hamisi" || item.category === shelf).length === 0 && (
               <Empty title="Təchizat yoxdur" text="Bu kateqoriyada kart tapılmadı." />
             )}
@@ -190,7 +191,7 @@ export default function Supply() {
 
       {tab === "yoxlama" && (
         <TableContainer>
-          <table>
+          <DataTable>
             <thead>
               <tr>
                 <th>Təchizat</th>
@@ -218,14 +219,14 @@ export default function Supply() {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </DataTable>
           {gear.filter(inCheck).length === 0 && <Empty title="Yoxlama yoxdur" text="Vaxtı çatan və ya prosesdə olan təchizat burada durur." />}
         </TableContainer>
       )}
 
       {tab === "teleb" && (
         <TableContainer>
-          <table>
+          <DataTable>
             <thead>
               <tr>
                 <th>Tələb</th>
@@ -269,14 +270,14 @@ export default function Supply() {
                 )
               })}
             </tbody>
-          </table>
+          </DataTable>
           {requestRows.length === 0 && <Empty title="Tələb yoxdur" text="Axtarışa uyğun tələbnamə tapılmadı." />}
         </TableContainer>
       )}
 
       {tab === "teklif" && (
         <TableContainer>
-          <table>
+          <DataTable>
             <thead>
               <tr>
                 <th>Təklif</th>
@@ -311,14 +312,14 @@ export default function Supply() {
                 )
               })}
             </tbody>
-          </table>
+          </DataTable>
           {quoteRows.length === 0 && <Empty title="Təklif yoxdur" text="Açıq tələbə təchizatçı təklifi yazın." />}
         </TableContainer>
       )}
 
       {tab === "sifaris" && (
         <TableContainer>
-          <table>
+          <DataTable>
             <thead>
               <tr>
                 <th>Sifariş</th>
@@ -350,14 +351,14 @@ export default function Supply() {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </DataTable>
           {orders.length === 0 && <Empty title="Sifariş yoxdur" text="Axtarışa uyğun satınalma tapılmadı." />}
         </TableContainer>
       )}
 
       {tab === "borc" && (
         <TableContainer>
-          <table>
+          <DataTable>
             <thead>
               <tr>
                 <th>Borc</th>
@@ -389,14 +390,14 @@ export default function Supply() {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </DataTable>
           {payableRows.length === 0 && <Empty title="Borc yoxdur" text="Qəbul edilmiş sifariş borc açır." />}
         </TableContainer>
       )}
 
       {tab === "techizatci" && (
         <TableContainer>
-          <table>
+          <DataTable>
             <thead>
               <tr>
                 <th>Təchizatçı</th>
@@ -419,7 +420,7 @@ export default function Supply() {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </DataTable>
           {vendorRows.length === 0 && <Empty title="Təchizatçı tapılmadı" text="Axtarışı dəyişin." />}
         </TableContainer>
       )}

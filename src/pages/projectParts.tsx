@@ -1,3 +1,4 @@
+import { DataTable } from '../components/DataTable'
 import { Button, Input, Metric, Panel, SectionHeader, StatGrid, TableContainer } from "../components/primitives"
 import { useState, type FormEvent } from "react"
 import { Link } from "react-router-dom"
@@ -51,7 +52,7 @@ export function SmetaPanel({ project }: { project: Project }) {
         Razılaşma {money(plan)} · yerinə yetirilib {money(done)}. Həcm yalnız təsdiqlənmiş gündəlikdən artır.
       </p>
       <TableContainer  style={{ marginTop: 12 }}>
-        <table>
+        <DataTable>
           <thead>
             <tr>
               <th>İş</th>
@@ -86,7 +87,7 @@ export function SmetaPanel({ project }: { project: Project }) {
               </tr>
             ))}
           </tbody>
-        </table>
+        </DataTable>
       </TableContainer>
     </Panel>
   )

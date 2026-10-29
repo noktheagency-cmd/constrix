@@ -1,3 +1,4 @@
+import { DataTable } from '../components/DataTable'
 import { useRef, type ReactNode, type RefObject } from "react"
 import { company } from "../data"
 import type { Act, Forma3 } from "../domain/types"
@@ -29,10 +30,20 @@ export function manat(value: number) {
   return sign + Math.abs(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ")
 }
 
+/** Export all rows, independently of the current on-screen page. */
+function completeSheetHtml(node: HTMLDivElement) {
+  window.dispatchEvent(new Event('beforeprint'))
+  try {
+    const copy = node.cloneNode(true) as HTMLDivElement
+    copy.querySelectorAll('.data-table-footer').forEach(footer => footer.remove())
+    return copy.innerHTML
+  } finally { window.dispatchEvent(new Event('afterprint')) }
+}
+
 export function downloadWord(filename: string, node: HTMLDivElement | null) {
   if (!node) return
   const safeName = filename.replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char] ?? char)
-  const html = `<!DOCTYPE html><html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word"><head><meta charset="utf-8"><title>${safeName}</title><!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View><w:Zoom>100</w:Zoom></w:WordDocument></xml><![endif]--><style>${officialCss}@page{size:A4;margin:14mm}</style></head><body><div class="official-sheet">${node.innerHTML}</div></body></html>`
+  const html = `<!DOCTYPE html><html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word"><head><meta charset="utf-8"><title>${safeName}</title><!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View><w:Zoom>100</w:Zoom></w:WordDocument></xml><![endif]--><style>${officialCss}@page{size:A4;margin:14mm}</style></head><body><div class="official-sheet">${completeSheetHtml(node)}</div></body></html>`
   const blob = new Blob(["\ufeff", html], { type: "application/msword" })
   const url = URL.createObjectURL(blob)
   const link = document.createElement("a")
@@ -51,7 +62,7 @@ export function downloadPdf(filename: string, node: HTMLDivElement | null) {
     window.print()
     return
   }
-  popup.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>${title}</title><style>${officialCss}@page{size:A4;margin:14mm}body{margin:0;padding:12mm;background:#fff}</style></head><body><div class="official-sheet">${node.innerHTML}</div><script>window.onload=function(){window.focus();window.print()}</script></body></html>`)
+  popup.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>${title}</title><style>${officialCss}@page{size:A4;margin:14mm}body{margin:0;padding:12mm;background:#fff}</style></head><body><div class="official-sheet">${completeSheetHtml(node)}</div><script>window.onload=function(){window.focus();window.print()}</script></body></html>`)
   popup.document.close()
 }
 
@@ -79,7 +90,7 @@ export function OfficialAct({ act, sheetRef }: { act: Act; sheetRef: RefObject<H
       <p className="center">{act.project}</p>
       <p className="act-word">AKT</p>
       <p>Müqavilə — {act.contractNumber || "—"}</p>
-      <table>
+      <DataTable>
         <thead>
           <tr>
             <th>Sıra №-si</th>
@@ -101,6 +112,7 @@ export function OfficialAct({ act, sheetRef }: { act: Act; sheetRef: RefObject<H
               <td className="num">{manat(line.qty * line.unitPrice)}</td>
             </tr>
           ))}
+        </tbody><tfoot>
           <tr>
             <td colSpan={5}>Cəmi</td>
             <td className="num">{manat(net)}</td>
@@ -113,8 +125,8 @@ export function OfficialAct({ act, sheetRef }: { act: Act; sheetRef: RefObject<H
             <td colSpan={5}>Yekun (ƏDV ilə birlikdə)</td>
             <td className="num">{manat(act.gross)}</td>
           </tr>
-        </tbody>
-      </table>
+        </tfoot>
+      </DataTable>
       <div className="signs">
         <div>Sifarişçi:<span className="sign-line" /></div>
         <div>Podratçı:<span className="sign-line" /></div>
@@ -147,7 +159,7 @@ export function OfficialStatement({
       <p>Baş podratçı {company.legal}</p>
       <p>Müqavilə {doc.contractNumber || "—"}</p>
       <p>Tikinti obyektinin adı və ünvanı {doc.project}{address ? `, ${address}` : ""}</p>
-      <table>
+      <DataTable>
         <thead>
           <tr>
             <th rowSpan={2}>Buraxılış komplekslərinin, obyektlərin və iş komplekslərinin adı</th>
@@ -227,7 +239,7 @@ export function OfficialStatement({
             <td className="num">{blank}</td>
           </tr>
         </tbody>
-      </table>
+      </DataTable>
       <div className="signs">
         <div>Sifarişçi:<span className="sign-line" /></div>
         <div>Podratçı:<span className="sign-line" /></div>

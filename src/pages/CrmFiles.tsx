@@ -1,3 +1,4 @@
+import { DataTable } from '../components/DataTable'
 import { Button, Input, TableContainer, Textarea, Toolbar } from "../components/primitives"
 import { useState, type FormEvent } from "react"
 import { FILE_KINDS, FILE_STATUSES, parties, stepOf } from "../domain/crm"
@@ -56,7 +57,7 @@ export default function CrmFiles() {
       </Toolbar>
       {error && !modal && !selected && <p className="form-error">{error}</p>}
       <TableContainer>
-        <table>
+        <DataTable>
           <thead>
             <tr>
               <th>Sənəd</th>
@@ -98,7 +99,7 @@ export default function CrmFiles() {
               )
             })}
           </tbody>
-        </table>
+        </DataTable>
         {rows.length === 0 && <Empty title="Sənəd tapılmadı" text="Filtri dəyişin və ya yeni qaralama açın." />}
       </TableContainer>
 

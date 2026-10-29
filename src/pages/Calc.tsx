@@ -1,3 +1,4 @@
+import { DataTable } from '../components/DataTable'
 import { Button, Disclosure, Input, Metric, Panel, StatGrid, TableContainer } from "../components/primitives"
 import { StepNav } from "../components/StepNav"
 import { useEffect, useMemo, useRef, useState, type ReactNode, type RefObject } from "react"
@@ -622,7 +623,7 @@ function HistoryTable({
       {!loadError && empty && <p className="calc-meta">Bazada saxlanmış hesab yoxdur.</p>}
       {!loadError && !empty && jobs.length === 0 && <p className="calc-meta">Bu axtarışa uyğun hesab yoxdur.</p>}
       <TableContainer className="calc-table-wrap">
-        <table className="calc-table">
+        <DataTable className="calc-table">
           <thead>
             <tr>
               <th>İş</th>
@@ -647,7 +648,7 @@ function HistoryTable({
               </tr>
             ))}
           </tbody>
-        </table>
+        </DataTable>
       </TableContainer>
     </Panel>
   )

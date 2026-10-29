@@ -1,3 +1,4 @@
+import { DataTable } from '../components/DataTable'
 import {
   useEffect,
   useRef,
@@ -278,7 +279,7 @@ function ActionForm({
           </div>
           {spec.lines && (
             <div className="market-table-wrap">
-              <table>
+              <DataTable>
                 <thead>
                   <tr>
                     <th>Məhsul</th>
@@ -320,7 +321,7 @@ function ActionForm({
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </DataTable>
             </div>
           )}
           {spec.documents && (
@@ -725,7 +726,7 @@ export default function MarketPortal() {
             </div>
             <Section title="Məhsullar">
               <div className="market-table-wrap">
-                <table>
+                <DataTable>
                   <thead>
                     <tr>
                       <th>Məhsul</th>
@@ -751,7 +752,7 @@ export default function MarketPortal() {
                       </tr>
                     ))}
                   </tbody>
-                </table>
+                </DataTable>
               </div>
               {detail.case.data.files.map((id) => (
                 <MarketDownload key={id} id={id} />
@@ -1214,7 +1215,7 @@ export default function MarketPortal() {
           </>
         ) : ["rfq", "order"].includes(tab) ? (
           <div className="market-table-wrap">
-            <table>
+            <DataTable>
               <thead>
                 <tr>
                   <th>Ad</th>
@@ -1242,7 +1243,7 @@ export default function MarketPortal() {
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </DataTable>
             {!cases.length && (
               <Empty
                 title="Hələ sənəd yoxdur"
@@ -1420,7 +1421,7 @@ export default function MarketPortal() {
               </p>
             </Section>
             <Section title="Komissiya borcları">
-              <table>
+              <DataTable>
                 <thead>
                   <tr>
                     <th>Qəbul tarixi</th>
@@ -1466,7 +1467,7 @@ export default function MarketPortal() {
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </DataTable>
             </Section>
             <Section title="Ödəniş yoxlamaları">
               {finance.payments.map((p) => (

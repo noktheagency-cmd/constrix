@@ -1,3 +1,4 @@
+import { DataTable } from './DataTable'
 import { useEffect, useState } from 'react'
 import { api } from '../api'
 import { Select } from '../ui'
@@ -12,6 +13,7 @@ export function SourceWorkbookViewer({ kind,boqId }: { kind: 'purchase' | 'nakop
   const [sheetId, setSheetId] = useState('')
   const [query, setQuery] = useState('')
   const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
   const [data, setData] = useState<Result | null>(null)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
@@ -33,12 +35,12 @@ export function SourceWorkbookViewer({ kind,boqId }: { kind: 'purchase' | 'nakop
     let live = true
     setLoading(true); setError(''); setData(null)
     const timer = setTimeout(() => {
-      api<Result>(`/api/platform/source-sheets/${encodeURIComponent(sheetId)}?page=${page}&q=${encodeURIComponent(query)}`).then(result => {
+      api<Result>(`/api/platform/source-sheets/${encodeURIComponent(sheetId)}?page=${page}&pageSize=${pageSize}&q=${encodeURIComponent(query)}`).then(result => {
         if (live) { setData(result); setLoading(false) }
       }).catch(e => { if (live) { setError(e.message); setLoading(false) } })
     }, 200)
     return () => { live = false; clearTimeout(timer) }
-  }, [sheetId, page, query])
+  }, [sheetId, page, pageSize, query])
   const book = books.find(item => item.sheets.some(sheet => sheet.id === sheetId))
   return <section className="source-workbook">
     <Panel className="pad"><strong>Excel mənbəsi</strong><p className="muted">Bütün vərəqlər və doldurulmuş sütunlar. Rəqəmlər Excel-in saxlanmış nəticələridir; formulun üzərinə gəldikdə mənbə düsturu görünür. Orijinal fayl format və şəkilləri ilə saxlanılıb.</p>
@@ -50,7 +52,7 @@ export function SourceWorkbookViewer({ kind,boqId }: { kind: 'purchase' | 'nakop
     {error && <p role="alert" className="form-error">{error}</p>}
     {loading && <p role="status">Yüklənir…</p>}
     {!loading && !books.length && !error && <p>Bu şirkət üçün Excel mənbəsi yüklənməyib.</p>}
-    {data && <><Toolbar><span className="muted">{book?.name} · {data.total} dolu sətir · {data.columns.length} sütun</span><Button className="ghost" disabled={data.page <= 1} onClick={() => setPage(data.page - 1)}>Əvvəlki</Button><span>{data.page} / {data.pages}</span><Button className="ghost" disabled={data.page >= data.pages} onClick={() => setPage(data.page + 1)}>Növbəti</Button></Toolbar>
-      <TableContainer className="source-sheet-table"><table><thead><tr><th>Sətir</th>{data.columns.map(column => <th key={column}>{column}</th>)}</tr></thead><tbody>{data.rows.map(row => <tr key={row.number}><th scope="row">{row.number}</th>{data.columns.map(column => { const cell = row.cells.find(c => c.column === column); return <td key={column} title={cell?.formula || undefined} className={typeof cell?.value === 'string' && /^#(REF!|DIV\/0!|VALUE!|N\/A|NAME\?)/.test(cell.value) ? 'source-cell-error' : undefined}>{cell?.value == null ? (cell?.formula ? 'Nəticə saxlanılmayıb' : '') : String(cell.value)}</td> })}</tr>)}</tbody></table></TableContainer></>}
+    {data && <><Toolbar><span className="muted">{book?.name} · {data.total} dolu sətir · {data.columns.length} sütun</span></Toolbar>
+      <TableContainer className="source-sheet-table"><DataTable pagination={{ page: data.page, pageSize, total: data.total, onPageChange: setPage, onPageSizeChange: size => { setPageSize(size); setPage(1) } }}><thead><tr><th>Sətir</th>{data.columns.map(column => <th key={column}>{column}</th>)}</tr></thead><tbody>{data.rows.map(row => <tr key={row.number}><th scope="row">{row.number}</th>{data.columns.map(column => { const cell = row.cells.find(c => c.column === column); return <td key={column} title={cell?.formula || undefined} className={typeof cell?.value === 'string' && /^#(REF!|DIV\/0!|VALUE!|N\/A|NAME\?)/.test(cell.value) ? 'source-cell-error' : undefined}>{cell?.value == null ? (cell?.formula ? 'Nəticə saxlanılmayıb' : '') : String(cell.value)}</td> })}</tr>)}</tbody></DataTable></TableContainer></>}
   </section>
 }

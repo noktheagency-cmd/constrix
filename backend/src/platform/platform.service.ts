@@ -161,16 +161,18 @@ export class PlatformService {
     });
   }
 
-  async sourceRows(ctx: TenantCtx, id: string, pageInput: string, query: string) {
+  async sourceRows(ctx: TenantCtx, id: string, pageInput: string, query: string, sizeInput = '10') {
     const sheet = await this.prisma.sourceSheet.findFirst({ where: { id, workbook: { organizationId: ctx.orgId as string } }, include: { workbook: { select: { kind: true } } } });
     if (!sheet) throw new NotFoundException('Vərəq tapılmadı');
     this.sourceAccess(ctx, sheet.workbook.kind);
     const rows = sheet.rows as { number: number; cells: { column: string; value: string | number | null; formula?: string }[] }[];
     const needle = (query || '').trim().toLocaleLowerCase('az');
     const filtered = needle ? rows.filter(row => row.cells.some(cell => String(cell.value ?? cell.formula ?? '').toLocaleLowerCase('az').includes(needle))) : rows;
-    const pages = Math.max(1, Math.ceil(filtered.length / 50));
+    const requestedSize = Number(sizeInput);
+    const pageSize = [10, 15, 20, 25, 50, 100].includes(requestedSize) ? requestedSize : 10;
+    const pages = Math.max(1, Math.ceil(filtered.length / pageSize));
     const page = Math.min(pages, Math.max(1, Number.parseInt(pageInput, 10) || 1));
-    return { columns: sheet.columns, rows: filtered.slice((page - 1) * 50, page * 50), total: filtered.length, page, pages };
+    return { columns: sheet.columns, rows: filtered.slice((page - 1) * pageSize, page * pageSize), total: filtered.length, page, pages };
   }
 
   async sourceOriginal(ctx: TenantCtx, id: string) {

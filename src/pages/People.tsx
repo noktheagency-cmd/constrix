@@ -1,3 +1,4 @@
+import { DataTable } from '../components/DataTable'
 import { Button, Input, Metric, StatGrid, TableContainer, Toolbar } from "../components/primitives"
 import { useEffect, useState, type FormEvent } from "react"
 import { Link, useNavigate } from "react-router-dom"
@@ -155,7 +156,7 @@ export default function People() {
       </Toolbar>
       {error && !modal && <p className="form-error">{error}</p>}
       <TableContainer>
-        <table>
+        <DataTable>
           <thead>
             <tr>
               <th>İşçi</th>
@@ -210,7 +211,7 @@ export default function People() {
               )
             })}
           </tbody>
-        </table>
+        </DataTable>
         {rows.length === 0 && <Empty title="İşçi tapılmadı" text="Filtri və ya axtarışı dəyişin." />}
       </TableContainer>
 

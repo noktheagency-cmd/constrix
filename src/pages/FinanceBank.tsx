@@ -1,3 +1,4 @@
+import { DataTable } from '../components/DataTable'
 import { Button, Disclosure, Input, Metric, Panel, SectionHeader, StatGrid, TableContainer } from "../components/primitives"
 import { useEffect, useState } from "react"
 import { ApiError, api, dec } from "../api"
@@ -41,7 +42,7 @@ export default function FinanceBank() {
         <FlowBars rows={flow} />
       </Panel></Disclosure>
       <TableContainer  style={{ marginTop: 14 }}>
-        <table>
+        <DataTable>
           <thead>
             <tr>
               <th>Tarix</th>
@@ -65,7 +66,7 @@ export default function FinanceBank() {
               </tr>
             ))}
           </tbody>
-        </table>
+        </DataTable>
         {rows.length === 0 && <Empty title="Çıxarış boşdur" text="Bank hesabına düşən hərəkət yoxdur." />}
       </TableContainer>
       <BankApplications />

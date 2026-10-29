@@ -1,3 +1,4 @@
+import { DataTable } from '../components/DataTable'
 import { Button, Input, Panel, SearchInput, TableContainer, Textarea, Toolbar } from "../components/primitives"
 import { useEffect, useMemo, useState, type FormEvent } from "react"
 import { ApiError, api, dayInput, dec } from "../api"
@@ -286,11 +287,11 @@ export function EmploymentPage() {
       </Toolbar>
 
       {tab !== "uygun" && <Toolbar className="finance-list-toolbar"><SearchInput value={query} onChange={(event) => setQuery(event.target.value)} placeholder={tab === "namized" ? "Ad, peşə və ya region axtar" : "Peşə və ya region axtar"} />{tab === "vakansiya" && <Select ariaLabel="Vakansiya regionu" value={region} onValueChange={setRegion} options={[{value:"all",label:"Bütün regionlar"},...Array.from(new Set(openings.map((item) => item.region).filter(Boolean))).map((item) => ({value:item,label:item}))]} />}</Toolbar>}
-      {tab === "vakansiya" && <TableContainer className="finance-records-table employment-table"><table><thead><tr><th>Peşə</th><th>Region</th><th>Minimum staj</th><th>Başlanğıc</th><th>Uyğun namizəd</th><th><span className="sr-only">Uyğunlaşdır</span></th></tr></thead><tbody>{shownOpenings.map((row) => <tr key={row.id} tabIndex={0} onClick={() => openMatch(row.id)} onKeyDown={(event) => {if(event.key === "Enter" || event.key === " "){event.preventDefault();openMatch(row.id)}}}><td><strong>{row.profession}</strong><small>{row.certificate || row.note || "Sertifikat tələb olunmur"}</small></td><td>{row.region || "Region açıqdır"}</td><td>{formatYears(amount(row.minYears))}</td><td>{row.startOn ? dateAZ(isoDay(row.startOn)) : "—"}</td><td><span className={`badge ${(fits.get(row.id)||[]).length ? "pine" : "stone"}`}>{(fits.get(row.id)||[]).length} namizəd</span></td><td><Icon name="chevron" /></td></tr>)}</tbody></table>{!shownOpenings.length && <Empty title={ready ? "Vakansiya tapılmadı" : "Məlumatlar oxunur"} text="Filtrləri dəyişin və ya yeni vakansiya əlavə edin." />}</TableContainer>}
+      {tab === "vakansiya" && <TableContainer className="finance-records-table employment-table"><DataTable><thead><tr><th>Peşə</th><th>Region</th><th>Minimum staj</th><th>Başlanğıc</th><th>Uyğun namizəd</th><th><span className="sr-only">Uyğunlaşdır</span></th></tr></thead><tbody>{shownOpenings.map((row) => <tr key={row.id} tabIndex={0} onClick={() => openMatch(row.id)} onKeyDown={(event) => {if(event.key === "Enter" || event.key === " "){event.preventDefault();openMatch(row.id)}}}><td><strong>{row.profession}</strong><small>{row.certificate || row.note || "Sertifikat tələb olunmur"}</small></td><td>{row.region || "Region açıqdır"}</td><td>{formatYears(amount(row.minYears))}</td><td>{row.startOn ? dateAZ(isoDay(row.startOn)) : "—"}</td><td><span className={`badge ${(fits.get(row.id)||[]).length ? "pine" : "stone"}`}>{(fits.get(row.id)||[]).length} namizəd</span></td><td><Icon name="chevron" /></td></tr>)}</tbody></DataTable>{!shownOpenings.length && <Empty title={ready ? "Vakansiya tapılmadı" : "Məlumatlar oxunur"} text="Filtrləri dəyişin və ya yeni vakansiya əlavə edin." />}</TableContainer>}
 
       {tab === "namized" && (
         <TableContainer className="finance-records-table employment-table">
-          <table>
+          <DataTable>
             <thead>
               <tr>
                 <th>Namizəd</th>
@@ -318,7 +319,7 @@ export function EmploymentPage() {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </DataTable>
           {shownPeople.length === 0 && <Empty title={ready ? "Namizəd yoxdur" : "Oxunur"} text={ready ? "Profil, peşə və staj sübutu əlavə edin." : "Namizədlər açılır."} />}
         </TableContainer>
       )}

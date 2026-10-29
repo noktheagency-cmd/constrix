@@ -1,3 +1,4 @@
+import { DataTable } from '../components/DataTable'
 import { Icon } from "../icons"
 import { Disclosure, Metric, Panel, SectionHeader, StatGrid, TableContainer, Toolbar } from "../components/primitives"
 import { useState } from "react"
@@ -182,7 +183,7 @@ export default function Dashboard() {
           ]} /></label></Toolbar>
           <TableContainer>
             {sheet === "project" && (
-              <table>
+              <DataTable>
                 <thead>
                   <tr>
                     <th>Layihə</th>
@@ -213,10 +214,10 @@ export default function Dashboard() {
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </DataTable>
             )}
             {sheet === "volume" && (
-              <table>
+              <DataTable>
                 <thead>
                   <tr>
                     <th>Layihə</th>
@@ -240,10 +241,10 @@ export default function Dashboard() {
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </DataTable>
             )}
             {sheet === "report" && (
-              <table>
+              <DataTable>
                 <thead>
                   <tr>
                     <th>Gündəlik</th>
@@ -264,10 +265,10 @@ export default function Dashboard() {
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </DataTable>
             )}
             {sheet === "request" && (
-              <table>
+              <DataTable>
                 <thead>
                   <tr>
                     <th>Material</th>
@@ -291,10 +292,10 @@ export default function Dashboard() {
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </DataTable>
             )}
             {sheet === "stock" && (
-              <table>
+              <DataTable>
                 <thead>
                   <tr>
                     <th>Material</th>
@@ -313,10 +314,10 @@ export default function Dashboard() {
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </DataTable>
             )}
             {sheet === "asset" && (
-              <table>
+              <DataTable>
                 <thead>
                   <tr>
                     <th>Texnika</th>
@@ -343,10 +344,10 @@ export default function Dashboard() {
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </DataTable>
             )}
             {sheet === "journal" && (
-              <table>
+              <DataTable>
                 <thead>
                   <tr>
                     <th>Vaxt</th>
@@ -363,7 +364,7 @@ export default function Dashboard() {
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </DataTable>
             )}
           </TableContainer>
         </>

@@ -1,3 +1,4 @@
+import { DataTable } from '../components/DataTable'
 import { Button, Input, Metric, Panel, SectionHeader, StatGrid, TableContainer, Toolbar } from "../components/primitives"
 import { useEffect, useState, type FormEvent } from "react"
 import { DateField } from "../DateField"
@@ -312,7 +313,7 @@ export default function Assets() {
             <span className="muted">{machines.length} vahid</span>
           </Toolbar>
           <TableContainer className="wide">
-            <table>
+            <DataTable>
               <thead>
                 <tr>
                   <th>Texnika</th>
@@ -353,7 +354,7 @@ export default function Assets() {
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </DataTable>
             {machines.length === 0 && <Empty title="Texnika tapılmadı" text="Filtri və ya axtarışı dəyişin." />}
           </TableContainer>
         </>
@@ -361,7 +362,7 @@ export default function Assets() {
 
       {tab === "surucu" && (
         <TableContainer className="wide">
-          <table>
+          <DataTable>
             <thead>
               <tr>
                 <th>Sürücü</th>
@@ -408,14 +409,14 @@ export default function Assets() {
                 )
               })}
             </tbody>
-          </table>
+          </DataTable>
           {driverRows.length === 0 && <Empty title="Sürücü tapılmadı" text="Axtarışı dəyişin və ya yeni sürücü açın." />}
         </TableContainer>
       )}
 
       {tab === "reys" && (
         <TableContainer className="wide">
-          <table>
+          <DataTable>
             <thead>
               <tr>
                 <th>Reys</th>
@@ -449,7 +450,7 @@ export default function Assets() {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </DataTable>
           {tripRows.length === 0 && <Empty title="Reys yoxdur" text="Yol vərəqəsi açanda marşrut burada durur." />}
         </TableContainer>
       )}
@@ -458,7 +459,7 @@ export default function Assets() {
         <>
           <p className="muted" style={{ marginBottom: 12 }}>Dizel anbarı {num(diesel)} litr. Yazılan dizel anbardan silinir və layihə xərcinə düşür.</p>
           <TableContainer className="wide">
-            <table>
+            <DataTable>
               <thead>
                 <tr>
                   <th>Tarix</th>
@@ -481,7 +482,7 @@ export default function Assets() {
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </DataTable>
             {fuelRows.length === 0 && <Empty title="Yanacaq yoxdur" text="Doldurma yazılanda burada və anbar hərəkətində görünür." />}
           </TableContainer>
         </>
@@ -489,7 +490,7 @@ export default function Assets() {
 
       {tab === "sened" && (
         <TableContainer className="wide">
-          <table>
+          <DataTable>
             <thead>
               <tr>
                 <th>Texnika</th>
@@ -510,14 +511,14 @@ export default function Assets() {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </DataTable>
           {docRows.length === 0 && <Empty title="Sənəd yoxdur" text="Sığorta, texniki baxış və qeydiyyat buraya yazılır." />}
         </TableContainer>
       )}
 
       {tab === "servis" && (
         <TableContainer className="wide">
-          <table>
+          <DataTable>
             <thead>
               <tr>
                 <th>Servis</th>
@@ -547,7 +548,7 @@ export default function Assets() {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </DataTable>
           {services.length === 0 && <Empty title="Servis yoxdur" text="Texnika sətirindən servis açılır. Ehtiyat hissə anbardan silinir." />}
         </TableContainer>
       )}

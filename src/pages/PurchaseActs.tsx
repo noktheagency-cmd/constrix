@@ -1,3 +1,4 @@
+import { DataTable } from '../components/DataTable'
 import { SourceWorkbookViewer } from "../components/SourceWorkbookViewer"
 import { Button, Input, TableContainer, Toolbar } from "../components/primitives"
 import { useMemo, useState, type FormEvent } from "react"
@@ -85,7 +86,7 @@ export default function PurchaseActs() {
       {tab === "source" && <SourceWorkbookViewer kind="purchase" />}
       {tab === "aktlar" && (
         <TableContainer className="wide">
-          <table>
+          <DataTable>
             <thead>
               <tr>
                 <th>Akt</th>
@@ -122,14 +123,14 @@ export default function PurchaseActs() {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </DataTable>
           {rows.length === 0 && <Empty title="Alış aktı yoxdur" text="Sahəyə alınan malı bu sənədlə yazın." />}
         </TableContainer>
       )}
 
       {tab === "umumi" && (
         <TableContainer className="wide">
-          <table>
+          <DataTable>
             <thead>
               <tr>
                 <th>Akt</th>
@@ -156,14 +157,14 @@ export default function PurchaseActs() {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </DataTable>
           {ledger.length === 0 && <Empty title="Reyestr boşdur" text="Təsdiqlənmiş aktların sətirləri burada toplanır." />}
         </TableContainer>
       )}
 
       {tab === "elave" && (
         <TableContainer className="wide">
-          <table>
+          <DataTable>
             <thead>
               <tr>
                 <th>Akt</th>
@@ -188,7 +189,7 @@ export default function PurchaseActs() {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </DataTable>
           {adjusts.length === 0 && <Empty title="Əlavə yoxdur" text="Qiymət fərqi olan aktlar burada görünür." />}
         </TableContainer>
       )}
@@ -281,7 +282,7 @@ function ActComposer({
           <DateField value={form.date} onChange={(value) => setForm({ ...form, date: value })} />
         </Field>
         <TableContainer>
-          <table>
+          <DataTable>
             <thead>
               <tr>
                 <th>Material</th>
@@ -302,7 +303,7 @@ function ActComposer({
                 </tr>
               ))}
             </tbody>
-          </table>
+          </DataTable>
         </TableContainer>
         <Button type="button" className="ghost" onClick={() => setForm({ ...form, lines: [...form.lines, emptyLine()] })}>Sətir əlavə et</Button>
         {error && <p className="form-error">{error}</p>}

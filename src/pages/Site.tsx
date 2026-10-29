@@ -1,3 +1,4 @@
+import { DataTable } from '../components/DataTable'
 import { StepNav } from "../components/StepNav"
 import { Button, Disclosure, Input, Metric, Panel, StatGrid, SectionHeader, TableContainer, Textarea, Toolbar } from "../components/primitives"
 import { useEffect, useRef, useState, type FormEvent } from "react"
@@ -233,7 +234,7 @@ export default function Site() {
 
       {project && tab === "hecm" && (
         <TableContainer>
-          <table>
+          <DataTable>
             <thead>
               <tr>
                 <th>İş</th>
@@ -252,14 +253,14 @@ export default function Site() {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </DataTable>
           {lines.length === 0 && <Empty title="Həcm yoxdur" text="Bu obyektin smetası boşdur." />}
         </TableContainer>
       )}
 
       {project && tab === "briqada" && (
         <TableContainer>
-          <table>
+          <DataTable>
             <thead>
               <tr><th>İşçi</th><th>Briqada</th><th>Telefon</th><th>Vəziyyət</th><th></th></tr>
             </thead>
@@ -281,14 +282,14 @@ export default function Site() {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </DataTable>
           {crew.length === 0 && <Empty title="Briqada boşdur" text="HRM işçilərindən bu obyektə təyin edin." />}
         </TableContainer>
       )}
 
       {project && tab === "texnika" && (
         <TableContainer>
-          <table>
+          <DataTable>
             <thead>
               <tr><th>Texnika</th><th className="num">Moto-saat</th><th>Servis</th><th className="num">Yüklənmə</th><th>Vəziyyət</th><th></th></tr>
             </thead>
@@ -311,7 +312,7 @@ export default function Site() {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </DataTable>
           {machines.length === 0 && <Empty title="Texnika yoxdur" text="Bu obyektə bağlanmış maşın yoxdur." />}
         </TableContainer>
       )}
@@ -347,14 +348,14 @@ export default function Site() {
 
       {project && tab === "qeyd" && (
         <TableContainer>
-          <table>
+          <DataTable>
             <thead><tr><th>Vaxt</th><th>Qeyd</th></tr></thead>
             <tbody>
               {notes.filter((item) => hit(query, item.text)).map((item) => (
                 <tr key={item.id}><td className="mono">{item.time}</td><td>{item.text}</td></tr>
               ))}
             </tbody>
-          </table>
+          </DataTable>
           {notes.length === 0 && <Empty title="Qeyd yoxdur" text="Sahədən qısa qeyd yazın." />}
         </TableContainer>
       )}
