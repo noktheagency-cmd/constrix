@@ -8,6 +8,237 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model OperationReceipt {
+  id             String @id @default(cuid())
+  organizationId String
+  accountId      String
+  key            String
+  requestHash    String
+  command        String
+  changedBooks   Json
+  createdAt      DateTime @default(now())
+  @@unique([organizationId, key])
+}
+
+model MarketCompany {
+  organizationId String @id
+  voen String @unique
+  name String
+  region String
+  documents Json
+  status String @default("pending")
+  reason String @default("")
+  reviewedBy String?
+  reviewedAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model MarketItem {
+  id String @id @default(cuid())
+  ownerId String
+  name String
+  category String
+  brand String
+  model String
+  manufacturer String
+  origin String
+  unit String
+  attributes Json
+  documents Json
+  status String @default("pending")
+  reason String @default("")
+  reviewedBy String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([status,category])
+}
+
+model MarketListing {
+  id String @id @default(cuid())
+  organizationId String
+  itemId String
+  region String
+  availability String
+  quantity Decimal? @db.Decimal(14,3)
+  leadDays Int?
+  updatedAt DateTime @updatedAt
+  @@unique([organizationId,itemId])
+}
+
+model MarketCase {
+  id String @id @default(cuid())
+  kind String
+  buyerId String
+  supplierId String?
+  selectedBidId String? @unique
+  status String
+  category String
+  region String
+  visibility String
+  invited Json
+  data Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([buyerId,kind])
+  @@index([supplierId,kind])
+  @@index([kind,status,category,region])
+}
+
+model MarketBid {
+  id String @id @default(cuid())
+  rfqId String
+  supplierId String
+  revision Int
+  data Json
+  createdAt DateTime @default(now())
+  @@unique([rfqId,supplierId,revision])
+}
+
+model MarketTariff {
+  id String @id @default(cuid())
+  side String
+  scope String
+  target String
+  rate Decimal @db.Decimal(8,4)
+  basis String
+  effectiveFrom String
+  effectiveTo String?
+  active Boolean @default(true)
+  createdAt DateTime @default(now())
+  @@index([side,scope,target])
+}
+
+model MarketPolicy {
+  id String @id @default("default")
+  dueDays Int @default(7)
+  warnDays Int @default(15)
+  restrictDays Int @default(30)
+  requiredProofCategories Json @default("[]")
+}
+
+model MarketCharge {
+  id String @id @default(cuid())
+  orderId String
+  receiptId String
+  organizationId String
+  side String
+  acceptedAt String
+  dueAt String
+  base Decimal @db.Decimal(14,2)
+  rate Decimal @db.Decimal(8,4)
+  amount Decimal @db.Decimal(14,2)
+  paid Decimal @default(0) @db.Decimal(14,2)
+  credit Decimal @default(0) @db.Decimal(14,2)
+  tariff Json
+  @@unique([receiptId,side])
+  @@index([organizationId,dueAt])
+}
+
+model MarketPayment {
+  id String @id @default(cuid())
+  chargeId String
+  organizationId String
+  amount Decimal @db.Decimal(14,2)
+  proof String
+  status String @default("pending")
+  reviewedBy String?
+  reviewedAt DateTime?
+  note String @default("")
+  createdAt DateTime @default(now())
+  @@index([organizationId,status])
+}
+
+model MarketAcceptanceGrant {
+  id String @id @default(cuid())
+  organizationId String
+  accountId String
+  projectId String
+  locationId String
+  limit Decimal @db.Decimal(14,2)
+  active Boolean @default(true)
+  @@unique([organizationId,accountId,projectId,locationId])
+}
+
+model MarketEvent {
+  id String @id @default(cuid())
+  caseId String
+  organizationId String
+  accountId String
+  kind String
+  data Json
+  createdAt DateTime @default(now())
+  @@index([caseId,createdAt])
+}
+
+model MarketMessage {
+  recipientId String?
+  id String @id @default(cuid())
+  caseId String
+  organizationId String
+  accountId String
+  text String
+  attachments Json
+  createdAt DateTime @default(now())
+  @@index([caseId,createdAt])
+}
+
+model MessageOutbox {
+  id String @id @default(cuid())
+  organizationId String
+  channel String
+  kind String
+  reference String
+  payload Json
+  status String @default("awaiting_provider")
+  createdAt DateTime @default(now())
+  @@unique([organizationId,channel,kind,reference])
+}
+
+model BlobFile {
+  id String @id @default(cuid())
+  organizationId String
+  uploadedBy String
+  name String
+  mime String
+  kind String
+  size Int
+  sha256 String
+  original Bytes
+  parentId String?
+  version Int @default(1)
+  scanStatus String
+  scanNote String
+  createdAt DateTime @default(now())
+  @@index([organizationId,parentId,version])
+}
+
+// Immutable copies of user-supplied workbooks and their readable cell snapshots.
+model SourceWorkbook {
+  id             String @id
+  organizationId String
+  name           String
+  kind           String
+  sha256         String
+  original       Bytes
+  createdAt      DateTime @default(now())
+  sheets         SourceSheet[]
+  @@unique([organizationId, sha256])
+}
+
+model SourceSheet {
+  id         String @id
+  workbookId String
+  name       String
+  sort       Int
+  rowCount   Int
+  cellCount  Int
+  columns    Json
+  rows       Json
+  workbook   SourceWorkbook @relation(fields: [workbookId], references: [id], onDelete: Cascade)
+  @@index([workbookId, sort])
+}
+
 enum ProjectStatus {
   aktiv
   gecikir
@@ -16,6 +247,8 @@ enum ProjectStatus {
 }
 
 model Client {
+  organizationId String?
+
   id        String    @id @default(cuid())
   name      String    @unique
   sector    String
@@ -115,6 +348,8 @@ model PhaseProcedure {
 }
 
 model User {
+  organizationId String?
+
   id        String   @id @default(cuid())
   name      String
   role      String
@@ -140,6 +375,8 @@ model Account {
 }
 
 model Crew {
+  organizationId String?
+
   id        String   @id @default(cuid())
   name      String
   site      String
@@ -151,6 +388,8 @@ model Crew {
 }
 
 model Lead {
+  organizationId String?
+
   id        String   @id @default(cuid())
   name      String
   company   String
@@ -164,6 +403,8 @@ model Lead {
 }
 
 model Deal {
+  organizationId String?
+
   id        String   @id @default(cuid())
   title     String
   client    String
@@ -179,6 +420,8 @@ model Deal {
 }
 
 model CrmTask {
+  organizationId String?
+
   id        String   @id @default(cuid())
   title     String
   kind      String
@@ -195,6 +438,8 @@ model CrmTask {
 }
 
 model CrmFile {
+  organizationId String?
+
   id        String   @id @default(cuid())
   title     String
   number    String
@@ -212,6 +457,8 @@ model CrmFile {
 }
 
 model CrmActivity {
+  organizationId String?
+
   id        String   @id @default(cuid())
   kind      String
   title     String
@@ -226,6 +473,8 @@ model CrmActivity {
 }
 
 model Invoice {
+  organizationId String?
+
   id         String   @id @default(cuid())
   client     String
   project    String
@@ -246,6 +495,8 @@ model Invoice {
 }
 
 model Expense {
+  organizationId String?
+
   id          String   @id @default(cuid())
   category    String
   vendor      String
@@ -259,6 +510,8 @@ model Expense {
 }
 
 model Payable {
+  organizationId String?
+
   id        String   @id @default(cuid())
   supplier  String
   poId      String
@@ -270,6 +523,8 @@ model Payable {
 }
 
 model Supplier {
+  organizationId String?
+
   id        String   @id @default(cuid())
   name      String
   category  String
@@ -282,6 +537,8 @@ model Supplier {
 }
 
 model Quote {
+  organizationId String?
+
   id        String   @id @default(cuid())
   requestId String
   supplier  String
@@ -295,6 +552,8 @@ model Quote {
 }
 
 model Smeta {
+  organizationId String?
+
   id        String      @id @default(cuid())
   projectId String
   version   Int
@@ -387,6 +646,8 @@ model PurchaseActAdjust {
 }
 
 model Contract {
+  organizationId String?
+
   id            String             @id @default(cuid())
   projectId     String
   client        String
@@ -417,6 +678,8 @@ model ContractSchedule {
 }
 
 model Act {
+  organizationId String?
+
   id             String    @id @default(cuid())
   number         String
   projectId      String
@@ -454,6 +717,8 @@ model ActLine {
 }
 
 model Forma3 {
+  organizationId String?
+
   id              String       @id @default(cuid())
   number          String
   projectId       String
@@ -504,6 +769,8 @@ model Forma3Line {
 }
 
 model DailyReport {
+  organizationId String?
+
   id          String             @id @default(cuid())
   projectId   String
   date        String
@@ -558,6 +825,8 @@ model ReportAttendance {
 }
 
 model Document {
+  organizationId String?
+
   id        String   @id @default(cuid())
   projectId String
   title     String
@@ -571,6 +840,8 @@ model Document {
 }
 
 model ChangeOrder {
+  organizationId String?
+
   id           String       @id @default(cuid())
   projectId    String
   title        String
@@ -602,6 +873,8 @@ model ChangeLine {
 }
 
 model Location {
+  organizationId String?
+
   id        String   @id @default(cuid())
   name      String
   kind      String
@@ -611,6 +884,8 @@ model Location {
 }
 
 model Material {
+  organizationId String?
+
   id        String   @id @default(cuid())
   name      String
   unit      String
@@ -623,6 +898,8 @@ model Material {
 }
 
 model Stock {
+  organizationId String?
+
   id         String   @id @default(cuid())
   materialId String
   locationId String
@@ -634,6 +911,8 @@ model Stock {
 }
 
 model Movement {
+  organizationId String?
+
   id          String   @id @default(cuid())
   material    String
   type        String
@@ -652,6 +931,8 @@ model Movement {
 }
 
 model Shipment {
+  organizationId String?
+
   id        String         @id @default(cuid())
   stops     String[]
   step      Int            @default(0)
@@ -679,6 +960,8 @@ model ShipmentLine {
 }
 
 model PurchaseOrder {
+  organizationId String?
+
   id          String   @id @default(cuid())
   supplier    String
   item        String
@@ -695,6 +978,8 @@ model PurchaseOrder {
 }
 
 model MaterialRequest {
+  organizationId String?
+
   id         String   @id @default(cuid())
   projectId  String
   project    String
@@ -716,6 +1001,8 @@ model MaterialRequest {
 }
 
 model Recipe {
+  organizationId String?
+
   id        String       @id @default(cuid())
   product   String
   unit      String
@@ -737,6 +1024,8 @@ model RecipeItem {
 }
 
 model Plant {
+  organizationId String?
+
   id         String   @id @default(cuid())
   name       String
   place      String
@@ -753,6 +1042,8 @@ model Plant {
 }
 
 model WorkOrder {
+  organizationId String?
+
   id          String      @id @default(cuid())
   plant       String
   product     String
@@ -788,6 +1079,8 @@ model WorkIssue {
 }
 
 model Asset {
+  organizationId String?
+
   id           String   @id @default(cuid())
   name         String
   type         String
@@ -810,6 +1103,8 @@ model Asset {
 }
 
 model Driver {
+  organizationId String?
+
   id        String   @id @default(cuid())
   name      String
   phone     String
@@ -822,6 +1117,8 @@ model Driver {
 }
 
 model Trip {
+  organizationId String?
+
   id        String   @id @default(cuid())
   assetId   String
   driverId  String
@@ -838,6 +1135,8 @@ model Trip {
 }
 
 model FuelFill {
+  organizationId String?
+
   id        String   @id @default(cuid())
   assetId   String
   liters    Decimal  @db.Decimal(14, 3)
@@ -854,6 +1153,8 @@ model FuelFill {
 }
 
 model FleetDoc {
+  organizationId String?
+
   id        String   @id @default(cuid())
   assetId   String
   kind      String
@@ -867,6 +1168,8 @@ model FleetDoc {
 }
 
 model Gear {
+  organizationId String?
+
   id        String   @id @default(cuid())
   name      String
   category  String
@@ -881,6 +1184,8 @@ model Gear {
 }
 
 model GearEvent {
+  organizationId String?
+
   id        String   @id @default(cuid())
   gearId    String
   kind      String
@@ -895,6 +1200,8 @@ model GearEvent {
 }
 
 model ServiceJob {
+  organizationId String?
+
   id         String   @id @default(cuid())
   assetId    String
   asset      String
@@ -913,6 +1220,8 @@ model ServiceJob {
 }
 
 model Person {
+  organizationId String?
+
   id           String   @id @default(cuid())
   name         String
   role         String
@@ -934,6 +1243,8 @@ model Person {
 }
 
 model Office {
+  organizationId String?
+
   id        String   @id @default(cuid())
   name      String
   city      String
@@ -943,6 +1254,8 @@ model Office {
 }
 
 model Department {
+  organizationId String?
+
   id        String   @id @default(cuid())
   name      String
   code      String
@@ -953,6 +1266,8 @@ model Department {
 }
 
 model Terminal {
+  organizationId String?
+
   id        String   @id @default(cuid())
   name      String
   code      String
@@ -964,6 +1279,8 @@ model Terminal {
 }
 
 model Attendance {
+  organizationId String?
+
   id         String   @id @default(cuid())
   personId   String
   date       String
@@ -980,6 +1297,8 @@ model Attendance {
 }
 
 model LeaveRequest {
+  organizationId String?
+
   id        String   @id @default(cuid())
   personId  String
   kind      String
@@ -995,6 +1314,8 @@ model LeaveRequest {
 }
 
 model HrPayment {
+  organizationId String?
+
   id        String   @id @default(cuid())
   personId  String
   kind      String
@@ -1010,6 +1331,8 @@ model HrPayment {
 }
 
 model HrMove {
+  organizationId String?
+
   id               String   @id @default(cuid())
   personId         String
   date             String
@@ -1026,6 +1349,8 @@ model HrMove {
 }
 
 model Payroll {
+  organizationId String?
+
   id        String        @id @default(cuid())
   date      String
   total     Decimal       @db.Decimal(14, 2)
@@ -1049,6 +1374,8 @@ model PayrollLine {
 }
 
 model JournalEntry {
+  organizationId String?
+
   id        String   @id @default(cuid())
   time      String
   site      String
@@ -1058,6 +1385,8 @@ model JournalEntry {
 }
 
 model AuditEntry {
+  organizationId String?
+
   id        String   @id @default(cuid())
   at        String
   actor     String
@@ -1069,6 +1398,8 @@ model AuditEntry {
 }
 
 model ClosedPeriod {
+  organizationId String?
+
   id        String   @id @default(cuid())
   value     String   @unique
   createdAt DateTime @default(now())
@@ -1076,6 +1407,8 @@ model ClosedPeriod {
 }
 
 model SubCompany {
+  organizationId String?
+
   id        String   @id @default(cuid())
   name      String
   voen      String
@@ -1085,6 +1418,8 @@ model SubCompany {
 }
 
 model Complex {
+  organizationId String?
+
   id        String   @id @default(cuid())
   companyId String
   projectId String
@@ -1098,6 +1433,8 @@ model Complex {
 }
 
 model Building {
+  organizationId String?
+
   id        String   @id @default(cuid())
   companyId String
   complexId String
@@ -1112,6 +1449,8 @@ model Building {
 }
 
 model Unit {
+  organizationId String?
+
   id         String   @id @default(cuid())
   buildingId String
   kind       String
@@ -1128,6 +1467,8 @@ model Unit {
 }
 
 model Buyer {
+  organizationId String?
+
   id        String   @id @default(cuid())
   name      String
   phone     String
@@ -1137,6 +1478,8 @@ model Buyer {
 }
 
 model SaleContract {
+  organizationId String?
+
   id        String            @id @default(cuid())
   number    String
   unitId    String
@@ -1756,6 +2099,10 @@ model WeatherProof {
 }
 
 model TenderCase {
+  contentVersion Int @default(1)
+  finalApproverId String?
+  submittedAt DateTime?
+  submissionProof String?
   id            String           @id @default(cuid())
   organizationId String?
   projectId     String?
@@ -1786,9 +2133,30 @@ model TenderCase {
   organization  Organization?    @relation(fields: [organizationId], references: [id], onDelete: SetNull)
   checks        TenderCheck[]
   approvals     TenderApproval[]
+  analyses      TenderAnalysis[]
 
   @@index([projectId])
   @@index([organizationId])
+}
+
+model TenderAnalysis {
+  contentVersion Int @default(1)
+  id             String @id @default(cuid())
+  tenderId       String
+  organizationId String
+  revision       Int
+  sourceName     String
+  sourceHash     String
+  sourceText     String
+  brief          Json
+  evidence       Json
+  confirmedBy    String?
+  confirmedAt    DateTime?
+  comparedAt     DateTime?
+  createdAt      DateTime @default(now())
+  tender         TenderCase @relation(fields: [tenderId], references: [id], onDelete: Cascade)
+  @@unique([tenderId, revision])
+  @@index([organizationId, tenderId])
 }
 
 model TenderCheck {
@@ -1802,6 +2170,10 @@ model TenderCheck {
 }
 
 model TenderApproval {
+  assignedAccountId String?
+  signedBy String?
+  signedAt DateTime?
+  note String @default("")
   id       String         @id @default(cuid())
   tenderId String
   role     String
@@ -1809,6 +2181,19 @@ model TenderApproval {
   tender   TenderCase     @relation(fields: [tenderId], references: [id], onDelete: Cascade)
 
   @@index([tenderId])
+}
+
+model TenderDecision {
+  id String @id @default(cuid())
+  tenderId String
+  organizationId String
+  accountId String
+  role String
+  status String
+  note String
+  contentVersion Int
+  createdAt DateTime @default(now())
+  @@index([organizationId,tenderId])
 }
 
 model BoqBook {
@@ -1845,6 +2230,11 @@ model BoqSheet {
 }
 
 model BoqLine {
+  sourceRow Int?
+  confirmed Boolean @default(false)
+  source String @default("")
+  pricedOn String @default("")
+  stale Boolean @default(false)
   id        String  @id @default(cuid())
   bookId    String
   sheet     String

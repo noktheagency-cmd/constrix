@@ -345,7 +345,7 @@ function addBucket(row: PartnerRow, bucket: string, amount: number) {
 export function receivables(state: Pick<AppState, "invoices">): PartnerRow[] {
   const map = new Map<string, PartnerRow>()
   for (const item of state.invoices) {
-    if (item.status === "odenilib" || item.status === "qaralama") continue
+    if (item.status === "odenilib" || item.status === "qaralama" || item.status === "legv") continue
     const row = map.get(item.client) ?? { name: item.client, balance: 0, current: 0, days30: 0, days60: 0, older: 0 }
     addBucket(row, bucketOf(item.due), item.amount)
     map.set(item.client, row)

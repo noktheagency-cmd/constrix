@@ -1,0 +1,11 @@
+{
+  "name": "CONSTRIX Connected Construction",
+  "short_name": "CONSTRIX",
+  "lang": "az",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0e2a43",
+  "icons": [{"src":"/favicon.svg","sizes":"any","type":"image/svg+xml","purpose":"any"}]
+}

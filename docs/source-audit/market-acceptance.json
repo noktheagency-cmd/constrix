@@ -1,0 +1,34 @@
+{
+  "passed": true,
+  "isolatedSchema": "market_qa_722840645e7f4c4dba8d34c4b446da2c",
+  "checks": [
+    "approved public catalogue; no subscription required",
+    "uninvited company cannot read private RFQ",
+    "supplier sees own bid; buyer can select versioned quote",
+    "order and ERP link do not create stock or debt before acceptance",
+    "unassigned warehouse account cannot accept goods",
+    "missing tariff holds both settlements without inventing rates",
+    "concurrent same-key receipt posts stock and two-party fees exactly once; disputed 5 excluded",
+    "over-acceptance rolls back stock, fees and audit",
+    "dispute split and replacement delivery complete order without over-acceptance",
+    "return reverses stock, source lot, PO quantity and original commission rate",
+    "replacement after return closes order at net accepted quantity",
+    "proof submission does not mark paid until independent moderator review",
+    "reviewed DB price export, original preservation and tenant isolation",
+    "real antivirus upload, immutable file versions and cross-company download guards",
+    "quarantined documents cannot be attached or downloaded",
+    "concurrent reminder runs create one app notification and one outbox item per channel"
+  ],
+  "actChecks": [
+    "confirmed F2 cannot be removed through generic API",
+    "confirmed F3 locks included F2; zero VAT remains zero",
+    "F3 and F2 can reopen in dependency order with immutable audit snapshots",
+    "stale or forged F3 snapshot cannot be confirmed",
+    "unpaid invoice reversal preserves original and matching contra-entry",
+    "paid invoice requires payment reconciliation and cannot be silently reversed",
+    "concurrent purchase reversal posts one stock-out and preserves matching debt contra-entry",
+    "reapproved corrected purchase gets a new source lot and posting cycle",
+    "insufficient source lot blocks reversal and rolls back all effects"
+  ],
+  "checkedAt": "2026-10-29T14:40:56.734Z"
+}

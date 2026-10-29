@@ -186,13 +186,18 @@ export function exportNakopitelSheet(
     smetaQty: number
     unitPrice: number
     smetaValue: number
+    priorQty: number
+    priorValue: number
+    cumulativeQty: number
     cumulativeValue: number
+    periodQty: number
     periodValue: number
+    remainQty: number
     remainValue: number
   }[],
 ) {
   const body = [
-    ["№", "İşlərin adı", "Ölçü", "Həcm", "Qiymət", "Cəmi", "Əvvəlindən", "Bu ay", "Qalıq"],
+    ["№", "İşlərin adı", "Ölçü", "Həcm", "Qiymət", "Cəmi", "Əvvəlki miqdar", "Əvvəlki məbləğ", "Yığılan miqdar", "Yığılan məbləğ", "Bu ay miqdar", "Bu ay məbləğ", "Qalıq miqdar", "Qalıq məbləğ"],
     ...rows.map((row) => [
       row.code,
       row.name,
@@ -200,8 +205,13 @@ export function exportNakopitelSheet(
       row.kind === "work" ? row.smetaQty : "",
       row.kind === "work" ? row.unitPrice : "",
       row.kind === "work" || row.kind === "sectionTotal" ? row.smetaValue : "",
+      row.kind === "work" ? row.priorQty : "",
+      row.kind === "work" || row.kind === "sectionTotal" ? row.priorValue : "",
+      row.kind === "work" ? row.cumulativeQty : "",
       row.kind === "work" || row.kind === "sectionTotal" ? row.cumulativeValue : "",
+      row.kind === "work" ? row.periodQty : "",
       row.kind === "work" || row.kind === "sectionTotal" ? row.periodValue : "",
+      row.kind === "work" ? row.remainQty : "",
       row.kind === "work" || row.kind === "sectionTotal" ? row.remainValue : "",
     ]),
   ]

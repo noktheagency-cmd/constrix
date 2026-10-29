@@ -1,3 +1,5 @@
+import { AuthUser } from '../auth/auth.service';
+import { TenantDataService } from '../prisma/tenant-data.service';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { rethrowPrisma } from '../prisma/prisma-errors';
@@ -98,10 +100,11 @@ function noteCreate(notes: ProjectNoteDto[]) {
 
 @Injectable()
 export class ProjectsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService,private readonly scope:TenantDataService) {}
 
-  async findAll(): Promise<ProjectResponse[]> {
+  async findAll(user:AuthUser): Promise<ProjectResponse[]> {
     const projects = await this.prisma.project.findMany({
+      where:{organizationId:await this.scope.allow(user,'projects')},
       include: projectInclude,
       orderBy: { name: 'asc' },
       take: 500,
@@ -109,9 +112,9 @@ export class ProjectsService {
     return projects.map(toProject);
   }
 
-  async procedures(id: string) {
+  async procedures(id: string,user:AuthUser) {
     const project = await this.prisma.project.findUnique({
-      where: { id },
+      where: { id,organizationId:await this.scope.allow(user,'projects') },
       include: { phases: { orderBy: { sort: 'asc' } } },
     });
     if (!project) throw new NotFoundException(`Project ${id} was not found`);
@@ -148,23 +151,25 @@ export class ProjectsService {
     }));
   }
 
-  async findOne(id: string): Promise<ProjectResponse> {
+  async findOne(id: string,user:AuthUser): Promise<ProjectResponse> {
     const project = await this.prisma.project.findUnique({
-      where: { id },
+      where: { id,organizationId:await this.scope.allow(user,'projects') },
       include: projectInclude,
     });
     if (!project) throw new NotFoundException(`Project ${id} was not found`);
     return toProject(project);
   }
 
-  async create(dto: CreateProjectDto): Promise<ProjectResponse> {
-    const client = await this.prisma.client.findUnique({
-      where: { name: dto.client },
+  async create(dto: CreateProjectDto,user:AuthUser): Promise<ProjectResponse> {
+    if(dto.smetaId)await this.scope.requireOwned("smeta",dto.smetaId,await this.scope.allow(user,'projects'));
+    const client = await this.prisma.client.findFirst({
+      where: { name: dto.client,organizationId:await this.scope.allow(user,'projects') },
     });
     try {
       const project = await this.prisma.project.create({
         data: {
           ...(dto.id ? { id: dto.id } : {}),
+          organizationId:await this.scope.allow(user,'projects'),
           name: dto.name,
           clientName: dto.client,
           clientId: client?.id,
@@ -196,12 +201,13 @@ export class ProjectsService {
     }
   }
 
-  async update(id: string, dto: UpdateProjectDto): Promise<ProjectResponse> {
-    await this.findOne(id);
+  async update(id: string, dto: UpdateProjectDto,user:AuthUser): Promise<ProjectResponse> {
+    await this.findOne(id,user);
+    if(dto.smetaId)await this.scope.requireOwned("smeta",dto.smetaId,await this.scope.allow(user,'projects'));
     const client =
       dto.client === undefined
         ? undefined
-        : await this.prisma.client.findUnique({ where: { name: dto.client } });
+        : await this.prisma.client.findFirst({ where: { name: dto.client,organizationId:await this.scope.allow(user,'projects') } });
 
     try {
       const project = await this.prisma.$transaction(async (tx) => {
@@ -212,7 +218,7 @@ export class ProjectsService {
           await tx.projectNote.deleteMany({ where: { projectId: id } });
         }
         return tx.project.update({
-          where: { id },
+          where: { id,organizationId:await this.scope.allow(user,'projects') },
           data: {
             name: dto.name,
             clientName: dto.client,
@@ -248,8 +254,8 @@ export class ProjectsService {
     }
   }
 
-  async remove(id: string): Promise<void> {
-    await this.findOne(id);
+  async remove(id: string,user:AuthUser): Promise<void> {
+    await this.findOne(id,user);
     await this.prisma.project.delete({ where: { id } });
   }
 }

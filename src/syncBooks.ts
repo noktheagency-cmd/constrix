@@ -45,14 +45,14 @@ async function syncIdBook(path: string, before: unknown, after: unknown) {
   for (const [id, row] of nextMap) {
     const old = prevMap.get(id)
     if (!old) {
-      jobs.push(api(path, { method: "POST", body: JSON.stringify(row) }).catch(() => undefined))
+      jobs.push(api(path, { method: "POST", body: JSON.stringify(row) }))
     } else if (!same(old, row)) {
-      jobs.push(api(`${path}/${id}`, { method: "PUT", body: JSON.stringify(row) }).catch(() => undefined))
+      jobs.push(api(`${path}/${id}`, { method: "PATCH", body: JSON.stringify(row) }))
     }
   }
   for (const id of prevMap.keys()) {
     if (!nextMap.has(id)) {
-      jobs.push(api(`${path}/${id}`, { method: "DELETE" }).catch(() => undefined))
+      jobs.push(api(`${path}/${id}`, { method: "DELETE" }))
     }
   }
   await Promise.all(jobs)
@@ -69,8 +69,8 @@ async function syncStocks(before: unknown, after: unknown) {
   try {
     const data = await api<ServerStock[]>("/api/stocks")
     server = Array.isArray(data) ? data : []
-  } catch {
-    return
+  } catch (error) {
+    throw error
   }
   const serverMap = new Map(server.map((row) => [stockKey(row), row]))
   const jobs: Promise<unknown>[] = []
@@ -82,23 +82,23 @@ async function syncStocks(before: unknown, after: unknown) {
       jobs.push(api("/api/stocks", {
         method: "POST",
         body: JSON.stringify({ materialId: row.materialId, locationId: row.locationId, qty: row.qty }),
-      }).catch(() => undefined))
+      }))
     } else if (!old || old.qty !== row.qty) {
       jobs.push(api(`/api/stocks/${remote.id}`, {
-        method: "PUT",
+        method: "PATCH",
         body: JSON.stringify({ materialId: row.materialId, locationId: row.locationId, qty: row.qty }),
-      }).catch(() => undefined))
+      }))
     }
   }
   for (const [key, remote] of serverMap) {
     if (!nextMap.has(key) && prevMap.has(key) && remote.id) {
-      jobs.push(api(`/api/stocks/${remote.id}`, { method: "DELETE" }).catch(() => undefined))
+      jobs.push(api(`/api/stocks/${remote.id}`, { method: "DELETE" }))
     }
   }
   await Promise.all(jobs)
 }
 
-/** Persist domain patch books to the records API when a session is active. Failures are ignored so UI stays responsive. */
+/** Persist non-critical edits. Critical receipts/approvals use dedicated atomic workflows. */
 export async function syncBooks(prev: AppState, patch: Partial<AppState>) {
   const jobs: Promise<unknown>[] = []
   for (const [key, path] of ID_BOOKS) {

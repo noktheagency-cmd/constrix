@@ -3,6 +3,7 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom"
 import type { Area } from "./domain/types"
 import { PrefsProvider, usePrefs } from "./i18n"
 import Shell from "./Shell"
+import MarketPortal from "./pages/MarketPortal"
 import { StoreProvider, useStore } from "./store"
 import { Empty, PageHead, useTitle } from "./ui"
 import Forma2 from "./pages/Forma2"
@@ -71,6 +72,8 @@ export default function App() {
       <StoreProvider>
         <BrowserRouter>
           <Routes>
+            <Route path="market" element={<MarketPortal />} />
+            <Route path="market/cases/:caseId" element={<MarketPortal />} />
             <Route element={<Shell />}>
             <Route index element={<Gate area="dashboard"><Dashboard /></Gate>} />
             <Route path="kabinet" element={<Gate area="dashboard"><CabinetPage /></Gate>} />

@@ -1,3 +1,5 @@
+import { AuthUser } from '../auth/auth.service';
+import { TenantDataService } from '../prisma/tenant-data.service';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { rethrowPrisma } from '../prisma/prisma-errors';
@@ -45,10 +47,11 @@ function toClient(client: ClientRecord): ClientResponse {
 
 @Injectable()
 export class ClientsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService,private readonly scope:TenantDataService) {}
 
-  async findAll(): Promise<ClientResponse[]> {
+  async findAll(user:AuthUser): Promise<ClientResponse[]> {
     const clients = await this.prisma.client.findMany({
+      where:{organizationId:await this.scope.allow(user,'clients')},
       include: clientInclude,
       orderBy: { name: 'asc' },
       take: 500,
@@ -56,15 +59,16 @@ export class ClientsService {
     return clients.map(toClient);
   }
 
-  async findOne(id: string): Promise<ClientResponse> {
-    return toClient(await this.findRecord(id));
+  async findOne(id: string,user:AuthUser): Promise<ClientResponse> {
+    return toClient(await this.findRecord(id,user));
   }
 
-  async create(dto: CreateClientDto): Promise<ClientResponse> {
+  async create(dto: CreateClientDto,user:AuthUser): Promise<ClientResponse> {
     try {
       const client = await this.prisma.client.create({
         data: {
           ...(dto.id ? { id: dto.id } : {}),
+          organizationId:await this.scope.allow(user,'clients'),
           name: dto.name,
           sector: dto.sector,
           contact: dto.contact,
@@ -81,12 +85,12 @@ export class ClientsService {
     }
   }
 
-  async update(id: string, dto: UpdateClientDto): Promise<ClientResponse> {
-    const existing = await this.findRecord(id);
+  async update(id: string, dto: UpdateClientDto,user:AuthUser): Promise<ClientResponse> {
+    const existing = await this.findRecord(id,user);
     try {
       const client = await this.prisma.$transaction(async (tx) => {
         const updated = await tx.client.update({
-          where: { id },
+          where: { id,organizationId:await this.scope.allow(user,'clients') },
           data: {
             name: dto.name,
             sector: dto.sector,
@@ -112,14 +116,14 @@ export class ClientsService {
     }
   }
 
-  async remove(id: string): Promise<void> {
-    await this.findRecord(id);
+  async remove(id: string,user:AuthUser): Promise<void> {
+    await this.findRecord(id,user);
     await this.prisma.client.delete({ where: { id } });
   }
 
-  private async findRecord(id: string): Promise<ClientRecord> {
+  private async findRecord(id: string,user:AuthUser): Promise<ClientRecord> {
     const client = await this.prisma.client.findUnique({
-      where: { id },
+      where: { id,organizationId:await this.scope.allow(user,'clients') },
       include: clientInclude,
     });
     if (!client) throw new NotFoundException(`Client ${id} was not found`);

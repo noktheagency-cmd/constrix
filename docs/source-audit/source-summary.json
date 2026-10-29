@@ -1,0 +1,68 @@
+{
+  "books": [
+    {
+      "file": "alış aktı.xlsx",
+      "sheets": 57,
+      "cells": 28506
+    },
+    {
+      "file": "Nakopitel F2.xlsx",
+      "sheets": 9,
+      "cells": 522074
+    },
+    {
+      "file": "AZCDG-ARTM-STR-BOQ-0001-R01 ISCG.xlsx",
+      "sheets": 9,
+      "cells": 5020
+    }
+  ],
+  "purchaseActs": 54,
+  "purchaseLines": 2126,
+  "adjustments": 6,
+  "smetaLines": 8857,
+  "workLines": 7889,
+  "houses": 60,
+  "acts": [
+    {
+      "sheet": "Aprel F2",
+      "lines": 3463
+    },
+    {
+      "sheet": "Avqust F2 ",
+      "lines": 3338
+    },
+    {
+      "sheet": "Oktyabr F2",
+      "lines": 2979
+    }
+  ],
+  "boqLines": 58,
+  "costs": 43,
+  "errors": [
+    {
+      "sheet": "60 ev nakopitel Aprel",
+      "count": 1,
+      "file": "Nakopitel F2.xlsx"
+    },
+    {
+      "sheet": "0 - Summary",
+      "count": 1,
+      "file": "AZCDG-ARTM-STR-BOQ-0001-R01 ISCG.xlsx"
+    },
+    {
+      "sheet": "1 - Direct_DK_BoQ",
+      "count": 2,
+      "file": "AZCDG-ARTM-STR-BOQ-0001-R01 ISCG.xlsx"
+    },
+    {
+      "sheet": "Offer_Auto",
+      "count": 1499,
+      "file": "AZCDG-ARTM-STR-BOQ-0001-R01 ISCG.xlsx"
+    },
+    {
+      "sheet": "2 - Direct_MH_BoQ",
+      "count": 2,
+      "file": "AZCDG-ARTM-STR-BOQ-0001-R01 ISCG.xlsx"
+    }
+  ]
+}

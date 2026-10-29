@@ -1,0 +1,10 @@
+{
+  "passed": true,
+  "preservedMembers": 37,
+  "changedMembers": [
+    "xl/worksheets/sheet2.xml",
+    "xl/workbook.xml"
+  ],
+  "output": ".local-backups/azcdg-template-roundtrip.xlsx",
+  "checkedAt": "2026-10-29T14:17:06.426Z"
+}

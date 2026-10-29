@@ -1,4 +1,5 @@
-import { Body, Controller, Get, Param, Patch, Post, Query, Req } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Query, Req, Res, StreamableFile } from '@nestjs/common';
+import type { Response } from 'express';
 import { AuthUser } from '../auth/auth.service';
 import { PlatformService } from './platform.service';
 import { TenantService } from './tenant.service';
@@ -14,6 +15,28 @@ export class PlatformController {
 
   private async ctx(request: RequestUser) {
     return this.tenant.load(request.user);
+  }
+
+  @Get('source-workbooks')
+  async sourceBooks(@Req() request: RequestUser, @Query('kind') kind: string) {
+    return this.platform.sourceBooks(await this.ctx(request), kind);
+  }
+
+  @Get('source-sheets/:id')
+  async sourceRows(@Req() request: RequestUser, @Param('id') id: string, @Query('page') page: string, @Query('q') query: string) {
+    return this.platform.sourceRows(await this.ctx(request), id, page, query);
+  }
+
+  @Get('source-workbooks/:id/download')
+  async sourceOriginal(@Req() request: RequestUser, @Param('id') id: string, @Res({ passthrough: true }) response: Response) {
+    const book = await this.platform.sourceOriginal(await this.ctx(request), id);
+    response.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    response.setHeader('Content-Disposition', `attachment; filename*=UTF-8''${encodeURIComponent(book.name)}`);
+    return new StreamableFile(Buffer.from(book.original));
+  }
+  @Post('source-workbooks/:id/prices')
+  async sourcePrices(@Req()request:RequestUser,@Param('id')id:string,@Body()body:Record<string,unknown>,@Res({passthrough:true})response:Response){
+    const result=await this.platform.sourcePrices(await this.ctx(request),id,String(body.boqId||''));response.setHeader('Content-Type','application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');response.setHeader('Cache-Control','private, no-store');response.setHeader('X-Export-Rows',String(result.rows));response.setHeader('Content-Disposition',`attachment; filename*=UTF-8''${encodeURIComponent(result.name)}`);return new StreamableFile(result.bytes);
   }
 
   @Get('meta')
@@ -243,6 +266,27 @@ export class PlatformController {
   ) {
     return this.platform.readTender(await this.ctx(request), id, body);
   }
+
+  @Get('tenders/:id/analyses')
+  async tenderAnalyses(@Req() request: RequestUser,@Param('id') id:string){return this.platform.tenderAnalyses(await this.ctx(request),id);}
+
+  @Post('tenders/:id/approval-config')
+  async configureTender(@Req() request:RequestUser,@Param('id')id:string,@Body()body:Record<string,unknown>){return this.platform.tenderApprovalConfig(await this.ctx(request),id,body);}
+
+  @Get('tenders/:id/approval-state')
+  async approvalState(@Req()request:RequestUser,@Param('id')id:string){return this.platform.tenderApprovalState(await this.ctx(request),id);}
+
+  @Post('tenders/:id/approvals/:approvalId/sign')
+  async signTender(@Req()request:RequestUser,@Param('id')id:string,@Param('approvalId')approvalId:string,@Body()body:Record<string,unknown>){return this.platform.signTenderDocument(await this.ctx(request),id,approvalId,body);}
+
+  @Post('tenders/:id/submission')
+  async submitTender(@Req()request:RequestUser,@Param('id')id:string,@Body()body:Record<string,unknown>){return this.platform.recordTenderSubmission(await this.ctx(request),id,body);}
+
+  @Post('tenders/:id/analyses/:analysisId/review')
+  async reviewTender(@Req() request:RequestUser,@Param('id') id:string,@Param('analysisId') analysisId:string,@Body() body:Record<string,unknown>){return this.platform.reviewTenderAnalysis(await this.ctx(request),id,analysisId,body);}
+
+  @Post('tenders/:id/analyses/:analysisId/compare')
+  async compareTender(@Req() request:RequestUser,@Param('id') id:string,@Param('analysisId') analysisId:string){return this.platform.compareTenderAnalysis(await this.ctx(request),id,analysisId);}
 
   @Get('boq')
   async listBoq(@Req() request: RequestUser) {

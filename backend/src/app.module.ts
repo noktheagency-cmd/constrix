@@ -6,6 +6,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { ProjectsModule } from './projects/projects.module';
 import { PlatformModule } from './platform/platform.module';
 import { RecordsModule } from './records/records.module';
+import {BlobFilesModule} from './records/blob-files.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { RecordsModule } from './records/records.module';
     ClientsModule,
     ProjectsModule,
     RecordsModule,
+    BlobFilesModule,
     PlatformModule,
   ],
 })

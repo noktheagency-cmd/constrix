@@ -1,0 +1,5 @@
+import {NotificationScheduler} from './notification-scheduler';
+describe('notification scheduler',()=>{
+ it('continues across organizations and exposes completion without leaking data',async()=>{const db:any={marketCharge:{groupBy:jest.fn().mockResolvedValue([{organizationId:'a'},{organizationId:'b'}])}},market:any={reminders:jest.fn().mockRejectedValueOnce(new Error('private')).mockResolvedValueOnce({created:2})};const runner=new NotificationScheduler(db,market);const status=await runner.run();expect(status.created).toBe(2);expect(status.organizations).toBe(1);expect(status.failed).toBe(1);expect(status.lastCompletedAt).toBeTruthy();expect(JSON.stringify(status)).not.toContain('private');});
+ it('does not overlap runs in the same worker',async()=>{let release:()=>void=()=>{};const gate=new Promise<void>(resolve=>{release=resolve}),db:any={marketCharge:{groupBy:jest.fn(async()=>{await gate;return []})}},runner=new NotificationScheduler(db,{} as any);const first=runner.run();expect((await runner.run()).running).toBe(true);expect(db.marketCharge.groupBy).toHaveBeenCalledTimes(1);release();await first;expect(runner.status().running).toBe(false);});
+});

@@ -1,4 +1,4 @@
-import { api } from "./api"
+import { api, ApiError } from "./api"
 import type { AppState } from "./domain/types"
 
 const routes: [keyof AppState, string][] = [
@@ -61,9 +61,12 @@ const routes: [keyof AppState, string][] = [
 async function rows(path: string) {
   try {
     const data = await api<unknown>(path)
-    return Array.isArray(data) ? data : []
-  } catch {
-    return []
+    if (!Array.isArray(data)) throw new Error(`Server düzgün siyahı qaytarmadı: ${path}`)
+    return data
+  } catch (error) {
+    // A seat may intentionally lack access to some books loaded by the shared store.
+    if (error instanceof ApiError && error.status === 403) return []
+    throw error
   }
 }
 

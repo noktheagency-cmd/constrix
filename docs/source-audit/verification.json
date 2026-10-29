@@ -1,0 +1,67 @@
+{
+  "books": [
+    {
+      "file": "alış aktı.xlsx",
+      "sheets": 57,
+      "cells": 28506,
+      "originalSha256": "d3f664dc8101932983d1f1b4e70b5efb6bc2cc8f43407a4af083d2a4c7520c5b",
+      "allCellsMatch": true
+    },
+    {
+      "file": "Nakopitel F2.xlsx",
+      "sheets": 9,
+      "cells": 522074,
+      "originalSha256": "a184054a3aaca08f46559b8327e1ddfc90e3fe99558fb1c48ff413bfc4e50f10",
+      "allCellsMatch": true
+    },
+    {
+      "file": "AZCDG-ARTM-STR-BOQ-0001-R01 ISCG.xlsx",
+      "sheets": 9,
+      "cells": 5020,
+      "originalSha256": "5d743813a3f40ee0baf94f1d73dbc09fcaca610ce12c19157b5099a30da25e7e",
+      "allCellsMatch": true
+    }
+  ],
+  "native": [
+    {
+      "purchaseActs": 54,
+      "purchaseLines": 2126,
+      "allMappedFieldsMatch": true
+    },
+    {
+      "smetaLines": 8857,
+      "workLines": 7889,
+      "actLines": 9780,
+      "boqLines": 58,
+      "costs": 43
+    }
+  ],
+  "warnings": [
+    {
+      "file": "Nakopitel F2.xlsx",
+      "sheet": "60 ev nakopitel Aprel",
+      "errorCount": 1
+    },
+    {
+      "file": "AZCDG-ARTM-STR-BOQ-0001-R01 ISCG.xlsx",
+      "sheet": "0 - Summary",
+      "errorCount": 1
+    },
+    {
+      "file": "AZCDG-ARTM-STR-BOQ-0001-R01 ISCG.xlsx",
+      "sheet": "1 - Direct_DK_BoQ",
+      "errorCount": 2
+    },
+    {
+      "file": "AZCDG-ARTM-STR-BOQ-0001-R01 ISCG.xlsx",
+      "sheet": "Offer_Auto",
+      "errorCount": 1499
+    },
+    {
+      "file": "AZCDG-ARTM-STR-BOQ-0001-R01 ISCG.xlsx",
+      "sheet": "2 - Direct_MH_BoQ",
+      "errorCount": 2
+    }
+  ],
+  "passed": true
+}

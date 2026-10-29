@@ -24,7 +24,7 @@ export type Area =
   | "procure"
 
 export type ProjectStatus = "aktiv" | "gecikir" | "tehvil" | "plan"
-export type InvoiceStatus = "gecikir" | "gonderilib" | "odenilib" | "qaralama"
+export type InvoiceStatus = "legv" | "gecikir" | "gonderilib" | "odenilib" | "qaralama"
 export type AssetStatus = "sahede" | "servis" | "bos" | "icarede"
 export type Ownership = "oz" | "icare"
 export type FuelKind = "dizel" | "benzin"

@@ -46,6 +46,9 @@ const ACCESS: Record<Role, Area[] | ['*']> = {
 };
 
 export const ROUTE_AREAS: Record<string, Area | Area[]> = {
+  'blob-files':['dashboard','supply','finance','acts','people','reports','projects','assets','production','crm'],
+  market:['dashboard','supply','finance','acts','people','reports','projects','assets','production','crm'],
+  'act-workflows':['acts','supply'],
   clients: 'clients',
   projects: 'projects',
   leads: 'crm',

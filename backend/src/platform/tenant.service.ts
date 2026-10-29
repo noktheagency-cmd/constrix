@@ -104,6 +104,7 @@ export class TenantService {
   async audit(ctx: TenantCtx, action: string, detail: string) {
     await this.prisma.auditEntry.create({
       data: {
+        organizationId:ctx.orgId,
         at: new Date().toISOString(),
         actor: ctx.name,
         role: ctx.seat ?? ctx.accountRole,

@@ -1,3 +1,4 @@
+import { SourceWorkbookViewer } from "../components/SourceWorkbookViewer"
 import { Checkbox } from "../components/Checkbox"
 import { Button, Disclosure, Input, Metric, Panel, SearchInput, SectionHeader, StatGrid, TableContainer, Textarea, Toolbar } from "../components/primitives"
 import { usePageTransition } from "../components/PageTransition"
@@ -299,6 +300,7 @@ function setCabinet(key: "name" | "voen" | "legalAddress" | "actualAddress" | "d
 }
 
 type TenderRow = {
+  finalApproverId?:string|null
   id: string
   number: string
   link: string
@@ -633,7 +635,10 @@ function pillClass(tone: "clear" | "wait" | "flag") {
 }
 
 type TenderDesk = {
-  brief?: { summary: string; risks: string[]; papers: string[]; companyYears: number | null; engineerYears: number | null }
+  brief?: { summary: string; risks: string[]; papers: string[]; gear: string[]; companyYears: number | null; engineerYears: number | null }
+  analysis?: {id:string;revision:number;sourceName:string;confirmedAt:string|null}
+  evidence?: {sourceName:string;page:number|null;paragraph:number;excerpt:string;method:string}[]
+  needsReview?:boolean
   checks?: { name: string; fit: Fit; why: string }[]
   staff?: { name: string; profession: string; years: number; confirmed: boolean; fits: boolean }[]
   gear?: { required: string; asset: string; documented: boolean }[]
@@ -641,7 +646,7 @@ type TenderDesk = {
   alerts: string[]
   certs: string[]
   letter: string
-  portal: string
+  portal?: string
 }
 
 export function ETenderPage() {
@@ -660,6 +665,13 @@ export function ETenderPage() {
   const [number, setNumber] = useState(TENDER_CASES[0].number)
   const [docs, setDocs] = useState<{ id: string; name: string; kind: string }[]>([])
   const [desk, setDesk] = useState<TenderDesk | null>(null)
+  const [signatures,setSignatures]=useState<{id:string;role:string;status:Approval;assignedAccountId:string|null;signedBy:string|null;note:string}[]>([])
+  const [signerAccount,setSignerAccount]=useState('')
+  const [members,setMembers]=useState<{name:string;accountId:string}[]>([])
+  const [canConfigure,setCanConfigure]=useState(false)
+  const [chain,setChain]=useState<{role:string;accountId:string}[]>(APPROVALS.map(role=>({role,accountId:''})))
+  const [finalApprover,setFinalApprover]=useState('')
+  const [signNote,setSignNote]=useState('')
   const [paste, setPaste] = useState("")
   const [reading, setReading] = useState(false)
   const selected = cases.find((item) => item.key === active) ?? cases[0]
@@ -717,6 +729,36 @@ export function ETenderPage() {
       .catch(() => { if (alive) setDocs([]) })
     return () => { alive = false }
   }, [])
+
+  useEffect(()=>{
+    if(!live.savedId)return
+    let current=true
+    api<(NonNullable<TenderDesk['analysis']>&{brief:NonNullable<TenderDesk['brief']>;evidence:NonNullable<TenderDesk['evidence']>})[]>(`/api/platform/tenders/${live.savedId}/analyses`).then(rows=>{
+      if(current){const latest=rows[0];setDesk(latest?{analysis:latest,brief:latest.brief,evidence:latest.evidence,needsReview:!latest.confirmedAt,alerts:[],certs:[],letter:''}:null)}
+    }).catch(reason=>{if(current)setError(reason instanceof Error?reason.message:"Tələb tarixçəsi oxunmadı")})
+    return()=>{current=false}
+  },[live.savedId])
+
+  useEffect(()=>{
+    let current=true
+    api<{seat:string;accountId:string;org:{members:{name:string;accountId:string|null}[]}|null}>('/api/platform/me').then(result=>{if(current){setSignerAccount(result.accountId);setCanConfigure(result.seat==='direktor');setMembers((result.org?.members||[]).filter((row):row is {name:string;accountId:string}=>!!row.accountId))}}).catch(()=>undefined)
+    return()=>{current=false}
+  },[])
+  useEffect(()=>{
+    if(!live.savedId){setSignatures([]);return}
+    let current=true
+    api<{tender:Omit<TenderRow,'approvals'>&{approvals:typeof signatures};accountId:string}>(`/api/platform/tenders/${live.savedId}/approval-state`).then(result=>{if(current){setSignatures(result.tender.approvals);setSignerAccount(result.accountId);setFinalApprover(result.tender.finalApproverId||'');if(result.tender.approvals.length)setChain(result.tender.approvals.map(row=>({role:row.role,accountId:row.assignedAccountId||''})))}}).catch(reason=>{if(current)setError(reason instanceof Error?reason.message:'Təsdiqlər oxunmadı')})
+    return()=>{current=false}
+  },[live.savedId])
+
+  async function saveChain(){
+    if(!sourceTender().id)return
+    try{const row=await api<Omit<TenderRow,'approvals'>&{approvals:typeof signatures}>(`/api/platform/tenders/${sourceTender().id}/approval-config`,{method:'POST',body:JSON.stringify({approvals:chain,finalApproverId:finalApprover})});applyTender(row,setNumber);setSignatures(row.approvals);setError('');setNote('Təsdiqçilər təyin edildi. Hər şəxs öz hesabından qərar verir.')}catch(reason){setError(reason instanceof Error?reason.message:'Zəncir saxlanmadı')}
+  }
+  async function signDocument(id:string,status:string){
+    if(!['tesdiq','geri'].includes(status))return
+    try{const row=await api<Omit<TenderRow,'approvals'>&{approvals:typeof signatures}>(`/api/platform/tenders/${sourceTender().id}/approvals/${id}/sign`,{method:'POST',body:JSON.stringify({status,note:signNote})});applyTender(row,setNumber);setSignatures(row.approvals);setError('');setNote('Qərar tarixçəyə yazıldı.')}catch(reason){setError(reason instanceof Error?reason.message:'Qərar saxlanmadı')}
+  }
 
   function applyCase(row: TenderCase) {
     setNumber(row.number)
@@ -821,7 +863,7 @@ export function ETenderPage() {
         setError("Bu fayldan mətn çıxmadı. Mətni aşağıdakı xanaya yapışdırın.")
         return
       }
-      await sendBrief(text)
+      await sendBrief(text,file.name)
     } catch (reason) {
       setNote("")
       setError(reason instanceof ApiError ? reason.message : "Sənəd oxunmadı")
@@ -830,7 +872,7 @@ export function ETenderPage() {
     }
   }
 
-  async function sendBrief(text: string) {
+  async function sendBrief(text: string,sourceName="Daxil edilmiş tender mətni") {
     const source = sourceTender()
     if (!source.id) {
       setNote("")
@@ -841,7 +883,7 @@ export function ETenderPage() {
     try {
       const result = await api<TenderDesk>(`/api/platform/tenders/${source.id}/read`, {
         method: "POST",
-        body: JSON.stringify({ text }),
+        body: JSON.stringify({ text,sourceName }),
       })
       if (result.checks) edit({ checks: result.checks.map((item) => ({ name: item.name, fit: item.fit })) })
       setDesk(result)
@@ -853,6 +895,23 @@ export function ETenderPage() {
     } finally {
       setReading(false)
     }
+  }
+
+  async function reviewRequirements(){
+    if(!desk?.analysis||!desk.brief)return
+    setReading(true)
+    try{
+      const analysis=await api<NonNullable<TenderDesk['analysis']>>(`/api/platform/tenders/${sourceTender().id}/analyses/${desk.analysis.id}/review`,{method:"POST",body:JSON.stringify({brief:desk.brief})})
+      setDesk({...desk,analysis,needsReview:false});setError("");setNote("Tələblər təsdiqləndi. İndi bazayla müqayisə edə bilərsiniz.")
+    }catch(e){setError(e instanceof Error?e.message:"Təsdiq alınmadı")}finally{setReading(false)}
+  }
+  async function compareRequirements(){
+    if(!desk?.analysis)return
+    setReading(true)
+    try{
+      const result=await api<TenderDesk>(`/api/platform/tenders/${sourceTender().id}/analyses/${desk.analysis.id}/compare`,{method:"POST"})
+      setDesk({...result,evidence:desk.evidence});if(result.checks)edit({checks:result.checks.map(item=>({name:item.name,fit:item.fit}))});setError("")
+    }catch(e){setError(e instanceof Error?e.message:"Müqayisə alınmadı")}finally{setReading(false)}
   }
 
   async function refresh() {
@@ -972,12 +1031,9 @@ export function ETenderPage() {
             <span className="muted">{signed}/{live.approvals.length || 4}</span>
           </SectionHeader>
           <Meter value={live.approvals.length ? (signed / live.approvals.length) * 100 : 0} tone="pine" />
-          {live.approvals.map((item) => (
-            <div className="check-row" key={item.role}>
-              <span>{item.role}</span>
-              <Select compact ariaLabel={item.role + " təsdiqi"} value={item.status} onValueChange={(status) => edit({ confirmed: false, approvals: live.approvals.map((row) => row.role === item.role ? { ...row, status: status as Approval } : row) })} options={TENDER_APPROVAL} />
-            </div>
-          ))}
+          {signatures.map((item) => <div className="check-row" key={item.id}><span>{item.role}<small className="muted"> · {members.find(member=>member.accountId===item.assignedAccountId)?.name||'Təyin edilməyib'}</small></span>{item.assignedAccountId===signerAccount?<Select compact ariaLabel={item.role+' qərarı'} value={item.status} onValueChange={status=>void signDocument(item.id,status)} options={TENDER_APPROVAL}/>:<span className={`badge ${item.status==='tesdiq'?'pine':item.status==='geri'?'rose':'gold'}`}>{TENDER_APPROVAL.find(status=>status.value===item.status)?.label||item.status}</span>}</div>)}
+          <label>Qərar / qaytarma qeydi<Textarea value={signNote} onChange={event=>setSignNote(event.target.value)} rows={2}/></label>
+          {canConfigure&&<Disclosure title="Təsdiqçiləri təyin et"><p className="muted">Hər təsdiqçi şirkətin öz hesabından daxil olub qərar verir. Şərt və sənəd dəyişəndə təsdiqlər yenilənir.</p>{chain.map((row,index)=><div className="form-row" key={index}><Input aria-label={`Təsdiq mərhələsi ${index+1}`} value={row.role} onChange={e=>setChain(chain.map((item,i)=>i===index?{...item,role:e.target.value}:item))}/><Select ariaLabel={`${row.role} təsdiqçisi`} value={row.accountId} onValueChange={accountId=>setChain(chain.map((item,i)=>i===index?{...item,accountId}:item))} options={[{value:'',label:'İstifadəçi seçin'},...members.map(member=>({value:member.accountId,label:member.name}))]}/></div>)}<label>Yekun təsdiqçi<Select value={finalApprover} onValueChange={setFinalApprover} options={[{value:'',label:'İstifadəçi seçin'},...members.map(member=>({value:member.accountId,label:member.name}))]}/></label><Button disabled={!live.savedId} onClick={()=>void saveChain()}>Təsdiq zəncirini saxla</Button></Disclosure>}
           <button type="button" className="etender-pack" onClick={() => void confirm()}>
             <Icon name="check" />
             <span>Təsdiqlə və paket hazırla</span>
@@ -1014,6 +1070,15 @@ export function ETenderPage() {
         </div>
         {desk?.brief && (
           <>
+            {desk.analysis && <p>Versiya {desk.analysis.revision} · {desk.analysis.sourceName} · {desk.analysis.confirmedAt&&!desk.needsReview?"İnsan təsdiqi var":"Yoxlama gözləyir"}</p>}
+            <div className="finance-form-grid">
+              <label>Şirkət təcrübəsi, il<Input inputMode="decimal" value={desk.brief.companyYears??""} onChange={e=>setDesk({...desk,needsReview:true,brief:{...desk.brief!,companyYears:e.target.value===""?null:Number(e.target.value)}})} /></label>
+              <label>Mühəndis təcrübəsi, il<Input inputMode="decimal" value={desk.brief.engineerYears??""} onChange={e=>setDesk({...desk,needsReview:true,brief:{...desk.brief!,engineerYears:e.target.value===""?null:Number(e.target.value)}})} /></label>
+              <label>Tələb olunan texnika<Textarea rows={3} value={desk.brief.gear?.join("\n")||""} onChange={e=>setDesk({...desk,needsReview:true,brief:{...desk.brief!,gear:e.target.value.split("\n").filter(Boolean)}})} /></label>
+              <label>Tələb olunan sənədlər<Textarea rows={3} value={desk.brief.papers.join("\n")} onChange={e=>setDesk({...desk,needsReview:true,brief:{...desk.brief!,papers:e.target.value.split("\n").filter(Boolean)}})} /></label>
+            </div>
+            <div className="form-actions"><Button disabled={reading||!desk.analysis} onClick={()=>void reviewRequirements()}>Tələbləri yoxladım və təsdiqləyirəm</Button><Button className="ghost" disabled={reading||!desk.analysis?.confirmedAt||desk.needsReview} onClick={()=>void compareRequirements()}>Bazayla müqayisə et</Button></div>
+            <Disclosure title={`Mənbə çıxarışları · ${desk.evidence?.length||0}`}>{desk.evidence?.map((item,index)=><p key={index}><b>{item.sourceName} · {item.page?`səhifə ${item.page} · `:""}bənd {item.paragraph}</b><br/>{item.excerpt}<small className="muted"> · {item.method}</small></p>)}</Disclosure>
             <p className="lede">{desk.brief.summary}</p>
             {desk.brief.risks.map((item) => <div className="step-row" key={item}><span>Risk</span><strong>{item}</strong></div>)}
             {desk.brief.papers.map((item) => <div className="step-row" key={item}><span>Sənəd</span><strong>{item}</strong></div>)}
@@ -1069,7 +1134,7 @@ type BoqRow = {
   profit: unknown
   vat: unknown
   management: string
-  lines: { sheet: string; name: string; unit: string; qty: unknown; material: unknown; labor: unknown; laborOnly: boolean }[]
+  lines: { id:string;sourceRow?:number|null;confirmed:boolean;source:string;pricedOn:string;stale:boolean;sheet: string; name: string; unit: string; qty: unknown; material: unknown; labor: unknown; laborOnly: boolean }[]
   costs: { kind: string; name: string; amount: unknown }[]
 }
 
@@ -1081,6 +1146,7 @@ function volumeCell(row: Record<string, unknown>, keys: string[]) {
 }
 
 function applyBoq(book: BoqRow) {
+  const sourceImport = book.id === "source-azcdg-boq"
   patch((state) => {
     const savedExtras = book.costs.filter((row) => row.kind === "extra")
     const extras = savedExtras.length
@@ -1105,7 +1171,8 @@ function applyBoq(book: BoqRow) {
         lines: book.lines.map((line) => {
           const prev = state.boq.lines.find((item) => item.sheet === line.sheet && item.name === line.name)
           return {
-            id: prev?.id || uid(),
+            id: line.id || prev?.id || uid(),
+            sourceRow:line.sourceRow,
             sheet: line.sheet,
             name: line.name,
             unit: line.unit,
@@ -1113,10 +1180,10 @@ function applyBoq(book: BoqRow) {
             material: dec(line.material),
             labor: dec(line.labor),
             laborOnly: line.laborOnly,
-            confirmed: prev?.confirmed ?? true,
-            source: prev?.source || "Baza",
-            pricedOn: prev?.pricedOn || "",
-            stale: prev?.stale ?? false,
+            confirmed: line.confirmed,
+            source: line.source || (sourceImport ? "AZCDG Excel · qiymət tarixi təsdiqlənməyib" : "Baza"),
+            pricedOn: line.pricedOn || "",
+            stale: line.stale,
           }
         }),
         indirect: book.costs.filter((row) => row.kind === "indirect").map((row) => ({ id: uid(), name: row.name, amount: dec(row.amount) })),
@@ -1473,7 +1540,9 @@ export function BoqPage() {
         <Button type="button" className="small" onClick={() => void saveBoq()}>Bazaya yaz</Button>
       </PageHead>
       {boqNote && <p className={noteWarn ? "boq-banner warn" : "boq-banner"}>{boqNote}</p>}
-      <Tabs value={view} onChange={setView} options={[{id:"lines",label:"Həcm cədvəli"},{id:"costs",label:"Xərclər"},{id:"resources",label:"Resurslar"},{id:"settings",label:"Parametrlər"}]} />
+      {boq.id === "source-azcdg-boq" && <p className="boq-banner warn">AZCDG mənbəsində formula xətaları var. İdxal sətirləri təsdiqsizdir; qiymət tarixi və ƏDV yoxlanmalıdır. Bütün 9 vərəqə “Excel mənbəsi” tabından baxın.</p>}
+      <Tabs value={view} onChange={setView} options={[{id:"lines",label:"Həcm cədvəli"},{id:"costs",label:"Xərclər"},{id:"resources",label:"Resurslar"},{id:"settings",label:"Parametrlər"},{id:"source",label:"Excel mənbəsi"}]} />
+      {view === "source" && <SourceWorkbookViewer kind="boq" boqId={boq.id} />}
       {view === "settings" && (      <Panel className="pad">
         <SectionHeader>
           <h2>On üç xərc</h2>
@@ -2789,7 +2858,8 @@ export function MarketPage() {
 
   return (
     <div className="market-page">
-      <PageHead kicker="Təchizat" title="Material bazarı" text="Kataloq → RFQ → təklif müqayisəsi → sifariş → qəbul. Məhsul ödənişi tərəflər arasındadır; platforma komissiya tarifi AÇIQ-dır, burada hesablanmır.">
+      <PageHead kicker="Təchizat" title="Material bazarı" text="Daxili material kataloqu. Şirkətlərarası sorğu, sifariş və qəbul üçün açıq Market-dən istifadə edin.">
+        <Link className="btn primary" to="/market">Açıq Market</Link>
         {desk === "katalog" && <Button type="button" onClick={openNew}><Icon name="plus" /> Yeni</Button>}
       </PageHead>
       <Toolbar>

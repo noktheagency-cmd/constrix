@@ -3,10 +3,9 @@ import { createPortal } from "react-dom"
 import { PageTransition } from "./components/PageTransition"
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom"
 import { can } from "./domain/access"
-import { TODAY } from "./domain/ops"
 import { usePrefs, type Lang } from "./i18n"
 import { addDays, dateAZ } from "./format"
-import { Icon } from "./icons"
+import { Icon, type IconName } from "./icons"
 import Login from "./Login"
 import { MODULES, MODULE_NAV, firstModulePath, moduleFromPath, type ModuleId } from "./nav"
 import { kindLabel, showPath, type CompanyKind } from "./procure/engine"
@@ -15,15 +14,19 @@ import { useStore } from "./store"
 import { api } from "./api"
 import { chooseOrg, CompanyGate, loadAccountOrgs, orgKind, orgMark, resetOrgs, useOrgs, type AccountOrg } from "./orgs"
 // shell.tsx
+type NotificationAlert={id:string;to:string;title:string;meta:string;date?:string;icon:IconName;tone:"warning"|"danger"|"info"}
+const notificationDate = (value:string) => dateAZ(/^\d{4}-\d{2}-\d{2}$/.test(value)?value:new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Baku',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(value)))
 const LANGS: Lang[] = ["az", "en", "ru"]
 
 export default function Shell() {
-  const { query, setQuery, notice, materials, invoices, assets, trips, fleetDocs, purchaseOrders, reports, tasks, files, actor, allowed } = useStore()
+  const { query, setQuery, notice, materials, invoices, assets, trips, fleetDocs, purchaseOrders, reports, tasks, files, actor, allowed,loading,loadError,reload } = useStore()
   const procure = useProcure()
   const orgs = useOrgs()
   const companyKind = procure.companies.find((item) => item.id === procure.activeId)?.kind ?? ""
   const { t, theme, toggleTheme, lang, setLang, navOpen, setNavOpen, toggleNav, signedIn, signOut, home, setHome, notices } = usePrefs()
   const [bell, setBell] = useState(false)
+  const [serverNotices,setServerNotices]=useState<{id:string;kind:string;text:string;createdAt:string;dueOn:string|null}[]>([])
+  const [noticeError,setNoticeError]=useState(false)
   const [profile, setProfile] = useState(false)
   const [langs, setLangs] = useState(false)
   const [hideCompany, setHideCompany] = useState(false)
@@ -58,87 +61,104 @@ export default function Shell() {
     if (narrow) setNavOpen(false)
   }, [location.pathname, narrow, setNavOpen])
 
-  const docHorizon = addDays(TODAY, 14)
-  const alerts = [
+  const alertToday = new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Baku',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date())
+  useEffect(()=>{setServerNotices([]);setNoticeError(false)},[signedIn,orgs.activeId])
+  useEffect(()=>{
+    if(!signedIn||!orgs.activeId)return;
+    let active=true;const load=()=>{void api<typeof serverNotices>('/api/platform/notices').then(rows=>{if(active){setServerNotices(rows);setNoticeError(false)}}).catch(()=>{if(active)setNoticeError(true)})};load();const timer=setInterval(load,60000);return()=>{active=false;clearInterval(timer)}
+  },[signedIn,orgs.activeId,bell])
+  const docHorizon = addDays(alertToday, 14)
+  const alerts: NotificationAlert[] = [
+    ...serverNotices.map<NotificationAlert>(item=>({id:`notice:${item.id}`,to:item.text.startsWith('Bazar komiss')?'/market':'/kabinet',title:item.text,meta:item.dueOn?`${t('shell.alertsDue')}: ${notificationDate(item.dueOn)}`:'',date:item.createdAt,icon:item.kind==='odeme'?'invoice':'bell',tone:item.dueOn&&item.dueOn.slice(0,10)<alertToday?'danger':'info'})),
     ...(notices.doc ? fleetDocs : [])
       .filter((item) => item.expires <= docHorizon)
-      .map((item) => ({
+      .map<NotificationAlert>((item) => ({
         id: item.id,
         to: "/aktivler",
         title: t("alert.doc", { name: assets.find((asset) => asset.id === item.assetId)?.name || item.assetId }),
-        meta: dateAZ(item.expires),
+        meta: item.number || item.issuer,
+        date: item.expires, icon: "files", tone: item.expires<alertToday?"danger":"warning",
       })),
     ...(notices.doc ? files : [])
       .filter((item) => item.due && item.due <= docHorizon && item.status !== "tesdiq" && item.status !== "arxiv")
-      .map((item) => ({
+      .map<NotificationAlert>((item) => ({
         id: item.id,
         to: "/senedler",
         title: t("alert.doc", { name: item.title }),
-        meta: dateAZ(item.due),
+        meta: item.client || item.owner,
+        date: item.due, icon: "files", tone: item.due<alertToday?"danger":"warning",
       })),
     ...(notices.task ? tasks : [])
-      .filter((item) => item.status !== "bitdi" && item.due <= TODAY)
-      .map((item) => ({
+      .filter((item) => item.status !== "bitdi" && item.due <= alertToday)
+      .map<NotificationAlert>((item) => ({
         id: item.id,
-        to: "/tapshiriqlar",
+        to: "/sifarisci",
         title: t("alert.task", { name: item.title }),
         meta: item.client || item.owner,
+        date: item.due, icon:"checks", tone:"warning",
       })),
     ...(notices.trip ? trips : [])
       .filter((item) => item.status === "yolda")
-      .map((item) => ({
+      .map<NotificationAlert>((item) => ({
         id: item.id,
         to: "/aktivler",
         title: t("alert.trip", { name: assets.find((asset) => asset.id === item.assetId)?.name || item.assetId }),
         meta: item.to,
+        date:item.date,icon:"truck",tone:"info",
       })),
     ...(notices.service ? assets : [])
-      .filter((item) => item.status !== "servis" && item.nextService <= TODAY)
-      .map((item) => ({
+      .filter((item) => item.status !== "servis" && item.nextService <= alertToday)
+      .map<NotificationAlert>((item) => ({
         id: `${item.id}-service`,
         to: "/aktivler",
         title: t("alert.serviceDue", { name: item.name }),
         meta: item.site,
+        date:item.nextService,icon:"clock",tone:"warning",
       })),
     ...(notices.stock ? materials : [])
       .filter((item) => item.qty < item.min)
-      .map((item) => ({
+      .map<NotificationAlert>((item) => ({
         id: item.id,
         to: "/anbar",
         title: t("alert.low", { name: item.name }),
         meta: t("alert.lowMeta", { qty: item.qty, unit: item.unit }),
+        icon:"boxes",tone:"danger",
       })),
     ...(notices.invoice ? invoices : [])
       .filter((item) => item.status === "gecikir")
-      .map((item) => ({
+      .map<NotificationAlert>((item) => ({
         id: item.id,
         to: "/qaimeler",
         title: t("alert.late", { id: item.id }),
         meta: item.client,
+        date:item.due,icon:"invoice",tone:"danger",
       })),
     ...(notices.service ? assets : [])
       .filter((item) => item.status === "servis")
-      .map((item) => ({
+      .map<NotificationAlert>((item) => ({
         id: item.id,
         to: "/aktivler",
         title: t("alert.service", { name: item.name }),
         meta: item.site,
+        date:item.nextService,icon:"clock",tone:"warning",
       })),
     ...(notices.transit ? purchaseOrders : [])
       .filter((item) => item.status === "yoldadir")
-      .map((item) => ({
+      .map<NotificationAlert>((item) => ({
         id: item.id,
         to: "/techizat",
         title: t("alert.transit", { id: item.id }),
         meta: item.supplier,
+        date:item.eta,icon:"truck",tone:"info",
       })),
     ...(notices.report ? reports : [])
       .filter((item) => item.status === "gonderilib")
-      .map((item) => ({
+      .map<NotificationAlert>((item) => ({
         id: item.id,
         to: "/sahe?tab=gundelik",
         title: t("alert.report", { id: item.id }),
         meta: item.author,
+        date:item.date,icon:"checks",tone:"info",
       })),
   ]
 
@@ -462,23 +482,16 @@ export default function Shell() {
                   {alerts.length > 0 && <em>{alerts.length}</em>}
                 </button>
                 {bell && (
-                  <div className="bell-pop">
-                    <strong>{t("shell.alertsTitle")}</strong>
-                    {alerts.length === 0 && <p>{t("shell.alertsEmpty")}</p>}
-                    {alerts.slice(0, 16).map((alert) => (
-                      <button
-                        key={alert.id}
-                        type="button"
-                        onClick={() => {
-                          setBell(false)
-                          navigate(alert.to)
-                        }}
-                      >
-                        <b>{alert.title}</b>
-                        <span>{alert.meta}</span>
-                      </button>
-                    ))}
-                  </div>
+                  <section className="bell-pop notification-pop" aria-label={t("shell.alerts")}>
+                    <header className="notification-head"><div><strong>{t("shell.alerts")}</strong><small>{t("shell.alertsTitle")}</small></div><span className="notification-count">{alerts.length}</span><button type="button" className="notification-close" aria-label={t("shell.alertsClose")} onClick={()=>setBell(false)}><Icon name="close" /></button></header>
+                    <div className="notification-list" tabIndex={0} role="region" aria-label={t("shell.alerts")}>
+                      {alerts.length === 0 && <div className="notification-empty"><Icon name={loading?'clock':'check'}/><p>{t(loading?'shell.dataLoading':'shell.alertsEmpty')}</p></div>}
+                      {noticeError&&<p className="notification-sync-error" role="status">{t('shell.alertsSyncError')}</p>}
+                      {alerts.map(alert=><NavLink key={`${alert.to}:${alert.id}`} className={`notification-item notification-${alert.tone}`} to={alert.to} onClick={()=>setBell(false)}>
+                        <span className="notification-icon"><Icon name={alert.icon}/></span><div className="notification-copy"><b>{alert.title}</b>{alert.meta&&<span className="notification-meta">{alert.meta}</span>}{alert.date&&<time dateTime={alert.date}><Icon name="calendar"/>{notificationDate(alert.date)}</time>}</div>
+                      </NavLink>)}
+                    </div>
+                  </section>
                 )}
               </div>
               <div className="bell-wrap">
@@ -535,7 +548,7 @@ export default function Shell() {
             </div>
           </header>
           <PageTransition transitionKey={`${location.pathname}:${new URLSearchParams(location.search).get("offer") ?? ""}:${new URLSearchParams(location.search).get("order") ?? ""}`}>
-            {locked.includes(moduleId) ? (
+            {loading ? <div className="page-loading" role="status"><Icon name="clock"/><strong>{t('shell.dataLoading')}</strong></div> : loadError ? <div className="page-loading" role="alert"><p>{loadError}</p><button type="button" className="btn primary" onClick={reload}>{t('shell.dataRetry')}</button></div> : locked.includes(moduleId) ? (
               <p className="form-error">Bu modul abunə ödənilənə qədər bağlıdır. Abunə səhifəsindən paket seçib ödəniş sənədini qeyd edin.</p>
             ) : (
               <Outlet key={orgs.activeId || "none"} />

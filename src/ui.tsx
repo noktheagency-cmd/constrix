@@ -276,7 +276,7 @@ export function Select({
   const current = value !== undefined ? value : inner
   const flat = [...options, ...(groups?.flatMap((group) => group.options) ?? [])]
   const known = flat.some((option) => option.value === current)
-  const radixValue = known ? (current === "" ? EMPTY : current) : undefined
+  const radixValue = known ? (current === "" ? EMPTY : current) : ""
 
   function change(next: string) {
     const plain = next === EMPTY ? "" : next

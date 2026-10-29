@@ -792,7 +792,7 @@ export function actSettlement(state: Pick<AppState, "contracts" | "invoices">, a
   const retention = roundMoney(act.net * (retentionPct / 100))
   const advance = advancePaid ? Math.min(Math.max(0, advancePool - recovered), roundMoney(act.net * (advancePct / 100))) : 0
   const net = Math.max(0, act.net - retention - advance)
-  const vat = roundMoney(net * (contract?.vat || VAT))
+  const vat = roundMoney(net * (contract?.vat ?? VAT))
   return { contract, advancePct, retentionPct, advance, retention, net, vat, payable: net + vat }
 }
 
@@ -899,7 +899,7 @@ export function createForma3(state: AppState, projectId: string, kind: Forma3Kin
   const remainValue = roundMoney(lines.reduce((sum, line) => sum + line.remainValue, 0))
   const advancePct = contract?.advancePct ?? 0
   const retentionPct = contract?.retentionPct ?? 0
-  const vatRate = contract?.vat || VAT
+  const vatRate = contract?.vat ?? VAT
   const advancePool = contract ? roundMoney(contract.value * (advancePct / 100)) : 0
   const recovered = state.invoices
     .filter((item) => item.project === project.name && item.actId)

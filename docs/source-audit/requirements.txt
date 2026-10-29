@@ -1,0 +1,429 @@
+CONSTRIX
+İNŞAAT ERP + CONSTRIX MARKET
+Proqramçı və layihə komandası üçün funksional-texniki tapşırıq
+Versiya: 1.0  |  Tarix: 17.10.2026  |  Status: razılaşdırılmış qərarların konsolidasiyası
+Sənədin məqsədi: istifadəçi ilə razılaşdırılmış modulların, ekranların, məlumat axınlarının, icazələrin, AI davranışının, hesabatların, istisnaların və test meyarlarının icra üçün bir mənbədə verilməsi. Təsdiqlənməmiş məsələlər açıq qərarlar reyestrində göstərilir; proqramçı onları özbaşına biznes qaydasına çevirməməlidir.
+0. Oxuma qaydası və icra sərhədləri
+İşarə
+Mənası
+TƏSDİQ
+İstifadəçi tərəfindən razılaşdırılmış davranış; icrası tələb olunur.
+TEXNİKİ TƏKLİF
+Etibarlılıq və təhlükəsizlik üçün təklif olunan implementasiya; biznes qaydası deyilsə layihələndirmə zamanı tətbiq oluna bilər.
+AÇIQ
+İstifadəçi tərəfindən təsdiqlənməmiş parametr və ya hüquqi/inteqrasiya seçimi; proqramçı təxmin etməməlidir.
+Qeyd: Mövcud platformanın bütün mənbə kodu, verilənlər bazası sxemi, canlı API-ləri və ekranların tam dəsti bu sənəd hazırlanarkən əldə deyildi. Buna görə aşağıdakı mətn təsdiqlənmiş funksional tələbləri konkretləşdirir, lakin kod bazasına aid faktları və görülməmiş ekranları təsdiqlənmiş kimi göstərmir.
+1. Məhsulun hədəfi və ümumi arxitektura
+Bulud əsaslı, brauzerdən işləyən çoxşirkətli (multi-tenant) inşaat ERP-si; ən azı 5 daxili istifadəçi, filiallar, ofis, sahə, anbar və mobil istifadə ssenariləri.
+İki ayrı məntiqi məhsul: şirkətdaxili CONSTRIX ERP və ERP abunəliyi tələb etməyən açıq B2B CONSTRIX MARKET. Hesablar inteqrasiya oluna bilər, lakin məxfi ERP məlumatları avtomatik paylaşılmır.
+Əsas ERP naviqasiyası: İcmal; Layihələr; Sahə idarəetməsi; İş həcmləri və aktlaşdırma; Təchizat (Sifariş, Anbar, Bazar); Tender; Maliyyə; Davamiyyət/HR; Tapşırıqlar; İdarəetmə və bildirişlər. Son naviqasiya istifadəçi rollarına görə görünməlidir.
+Serverdə tenant, layihə, obyekt/ev, anbar, sənəd və əməliyyat səviyyəsində icazələr yoxlanılır. API vasitəsilə başqa şirkətin məlumatına çıxış mümkün olmamalıdır.
+Bütün maliyyə və miqdar dəyişikliklərində audit, tarix, istifadəçi, əvvəlki/yeni dəyər, əsaslandırma və sənəd əlaqəsi saxlanılır.
+1.1. Əsas obyektlər və əlaqələr
+Obyekt
+Əsas sahələr və əlaqə
+Şirkət
+VÖEN, hüquqi ad, status, əlaqələr, filiallar, rollar
+Layihə
+Şirkət, sifarişçi, ünvan, müddət, büdcə, status
+Obyekt / ev / bölmə
+Layihə daxilində iyerarxiya, müqavilə və smeta sətirləri
+Material
+Vahid kataloq ID, texniki atributlar, sertifikatlar, marka/model/istehsalçı/mənşə
+RFQ / təklif / sifariş
+Alıcı, təchizatçı, sətirlər, versiyalar, şərtlər, sənədlər
+Çatdırılma / qəbul
+Sifariş, miqdar, qəbul edən, anbar, sənədlər, mübahisə
+Komissiya borcu
+Qəbul ID, şirkət rolu, baza, dərəcə, məbləğ, ödəmə, status
+Tender / tələb / BOQ
+Mənbə sənəd, səhifə, təsdiq, resurs, qiymət, zəmanət
+Nakopitel / F2 / F3
+Layihə/obyekt, smeta sətri, dövr, miqdar, akt, versiya
+2. İnterfeys və naviqasiya üzrə düzəlişlər №1–№5
+2.1. №1 — Şirkət kabineti
+TƏSDİQ: İnşaat → Kabinet adlı ayrıca menyu çıxarılır. Şirkət kabinetinə sağ yuxarıdakı Admin/profil sahəsindən daxil olunur.
+Şirkət rekvizitləri: hüquqi ad, VÖEN, ünvan, direktor, əlaqə məlumatları və istifadəçi rolları qorunur.
+Kabinetin açılması rol və səlahiyyətlərə uyğun olmalıdır; menyunun çıxarılması məlumatların silinməsi demək deyil.
+Profil pəncərəsi/dropdown və ya ayrıca səhifə kimi dəqiq UI forması AÇIQ-dur.
+İş nümunəsi
+Admin profilinə klik → “Şirkət kabineti” → rekvizitlərin görünməsi və icazəli redaktəsi.
+Qəbul meyarları
+Sol menyuda ayrıca Kabinet görünmür; mövcud şirkət məlumatları profil yolu ilə əlçatandır.
+2.2. №2 — Hava məlumatları
+TƏSDİQ: Hava ayrıca modul olmayacaq, İcmal panelinə inteqrasiya edilir.
+Cari hava və qısa proqnoz İcmalda göstərilir.
+İşin hava səbəbi ilə dayanması yalnız səlahiyyətli əməkdaşın qeydi ilə təsdiqlənir; hava API-si avtomatik iş dayandırmır.
+Dayanma qeydi layihə/sahə, tarix, səbəb, müddət və qeyd edən şəxsə bağlanır.
+İş nümunəsi
+Yağış proqnozu görünsə belə iş “dayanıb” statusuna keçmir; sahə rəisi səbəb və vaxtla qeyd yaradır.
+2.3. №3 — Material pasportları
+TƏSDİQ: İnşaat → Pasport menyusu çıxarılır; pasport və sertifikatlar Təchizat → Anbar material kartlarına köçürülür.
+Material kartında texniki pasport, uyğunluq sertifikatı, istehsalçı sənədi, qüvvədə olma tarixi və fayl önbaxışı.
+Materialın bir neçə sənədi və versiyası ola bilər; sənəd tarixçəsi qorunur.
+İstəyə görə sənədlər reyestri və bitmə tarixləri üzrə filtr.
+İş nümunəsi
+Armatur material kartı → Sertifikatlar → 2026 partiyası üzrə uyğunluq sənədi PDF.
+2.4. №4 — Spesifikasiya və uyğunluq
+İlkin təhlil: mövcud ümumi 9 bölməli sənəd yoxlama siyahısı texniki spesifikasiya ilə eyni anlayış deyil. Layihə səviyyəsinə köçürülmə təklif edilib, lakin yekun təsdiq AÇIQ-dur.
+TƏKLİF: Layihələr → [Layihə] → Sənədlər və uyğunluq; burada layihə üzrə sənədlər, yoxlama statusları, məsul şəxslər, son tarixlər.
+Texniki spesifikasiya ayrıca strukturda: iş/material parametrləri, norma və müqavilə tələbləri, versiyalar.
+Miqrasiya zamanı mövcud sənəd və yoxlama tarixçəsi itirilməməlidir.
+Qəbul meyarları
+Bu modulun yekun yerləşməsi təsdiqlənənədək əvvəlki məlumatlar silinməməlidir.
+2.5. №5 — Sahə idarəetməsi
+TƏSDİQ: “Sahə” və “Gündəlik” vahid “Sahə idarəetməsi” modulunda birləşdirilir.
+Layihə/sahə üzrə iş mərhələləri, briqadalar, texnika, gündəlik gedişat və gündəlik hesabatlar.
+Briqadir hesabatı: tarix, layihə/obyekt, görülən iş, qeydlər, çoxsaylı foto, briqada, işçi sayı və işçilərin adları.
+İşçi adları HR bazasından seçilə bilir; əl ilə daxil etmə istisnası auditlə.
+Sahə rəisi hesabatı yoxlayır və qaytara/təsdiqləyə bilir (təsdiq mərhələsinin dəqiq məcburiliyi layihə konfiqurasiyasıdır).
+Gündəlik hesabatın yazılması avtomatik olaraq layihənin faiz irəliləyişini dəyişmir.
+İş nümunəsi
+Briqadir 17.10 tarixində “Hasar hörgüsü 24 m²”, 6 işçi və 4 foto daxil edir; rəhbər yoxlayır. İrəliləyiş faizi ayrıca ölçülmüş iş həcmi ilə təsdiqlənir.
+Qəbul meyarları
+Eyni tarixə çox hesabat mümkündür; foto və işçi siyahısı saxlanılır; faiz özbaşına dəyişmir.
+3. №6 — İş həcmləri və aktlaşdırma: Nakopitel → Forma-2 → Forma-3
+TƏSDİQ: Üç funksiya vahid “İş həcmləri və aktlaşdırma” modulunda işləyir. İyerarxiya: Layihə → Obyekt/ev → Bölmə/iş sətri → Nakopitel → Forma-2 → Forma-3.
+Smeta/müqavilə Excel-dən idxal olunur və sətirlər əl ilə də daxil/redaktə edilə bilər. İdxal zamanı sütun uyğunlaşdırma, vahid yoxlaması, dublikat sətirlər və səhv dəyərlər üçün önbaxış tələb olunur.
+Hər iş sətri: kod, təsvir, ölçü vahidi, müqavilə miqdarı, vahid qiymət, müqavilə məbləği, təsdiqlənmiş dəyişikliklər və obyekt/bölmə əlaqəsi.
+Nakopitel: əvvəlki dövrlər, cari dövr, yığılan miqdar/məbləğ, müqavilə qalığı; təsdiqlənmiş aktlarla izləniş.
+Forma-2 seçilmiş hesabat dövrü üçün bir evə və ya seçilmiş evlərin konsolidasiyasına görə yaradılır. Eyni iş həcmi iki dəfə aktlaşdırıla bilməz.
+Forma-3 bir və ya bir neçə təsdiqlənmiş Forma-2-dən hazırlanır; mənbə aktları görünür.
+İdxal olunmuş müqavilə baza versiyası dəyişdirildikdə köhnə aktlar səssiz dəyişmir; dəyişiklik ayrıca təsdiq/versiya kimi saxlanılır.
+Excel/PDF ixracı, sənəd önbaxışı, statuslar: layihə, yoxlamada, təsdiqlənib, ləğv/düzəliş.
+3.1. Hesablama nümunəsi
+Göstərici
+Miqdar
+Məbləğ (AZN)
+Müqavilə
+100 m² × 25
+2 500
+Əvvəlki aktlar
+30 m²
+750
+Cari Forma-2
+20 m²
+500
+Yığılmış
+50 m²
+1 250
+Qalıq
+50 m²
+1 250
+Formula: yığılmış = əvvəlki təsdiqlənmiş + cari təsdiqlənən; qalıq = təsdiqlənmiş müqavilə limiti − yığılmış. Qəbul testində eyni 20 m² başqa F2-yə daxil edilərsə sistem xəbərdarlıq etməli və dublikatı bloklamalıdır.
+4. Tender modulu — №7–№10
+4.1. №7 — AI ilə tender tələblərinin çıxarılması
+TƏSDİQ: Tenderə həm PDF/DOCX/XLSX faylları, həm də tender linkləri əlavə edilə bilər.
+AI avadanlıq, işçi heyəti, ixtisas, hüquqi sənədlər, maliyyə göstəriciləri, təcrübə, tarixlər, zəmanətlər və BOQ tələblərini çıxarır.
+Hər çıxarılan tələb mənbə fayl/link, səhifə/bənd, çıxarış və etimad göstəricisi ilə təqdim edilir.
+İnsan çıxarılmış tələbləri redaktə və təsdiq edir; yalnız sonra “Bazayla müqayisə et” düyməsi aktiv olur.
+Müqayisə HR, texnika/aktivlər, sənədlər, maliyyə, layihə təcrübəsi, texniki göstəricilər və mövcudluq tarixləri ilə aparılır.
+Nəticə: uyğundur, uyğun deyil, çatışmır, məlum deyil; hər uyğunsuzluq üçün səbəb və aradan qaldırma addımı.
+Sənəd dəyişəndə əvvəlki AI nəticəsi versiya ilə qalır; yenidən təsdiq tələb olunur.
+İş nümunəsi
+Tender sənədində “2 ekskavator, 1 mühəndis, 90 gün etibarlı bank zəmanəti” şərti tapılır; istifadəçi təsdiqləyir; sistem 1 ekskavatoru çatışmayan kimi göstərir.
+Qəbul meyarları
+Təsdiq olmadan baza müqayisəsi başlamır; AI mənbəsiz tələb uydurmur.
+4.2. №8 — Tender BOQ və AI qiymətləndirməsi
+TƏSDİQ: Müştərinin Excel BOQ şablonu əsas çıxış formatıdır.
+BOQ iş adı, miqdar və vahid üzrə oxunur; AI material, əmək, mexanizm, logistika, əlavə xərc, mənfəət və vergi komponentlərini təklif edir.
+Hər işə bir neçə resurs bağlana bilər. Resurs sərfi təsdiqlənmiş normativ bazadan və əvvəlki layihələrin faktiki sərfindən götürülür; fərq görünür.
+Marka, Model, İstehsalçı, Mənşə ölkəsi əvvəl daxili kataloqdan, sonra yoxlanmış istehsalçı mənbəsindən təklif olunur; sübutsuz atribut uydurulmur.
+Qiymət mənbələri: tarixi satınalma və cari təchizatçı təklifləri. Valyuta, ƏDV, çatdırılma, vahid, etibarlılıq, tarix və texniki uyğunluq normallaşdırılır.
+AI qiymət təklif edir, istifadəçi dəyişə bilir; problemsiz sətirlər kütləvi təsdiqlənir, problemli sətirlər ayrı baxılır. Təsdiqdən sonra dəyişiklik yenidən təsdiq tələb edir.
+İxrac yalnız müştərinin orijinal Excel şablonunun surətinə edilir; mövcud sheet/formul/format mümkün qədər saxlanır. Çatışmayan Marka/Model/İstehsalçı/Mənşə sütunları avtomatik əlavə edilir; şablonun dəyişdirilməsi qadağandırsa xəbərdarlıq və önbaxış.
+Müştəriyə çıxan faylda daxili gizli mənfəət marjası və məxfi təchizatçı alış detalları ifşa olunmur.
+İş nümunəsi
+Smeta sətri “Armatur quraşdırılması 12 ton” → AI armatur, montaj briqadası, qaldırıcı mexanizm və nəqliyyat resurslarını təklif edir → qiymət mənbələri müqayisə edilir → təsdiqlənmiş sətir müştəri Excel-inə yazılır.
+4.2.1. Qiymət aktuallığı (administrator dəyişə bilir)
+Kateqoriya
+İlkin maksimum yaş
+Yanacaq
+60 gün
+Armatur / metal
+30 gün
+Sement
+60 gün
+Boya / üzlük
+30 gün
+Elektrik / santexnika
+15 gün
+Xüsusi avadanlıq
+60 gün
+Digər
+30 gün
+Aktuallıq müddətini aşmış qiymət “köhnə” kimi işarələnir; yeni qiymət tapılmadıqda avtomatik etibarlı kimi göstərilmir.
+4.3. №9 — Tender zəmanətləri və bank öhdəlikləri
+TƏSDİQ: Tenderlə bağlı zəmanətlər, komissiyalar, bank ödəniş qrafiki və girovlar Maliyyə ilə əlaqəli idarə edilir.
+Bir tenderdə bir neçə bank zəmanəti ola bilər; bank, növ, nominal, başlanğıc/bitmə, status, uzadılma, bağlanma, sənədlər.
+Zəmanətin nominal məbləği faktiki bank borcu deyil; bloklanmış pul, girov, bank komissiyası və faktiki kredit/borc ayrı uçot sahələridir.
+AI bank zəmanəti, müqavilə və qrafikdən məlumat çıxarır; insan düzəldib təsdiqləmədən reyestrə yazılmır.
+Bank ödənişi və zəmanət bitmə tarixlərinə 30, 15, 7, 1 gün qalmış bildiriş; gecikmə ayrıca; ödənildikdə və ya müddət uzadıldıqda xatırlatmalar yenilənir.
+Maliyyə modulunda eyni öhdəlik təkrar yaradılmır; zəmanət və faktiki borc ayrı hesablanır.
+İş nümunəsi
+100 000 AZN bank zəmanəti, 5 000 AZN bloklanmış vəsait, 600 AZN komissiya: 100 000 AZN avtomatik bank borcu kimi göstərilmir.
+4.4. №10 — Tender sənədlərinin yoxlanması və təsdiqi
+TƏSDİQ: Yoxlama yalnız tenderə aid sənədlər üçündür, şirkət üzrə universal yoxlama modulu deyil.
+Tender şərtləri, BOQ, texniki/maliyyə təklif, zəmanət, hüquqi sənəd, heyət/texnika sənədləri və sertifikatlar yoxlanılır.
+Digər moduldakı sənədlərə link verilə bilər; eyni sənədin təkrar yüklənməsi məcburi deyil.
+AI ilkin yoxlama aparır, insan sənəd üzrə təsdiq edir. Hər tender üçün ayrıca sənəd təsdiqçiləri, mərhələlər və qaytarma hüquqları təyin olunur.
+Hər tender üçün ayrıca yekun təsdiqçi təyin edilir; bu şəxs mütləq təsisçi olmaq məcburiyyətində deyil, lakin icazəli olmalıdır.
+Məcburi sənədlər təsdiqlənmədən yekun təsdiq mümkün deyil; təsdiqlənmiş qiymət/sənəd dəyişdikdə yenidən təsdiq lazımdır.
+“Təqdimata hazır” statusu “Təqdim edilib” demək deyil; faktiki təqdimetmə ayrıca qeyd və sübutla aparılır.
+İş nümunəsi
+Maliyyə təklifi dəyişir → sənəd təsdiqi qüvvədən düşür → yenidən yoxlama → yekun təsdiq → təqdimetmə tarixi və portal qəbzi.
+5. Təchizat və Anbar (ERP)
+Sahə rəisi tələbi anbardar və ya sistem vasitəsilə öz adına göndərir → təsisçi redaktə və təsdiq edir → satınalma/təchizat icraya götürür. Təsisçi icazələri istənilən vaxt dəyişə bilər.
+Gələn materiallar əvvəl qəbul sənədi ilə qeydə alınır: məhsul, miqdar, vahid, qiymət, mənbə/təchizatçı, avtomobil nömrəsi, layihə, sahə rəisi və ya “ümumi”, tarix, imzalı qaimə/akt.
+Anbardarın gündəlik ekranında əsasən məhsul adı və miqdar görünür; qiymət və təchizatçı detalları icazəli rəhbərlik üçün əlçatandır.
+Hər sifarişə aid akt və qaimələr həmin sifariş kartında əlaqəli görünür; sənədlərin önbaxışı və arxivi mövcuddur.
+Anbar qalığı yalnız təsdiqlənmiş faktiki qəbuldan artır; geri qaytarma və köçürmələr ayrı əməliyyatlardır.
+Sifariş, çatdırılma, qəbul, anbar qalığı, maliyyə öhdəliyi və faktiki ödəniş fərqli statuslar kimi saxlanılır.
+6. Maliyyə, Davamiyyət, Tapşırıqlar, İcmal
+6.1. Maliyyə
+ERP daxilolma və xaricolmaların, nağd və bank kassalarının, layihə debitorlarının və şirkətin borclarının uçotunu aparır.
+Nağd kassa və bank hesabları ayrı reyestr və qalıqlarla.
+Layihələrdən gözlənilən ödənişlər: müqavilə, gözlənilən tarix, alınmış və qalıq.
+Şəxs/şirkət kartında borcun məbləği ilə yanaşı yaranma səbəbi və əlaqəli sənəd görünür.
+Zəmanət, bank borcu, girov və marketplace komissiyası ayrıca uçot kateqoriyalarıdır.
+Maliyyə qeydi silinmədən əks əməliyyat və auditlə düzəldilir.
+6.2. Davamiyyət və HR
+Ofis və sahə əməkdaşları, vəzifələr, layihə təyinatları və davamiyyət.
+Sahə gündəliklərində əməkdaşlar HR bazasından seçilir.
+Ofis/sahə davamiyyəti tarix, işçi, məkan və statusla qeyd edilir.
+Tenderdə heyət uyğunluğunun yoxlanması üçün icazəli ixtisas və sənəd məlumatları istifadə olunur.
+6.3. Tapşırıqlar və bildirişlər
+Layihə və modul hadisələri üzrə məsul şəxs, son tarix, status, şərh və fayl əlaqəsi.
+Bildiriş mərkəzi; tapşırıq və təsdiq gözləyən əməliyyatlara keçid.
+Layihə, anbar, tender və maliyyə üzrə icazə əsasında filtr.
+6.4. İcmal və nəqliyyat/yanacaq
+Layihələrin ümumi vəziyyəti və rəhbərlik üçün göstəricilər.
+Şirkət avtomobilləri və texnikası üçün dashboard kartı (ayrıca modul tələb olunmur).
+Yanacaq kartı qalıqları, aylıq ümumi xərclər və aylıq tarixçə.
+Tarixi orta sərfiyyat əsasında növbəti ay üçün təxmini yanacaq ehtiyacı; proqnoz faktiki sifariş deyil.
+Hava və işin dayanması qeydləri İcmalda göstərilir.
+7. №11 — CONSTRIX MARKET: açıq B2B platforma
+7.1. İştirakçı və qeydiyyat
+TƏSDİQ: Bütün tikinti şirkətləri və təchizatçılar marketplace-ə ERP abunəliyi olmadan qoşula bilər.
+İctimai kataloqda məhsul axtarışı və baxışı girişsiz mümkündür.
+RFQ, təklif və sifariş üçün şirkət VÖEN-i və hüquqi sənədləri moderator tərəfindən yoxlanılmalı, aktiv status verilməlidir.
+Təchizatçı təsdiqlənmədən kommersiya təklifi göndərə bilməz; alıcı təsdiqlənmədən RFQ yarada bilməz.
+Statuslar: gözləyir, düzəliş tələb olunur, təsdiqlənib, dayandırılıb, rədd edilib. Təkrar VÖEN yoxlaması.
+Şirkət daxilində işçi rolları və səlahiyyətlər; şirkətin bir sifarişdə alıcı, digərində təchizatçı olması mümkündür.
+7.2. Vahid kataloq və məhsul moderasiyası
+TƏSDİQ: Eyni texniki məhsulun vahid kartı, bir neçə təchizatçı təklifi.
+Təchizatçı əvvəl mövcud kataloqda axtarır; tapmasa yeni məhsul təklif edir.
+AI dublikat və oxşarlıq yoxlayır; birləşdirməni insan moderator təsdiqləyir. Texniki cəhətdən fərqli məhsullar birləşdirilmir.
+Məhsul kartında marka, model, istehsalçı, mənşə ölkəsi, ölçü/vahid, texniki xüsusiyyətlər, sertifikatlar.
+Təchizatçı könüllü olaraq mövcudluq statusu, təxmini miqdar və təminat müddəti bildirir; bu stok zəmanəti deyil. Son yenilənmə görünür.
+Neytral sıralama: məhsul uyğunluğu, çatdırılma bölgəsi və məlumat aktuallığı; ulduz, bal, müştəri reytinqi və ödənişli üstünlük yoxdur.
+7.3. RFQ və kommersiya təklifləri
+TƏSDİQ: Yalnız qiymət sorğusu modeli; ictimai sabit qiymət və ani checkout yoxdur.
+Alıcı bir neçə məhsul, miqdar, ünvan, tələb olunan tarix, texniki sənəd, PDF/Excel əlavələri ilə RFQ yaradır.
+RFQ qapalı (seçilmiş təchizatçılar) və ya açıq (kateqoriya/bölgə üzrə uyğun təchizatçılar) ola bilər.
+Təchizatçı RFQ-yə tam və ya qismən təklif verə bilər; digər təchizatçıların qiymətini görə bilməz.
+AI təklifləri ƏDV, vahid, çatdırılma, ödəniş şərti, müddət, texniki uyğunluq, ümumi təhvil dəyəri əsasında müqayisə edir; çatışmazlığı və sübutu göstərir.
+Qalibi yalnız alıcı seçir. Seçilmiş təklifdən sifariş yaradılır, təchizatçı təsdiqləyir.
+Tarixi kommersiya təklifləri məxfi saxlanır; tender AI yalnız icazəli şirkət məlumatından istifadə edir.
+İş nümunəsi
+500 kisə sement üçün açıq RFQ → 3 təchizatçı təklif verir → AI çatdırılma və ƏDV ilə müqayisə edir → alıcı seçir → PO yaradılır.
+7.4. Yazışma və sənədlər
+TƏSDİQ: Həm platformadaxili çat/sənəd mübadiləsi, həm birbaşa telefon/e-poçt.
+Hər RFQ və sifarişin ayrıca söhbət tarixçəsi, fayl əlavələri, bildirişləri var.
+Çatda deyilən qiymət avtomatik rəsmi sifariş qiymətini dəyişmir; yenilənmiş kommersiya təklifi və alıcı qəbulu tələb olunur.
+Telefon danışığı ayrıca qeyd oluna bilər, lakin özü rəsmi təsdiq sayılmır.
+7.5. Çatdırılma, qəbul və mübahisə
+TƏSDİQ: Daşımanı razılaşmaya görə alıcı və ya təchizatçı təşkil edir.
+Sifarişdə daşıma məsulu, xərcin ödəyicisi, məbləğ, ünvan, müddət, təhvil şərtləri və mövcud olduqda avtomobil nömrəsi.
+Qismən və çoxmərhələli çatdırılma, qaimə, akt, şəkil və digər sübutlar.
+Elektron qəbul yalnız alıcının səlahiyyətli əməkdaşı tərəfindən; səlahiyyət layihə, anbar və məbləğ limiti ilə məhdudlaşdırılır.
+Sənədin məcburiliyi kateqoriya/sifariş növünə görə administrator tərəfindən dəyişdirilir; qəbulun dəyişdirilməz audit izi.
+Çatışmazlıq, zədə, uyğunsuzluq üçün mübahisə: əvvəl tərəflər, sonra CONSTRIX moderatoru. Moderator hüquqi məcburi qərar vermir.
+Mübahisəsiz qəbul olunmuş hissə üzrə komissiya yaranır; mübahisəli hissə yekun təsdiqədək gözləyir.
+İş nümunəsi
+100 kisə göndərilib, 95 qəbul edilib, 5 mübahisəlidir: 95 kisənin dəyəri üzrə komissiya yaranır; qalan 5 üzrə yaranmır.
+7.6. İkitərəfli komissiya və çevik tariflər
+TƏSDİQ: Həm alıcı, həm təchizatçı komissiya ödəyir; yalnız faktiki qəbul edilmiş dəyər üzrə.
+Alıcı və təchizatçı faizləri ayrı; standart, kateqoriya, şirkət və xüsusi müqavilə üzrə administrator istisnaları.
+TƏKLİF olunan prioritet: xüsusi müqavilə → şirkət → kateqoriya → standart. Bu prioritet əvvəl təklif edilmiş, ayrıca düymə ilə təsdiqlənməmişdir.
+Qəbul anında tətbiq edilmiş dərəcə və baza saxlanılır; sonrakı tarif dəyişikliyi əvvəlki hesablamanı dəyişmir.
+Qaytarma və düzəlişlərdə ilkin qeyd silinmir, əks/düzəliş əməliyyatı yaranır.
+Məhsul ödənişi alıcı ilə təchizatçı arasında birbaşadır; platformanın komissiyası ayrıca öhdəlikdir.
+Komissiya bank köçürməsi (qəbz + maliyyə təsdiqi) və onlayn ödəniş provayderi ilə ödənilir; provayder uğur təsdiqi olmadan borc azalmır.
+Hər qəbul üzrə borc yaranır, şirkət üzrə aylıq birləşdirilmiş hesablaşma sənədi verilir; bu sənəd 7 günlük ödəniş müddətini uzatmır.
+Borclar üçün standart: yaranmadan 7 gün ödəniş, 15-ci gün əlavə xəbərdarlıq, 30-cu gün yeni əməliyyat məhdudiyyəti; administrator müddətləri dəyişir. Mövcud sifarişlər açıq qalır.
+Borc, ödəniş, qalıq, möhlət, məhdudiyyət, bərpa və audit ayrı saxlanılır.
+İş nümunəsi
+30 000 AZN faktiki qəbul, nümunə alıcı 1%, təchizatçı 2% → alıcı 300 AZN, təchizatçı 600 AZN. Bu faizlər NÜMUNƏDİR, təsdiqlənmiş tarif deyil.
+7.6.1. Komissiya hesabının nümunə reyestri
+Tarix
+Qəbul
+Komissiya
+Son ödəmə
+03.10.2026
+10 000 AZN
+100 AZN (nümunə 1%)
+10.10.2026
+12.10.2026
+25 000 AZN
+250 AZN
+19.10.2026
+21.10.2026
+15 000 AZN
+150 AZN
+28.10.2026
+Aylıq yekun 500 AZN; ayrı-ayrı borcların ödəniş tarixləri saxlanılır. Əvvəl ödənmiş sətirlər ikinci dəfə borc kimi təqdim edilmir.
+7.7. Bildirişlər və PWA
+TƏSDİQ: Platformadaxili bildiriş + e-poçt + vacib hadisələrdə SMS; mobil veb və PWA.
+RFQ, təklif, sifariş, çatdırılma, qəbul, mübahisə, komissiya borcu və məhdudiyyət hadisələri üçün bildirişlər.
+İstifadəçi qeyri-məcburi kanalları seçir; SMS limit və xərc nəzarəti.
+Mobil veb telefon/planşetə uyğun, PWA ana ekrana əlavə edilə bilir; ilkin mərhələdə ayrıca Android/iOS tətbiqi yoxdur.
+Kritik təsdiq və maliyyə əməliyyatları internet əlaqəsi olmadan yekunlaşdırılmır; təkrar göndəriş dublikat yaratmır.
+7.8. ERP inteqrasiyası
+TƏSDİQ: Marketplace sifarişi ERP Təchizat modulunda ilkin layihə qeydidir.
+ERP səlahiyyətli əməkdaşı layihə, obyekt, xərc mərkəzi və anbarı seçib təsdiqləyir.
+Faktiki qəbuldan sonra Anbar və Maliyyə ilə əlaqəli uçot yaradılır; eyni sifariş təkrar ötürülmür.
+ERP-yə bağlı olmayan marketplace şirkəti müstəqil işləyir.
+Daxili maya dəyəri, marja və digər məxfi ERP məlumatları marketplace-ə çıxmır.
+7.9. Məlumat məxfiliyi
+TƏSDİQ: Sərt tenant ayrılığı, minimum zəruri admin girişi, həssas baxış auditi.
+İctimai məhsul kataloqu açıq; qapalı RFQ yalnız dəvətlilərə; açıq RFQ uyğun təchizatçılara, məxfi sahələr qorunmaqla.
+Təchizatçı digər təchizatçı təklifini və qiymətini görmür; yalnız öz yazışma və sifarişlərini görür.
+Platforma moderatoru yalnız vəzifəsinə aid sənəd/mübahisə məlumatına baxa bilər.
+Server API səviyyəsində tenant və obyekt səlahiyyətləri yoxlanır; fayl linkləri də qorunur.
+AI digər şirkətin məxfi qiymət və ERP məlumatını başqa şirkətə ötürməməlidir.
+AI-nin anonim bazar statistikası və ya paylaşılmış tərəfdaş məlumatından istifadə modeli hələ AÇIQ-dur.
+8. İstifadəçi rolları və səlahiyyət matrisi
+Rol
+Əsas icazə
+Qadağa / məhdudiyyət
+Platforma superadmin
+Sistem parametrləri, tarif, şirkət aktivləşməsi
+Kommersiya məlumatına sərbəst giriş yoxdur
+Marketplace moderatoru
+Şirkət və məhsul moderasiyası, mübahisə araşdırması
+Maliyyə borcunu özbaşına bağlamır
+Platforma maliyyə məsulu
+Komissiya ödəniş təsdiqi və reyestr
+Digər ERP məlumatlarına ümumi giriş yoxdur
+Şirkət rəhbəri
+İstifadəçi hüquqları, qəbul limitləri, təsdiqlər
+Başqa şirkət məlumatı yoxdur
+Satınalma əməkdaşı
+RFQ, təklif, sifariş
+Təyin edilməmiş maliyyə hüquqları yoxdur
+Sahə rəisi / anbardar
+Səlahiyyət verilmiş layihə/anbar üzrə qəbul
+Limitdən yuxarı qəbul təsdiqləmir
+Briqadir
+Öz sahəsi üzrə gündəlik hesabat
+Maliyyə və qiymətə giriş yoxdur
+Tender təsdiqçisi
+Təyin edildiyi tender/sənəd üzrə yoxlama
+Başqa tenderə avtomatik giriş yoxdur
+9. Ekranların funksional maketləri (sxematik)
+Aşağıdakı sxemlər hazır interfeysin ekran görüntüsü deyil; proqramçı üçün məlumat düzülüşünü izah edən mətn maketləridir.
+Marketplace məhsul səhifəsi
+Axtarış / filtr: kateqoriya | marka | model | region
+Məhsul: Armatur A500C, Ø12 mm | texniki sənədlər
+Təchizatçılar: Şirkət A — Bakı — məlumat yenilənib 16.10
+                Şirkət B — Gəncə — sifarişlə təminat 5 gün
+[RFQ-yə əlavə et]   (ictimai qiymət göstərilmir)
+RFQ müqayisə ekranı
+RFQ №RFQ-001 | 500 kisə sement | Bakı sahəsi
+Təklif A: məhsul qiyməti / ƏDV / daşıma / çatdırılma / etibarlılıq
+Təklif B: məhsul qiyməti / ƏDV / daşıma / çatdırılma / etibarlılıq
+AI: texniki uyğunsuzluqlar və çatışmayan məlumatlar
+[Təklifi seç] → [Sifariş yarat]
+Qəbul ekranı
+PO-001 | Sifariş 100 kisə | çatdırılıb 100 | qəbul 95
+Uyğunsuzluq: 5 kisə zədələnib | şəkil + akt
+Anbar: Sahə-1 | qəbul edən: icazəli əməkdaş
+[95 kisəni təsdiqlə] [5 kisə üçün mübahisə aç]
+10. Vəziyyət maşınları və avtomatlaşdırma
+Proses
+İcazəli əsas status keçidləri
+RFQ
+Layihə → Göndərilib → Təkliflər daxil olur → Seçilib → Bağlanıb / Ləğv
+Sifariş
+Yaradılıb → Təchizatçı təsdiqi → Hazırlanır → Qismən/tam çatdırılıb → Qəbul → Bağlanıb
+Qəbul
+Gözləyir → Qismən qəbul / Mübahisə → Təsdiqlənib → Düzəliş aktı
+Komissiya
+Hesablanıb → Ödəniləcək → Qismən ödənib / Gecikib → Ödənib; düzəliş ayrıca
+Tender sənədi
+Yüklənib → AI yoxlama → İnsan baxışı → Təsdiq / Geri qaytarılıb
+F2/F3
+Layihə → Yoxlamada → Təsdiqlənib → İxrac / Düzəliş versiyası
+11. Qeyri-funksional tələblər və inteqrasiya təhlükəsizliyi
+Bütün kritik əməliyyatlar serverdə tranzaksiya ilə icra edilməlidir; idempotency key və unikal əlaqə identifikatorları ilə təkrar əməliyyat qorunmalıdır.
+Məlumat bazasında tenant_id və obyekt icazəsi yoxlanılmalı; audit log əməliyyat cədvəllərindən ayrı, dəyişdirilməz prinsipə uyğun saxlanmalıdır.
+Fayl yükləmələrində icazəli format, ölçü, antivirus yoxlaması, giriş nəzarəti, versiya və sənədin mənşəyi saxlanmalıdır.
+Ödəniş kartı məlumatı CONSTRIX serverində saxlanmamalı; ödəniş provayderi callback/webhook imzası yoxlanmalıdır.
+İstifadəçi sessiyaları, MFA (xüsusilə maliyyə/admin üçün tövsiyə), giriş jurnalına nəzarət, parol siyasəti və ehtiyat nüsxə planı.
+AI çıxışları mənbə, etimad və insan təsdiqi ilə; AI tərəfindən təsdiq, ödəniş, qalib seçimi və bank borcu yaradılması avtomatik edilməməlidir.
+Miqdar və pul hesablamalarında onluq dəqiqliyi və vahid/valyuta normalizasiyası; audit və ixrac üçün sabit yuvarlaqlaşdırma qaydası.
+PDF/Excel ixraclarında Azərbaycan hərfləri, şablon formatı və çoxsəhifəli sənədlərin oxunaqlılığı test edilməlidir.
+Xətalar istifadəçiyə anlaşılan mesaj, texniki jurnalda izlenə bilən request ID ilə göstərilməlidir.
+12. İcra mərhələləri və qəbul sınaqları
+Mərhələ
+Təhvil veriləcək nəticə
+A — Analiz və miqrasiya
+Mövcud ekran/verilənlər bazası inventarı, təsdiqlənmiş ekran xəritəsi, miqrasiya planı
+B — ERP nüvəsi
+Şirkət, rol, layihə, sənəd, audit, anbar, maliyyə və naviqasiya düzəlişləri
+C — Sahə və aktlaşdırma
+Gündəliklər, Nakopitel, F2/F3, idxal/ixrac və dublikat nəzarəti
+D — Tender AI
+Sənəd/link analizi, BOQ, qiymət, zəmanət və təsdiq iş axınları
+E — Marketplace nüvəsi
+Qeydiyyat, kataloq, RFQ, təklif, sifariş, çat, çatdırılma və qəbul
+F — Marketplace maliyyəsi
+İkitərəfli komissiya, borc, bildiriş, bank/onlayn ödəniş, aylıq sənəd
+G — İnteqrasiya və buraxılış
+ERP əlaqəsi, PWA, təhlükəsizlik testi, pilot, istifadəçi təlimatı
+12.1. Minimum qəbul testləri
+T-01: A şirkətinin əməkdaşı B şirkətinin RFQ və faylını URL/API dəyişməklə görə bilmir.
+T-02: Moderator təsdiqi olmayan şirkət RFQ və kommersiya təklifi göndərə bilmir.
+T-03: RFQ-də iki təchizatçı bir-birinin təklif qiymətini görmür.
+T-04: 100 vahid sifarişdən 60 vahid qəbul edilərsə yalnız 60 vahid dəyəri üzrə iki komissiya yaranır.
+T-05: Eyni qəbul təsdiqi təkrar göndəriləndə ikinci komissiya yaranmır.
+T-06: Mübahisəli 5 vahid üzrə komissiya hesablanmır; qəbul edilmiş 95 vahid üzrə hesablanır.
+T-07: Borcun 7/15/30 günlük mərhələləri işləyir; mövcud sifarişlər bloklanmır.
+T-08: Aylıq hesabda əvvəl ödənmiş komissiya ikinci dəfə borc kimi görünmür.
+T-09: Tender tələbi insan təsdiqindən əvvəl bazayla müqayisə edilmir.
+T-10: Bank zəmanətinin nominalı faktiki borca avtomatik əlavə olunmur.
+T-11: F2-də əvvəllər aktlaşdırılmış iş miqdarı yenidən aktlaşdırılmır.
+T-12: Müştəri Excel şablonunda formula və formatların saxlanması yoxlanılır.
+T-13: Mobil PWA-da qəbul düyməsinə iki dəfə basılması dublikat əməliyyat yaratmır.
+T-14: İcazəsiz sahə işçisi limitdən yuxarı qəbul təsdiqləyə bilmir.
+T-15: Material qəbul edilmədən anbar qalığı artmır.
+13. Açıq qərarlar — proqramçı fərziyyə etməməlidir
+Mövzu
+Açıq məsələ
+AI məlumat siyasəti
+Yalnız şirkətin öz məlumatı / anonim statistika / tərəfdaş icazəsi variantlarından heç biri yekun təsdiqlənməyib. Məxfilik minimumu qüvvədədir.
+Komissiya dərəcələri
+Real alıcı və təchizatçı faizləri təyin edilməyib; nümunə faizlər tətbiq edilməməlidir.
+Tarif üstünlüyü
+Müqavilə > şirkət > kateqoriya > standart sırası texniki təklifdir; ayrıca təsdiq tələb edir.
+Komissiya vergisi
+ƏDV tətbiqi, komissiya bazasının ƏDV daxil/xaric olması, elektron hesab-faktura hüquqi formatı.
+Onlayn ödəniş provayderi
+Bank/provayder, tarif, müqavilə və webhook texniki sənədləri seçilməyib.
+Spesifikasiya menyusu
+Layihə daxilinə köçürülmə təklifi tam yekunlaşdırılmayıb.
+Kabinet UI
+Profil klikindən açılan dəqiq forma və vizual maket.
+İşçi davamiyyəti
+GPS/biometrik və digər məcburi yoxlama üsulları təsdiqlənməyib.
+İcra miqyası
+Cari kod bazası, mövcud API, məlumat miqrasiyası və faktiki buraxılış tarixi texniki auditdən sonra.
+14. Proqramçıdan tələb edilən təhvil paketi
+İcra edilmiş modul və ekranlar, mənbə kodu və versiya idarəetməsi; DB sxemi və miqrasiya skriptləri.
+API spesifikasiyası, rol/tenant icazə matrisi, inteqrasiya xəritəsi və əməliyyat statusları.
+AI prompt/çıxış sxemləri, mənbə istinad mexanizmi, insan təsdiqi və səhv halları.
+Excel idxal/ixrac test faylları; Forma-2/Forma-3 və tender şablonu üzrə nümunələr.
+Ödəniş və komissiya reyestri, audit jurnalı, bildiriş şablonları, monitorinq və ehtiyat nüsxə qaydası.
+Qəbul testlərinin nəticələri, təhlükəsizlik testləri, pilot ssenariləri və administrator/istifadəçi təlimatı.
+Yekun qeyd: Bu sənəd mövcud razılaşdırılmış qərarların icra spesifikasiyasıdır. Açıq məsələlər yekun qərar verilmədən məhsulun faktiki davranışına gizli fərziyyə kimi daxil edilməməlidir.

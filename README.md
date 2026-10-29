@@ -8,7 +8,9 @@ that port, choose a free port, for example `PORT=3002`, then restart
 `npm run dev`. A `PORT` environment variable in your terminal overrides the file
 for both servers.
 
-`npm run dev` checks that the API port is free before starting. If AFEZ is
+`npm run dev` checks that both the API port and frontend port are free, and that
+PostgreSQL responds before starting. The API starts first; Vite starts only after
+`/api/health` succeeds. Wait for `[AFEZ] READY` before opening the UI. If AFEZ is
 already running, use that instance or press `Ctrl+C` in its terminal before
 starting again. `npm run start:dev` in `backend` performs the same check.
 The frontend stays on port `5173`; if either development command exits, the

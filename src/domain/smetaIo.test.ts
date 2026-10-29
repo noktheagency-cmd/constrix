@@ -4,10 +4,17 @@ import * as XLSX from "xlsx"
 import { createAct, onHand } from "./ops"
 import { approvePurchaseAct, createPurchaseAct, returnPurchaseAct } from "./purchaseActs"
 import { createInitialState } from "./seed"
-import { applySmetaImport, exportActSheet, parseSmetaWorkbook } from "./smetaIo"
+import { applySmetaImport, exportActSheet, exportNakopitelSheet, parseSmetaWorkbook } from "./smetaIo"
 import type { Actor, AppState } from "./types"
 
 const actor: Actor = { name: "Test", role: "director" }
+
+test("Nakopitel ixracı əvvəlki, yığılan, cari və qalıq miqdar/məbləğ cütlərini saxlayır", () => {
+  const bytes = exportNakopitelSheet("Test", "2026-04", [{ kind: "work", code: "1", name: "Suvaq", unit: "m2", smetaQty: 100, unitPrice: 25, smetaValue: 2500, priorQty: 30, priorValue: 750, cumulativeQty: 50, cumulativeValue: 1250, periodQty: 20, periodValue: 500, remainQty: 50, remainValue: 1250 }])
+  const book = XLSX.read(bytes)
+  const matrix = XLSX.utils.sheet_to_json<unknown[]>(book.Sheets[book.SheetNames[0]], { header: 1 })
+  assert.deepEqual(matrix.find(row => row[0] === "1"), ["1", "Suvaq", "m2", 100, 25, 2500, 30, 750, 50, 1250, 20, 500, 50, 1250])
+})
 
 function withPatch(state: AppState, result: { patch?: Partial<AppState>; error?: string }) {
   assert.equal(result.error, undefined, result.error || "")

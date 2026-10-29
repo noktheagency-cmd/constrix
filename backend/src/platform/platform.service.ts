@@ -5,8 +5,10 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { FitStatus, Prisma } from '@prisma/client';
 import bcrypt from 'bcryptjs';
+import {XlsxTemplate,forceRecalculation,worksheetPath,writeNumericCell} from './xlsx-template';
+import {createHash} from 'node:crypto';
 import { PrismaService } from '../prisma/prisma.service';
 import {
   addDays,
@@ -33,12 +35,12 @@ import {
 } from './engine';
 import {
   certAlerts,
-  readTenderBrief,
   scoreChecks,
   tenderLetter,
   type CompanyFacts,
 } from './tender-brief';
 import { TenantCtx, TenantService } from './tenant.service';
+import { extractTender, reviewedBrief } from './tender-analysis';
 
 const STAGES = [
   'yeni',
@@ -126,7 +128,7 @@ function checkRows(body: Record<string, unknown>) {
   return rows.map((row) => {
     const item = row as Record<string, unknown>;
     const fit = text(item.fit);
-    return { name: text(item.name) || 'Yoxlama', fit: (FITS.has(fit) ? fit : 'catismir') as 'catismir' };
+    return { name: text(item.name) || 'Yoxlama', fit: (FITS.has(fit) ? fit : 'catismir') as FitStatus };
   });
 }
 
@@ -144,6 +146,58 @@ function approvalRows(body: Record<string, unknown>) {
 
 @Injectable()
 export class PlatformService {
+  private sourceAccess(ctx: TenantCtx, kind: string) {
+    if(kind==='purchase'&&ctx.seat==='anbardar')throw new ForbiddenException('Alış mənbəsində qiymət və nağd ödəniş məlumatları var.');
+    const area = { purchase: 'warehouse', nakopitel: 'boq', boq: 'boq' }[kind];
+    if (!area) throw new BadRequestException('Mənbə növü düzgün deyil');
+    this.tenant.allow(ctx, area);
+  }
+
+  async sourceBooks(ctx: TenantCtx, kind: string) {
+    this.sourceAccess(ctx, kind);
+    return this.prisma.sourceWorkbook.findMany({
+      where: { organizationId: ctx.orgId as string, kind },
+      select: { id: true, name: true, sha256: true, sheets: { orderBy: { sort: 'asc' }, select: { id: true, name: true, rowCount: true, cellCount: true } } },
+    });
+  }
+
+  async sourceRows(ctx: TenantCtx, id: string, pageInput: string, query: string) {
+    const sheet = await this.prisma.sourceSheet.findFirst({ where: { id, workbook: { organizationId: ctx.orgId as string } }, include: { workbook: { select: { kind: true } } } });
+    if (!sheet) throw new NotFoundException('Vərəq tapılmadı');
+    this.sourceAccess(ctx, sheet.workbook.kind);
+    const rows = sheet.rows as { number: number; cells: { column: string; value: string | number | null; formula?: string }[] }[];
+    const needle = (query || '').trim().toLocaleLowerCase('az');
+    const filtered = needle ? rows.filter(row => row.cells.some(cell => String(cell.value ?? cell.formula ?? '').toLocaleLowerCase('az').includes(needle))) : rows;
+    const pages = Math.max(1, Math.ceil(filtered.length / 50));
+    const page = Math.min(pages, Math.max(1, Number.parseInt(pageInput, 10) || 1));
+    return { columns: sheet.columns, rows: filtered.slice((page - 1) * 50, page * 50), total: filtered.length, page, pages };
+  }
+
+  async sourceOriginal(ctx: TenantCtx, id: string) {
+    const book = await this.prisma.sourceWorkbook.findFirst({ where: { id, organizationId: ctx.orgId as string } });
+    if (!book) throw new NotFoundException('Mənbə tapılmadı');
+    this.sourceAccess(ctx, book.kind);
+    return book;
+  }
+  async sourcePrices(ctx:TenantCtx,id:string,boqId:string){
+    const source=await this.sourceOriginal(ctx,id);if(source.kind!=='boq')throw new BadRequestException('Bu ixrac AZCDG qiymət şablonu üçündür');
+    const book=await this.prisma.boqBook.findFirst({where:{id:boqId,organizationId:ctx.orgId!},include:{lines:{orderBy:{sort:'asc'}}}});if(!book)throw new NotFoundException('BOQ tapılmadı');
+    const lines=book.lines.filter(l=>l.confirmed&&!l.stale);if(!lines.length)throw new BadRequestException('İxrac üçün təsdiqli aktual qiymət yoxdur');
+    const sheets=await this.prisma.sourceSheet.findMany({where:{workbookId:id}}),template=new XlsxTemplate(Buffer.from(source.original)),replacements=new Map<string,string>(),changes:unknown[]=[];
+    for(const line of lines){
+      if(!/^\d{4}-\d{2}-\d{2}$/.test(line.pricedOn)||line.pricedOn>new Date().toISOString().slice(0,10))throw new BadRequestException('Təsdiqli qiymətin tarixi yoxlanmalıdır');
+      const sheet=sheets.find(s=>s.name===line.sheet);if(!sheet)throw new BadRequestException(`${line.name}: orijinal vərəq tapılmadı`);
+      const rows=sheet.rows as {number:number;cells:{column:string;value:unknown}[]}[];
+      const matches=rows.filter(r=>{const val=(column:string)=>r.cells.find(c=>c.column===column)?.value;return (!line.sourceRow||r.number===line.sourceRow)&&String(val('E')||'').trim()===line.name.trim()&&String(val('F')||'').trim()===line.unit.trim()&&Number(val('G'))===line.qty.toNumber()});
+      if(matches.length!==1)throw new BadRequestException(`${line.name}: mənbə sətri birmənalı uyğun gəlmir`);
+      const row=matches[0].number,path=worksheetPath(template,line.sheet);let xml=replacements.get(path)||template.text(path);
+      if(line.material.isNegative()||line.labor.isNegative())throw new BadRequestException('Mənfi qiymət ixrac edilmir');
+      xml=writeNumericCell(xml,`J${row}`,line.laborOnly?'0':line.material.toFixed(2));xml=writeNumericCell(xml,`K${row}`,line.labor.toFixed(2));replacements.set(path,xml);changes.push({lineId:line.id,sheet:line.sheet,row,material:line.material.toFixed(2),labor:line.labor.toFixed(2),pricedOn:line.pricedOn});
+    }
+    replacements.set('xl/workbook.xml',forceRecalculation(template.text('xl/workbook.xml')));const bytes=template.write(replacements),sha256=createHash('sha256').update(bytes).digest('hex');
+    await this.tenant.audit(ctx,'Orijinal Excel şablonuna qiymət ixracı',JSON.stringify({sourceId:id,boqId,sourceSha256:source.sha256,sha256,rows:changes.length}));
+    return {name:source.name.replace(/\.xlsx$/i,'-qiymet.xlsx'),bytes,rows:changes.length,sha256};
+  }
   private readonly revealHits = new Map<string, { count: number; reset: number }>();
 
   constructor(
@@ -158,7 +212,7 @@ export class PlatformService {
       include: { subscription: { include: { package: true } }, members: true },
     });
     const director = await this.ensureDirector(ctx.orgId);
-    return { org, seat: ctx.seat, director: director ? { id: director.id, name: director.name } : null };
+    return { org, seat: ctx.seat, accountId:ctx.accountId,director: director ? { id: director.id, name: director.name } : null };
   }
 
   async listOrganizations(ctx: TenantCtx) {
@@ -246,6 +300,7 @@ export class PlatformService {
     const kind = required(body.kind, 'Fəaliyyət növü');
     const kinds = ['tikinti', 'memar', 'qapi', 'suse', 'pvc', 'fasad', 'dam', 'naves', 'hasar', 'material', 'montaj', 'logistika', 'admin'];
     if (!kinds.includes(kind)) throw new BadRequestException('Fəaliyyət növü seçilməlidir');
+    if(kind==='admin')this.tenant.admin(ctx);
     const name = required(body.name, 'Şirkətin adı');
     const org = await this.prisma.organization.create({
       data: {
@@ -333,12 +388,13 @@ export class PlatformService {
     });
     const name = org.director.trim() || member?.account?.name || member?.name || '';
     if (!name) return null;
-    const matches = await this.prisma.person.findMany({ where: { name } });
+    const matches = await this.prisma.person.findMany({ where: { name,organizationId:orgId } });
     const existing = matches.find((row) => row.id.startsWith('HR-')) ?? matches[0];
     if (existing) return existing;
     return this.prisma.person.create({
       data: {
-        id: member?.account ? `dir-${member.account.id}` : `dir-org-${orgId}`,
+        id: `dir-org-${orgId}`,
+        organizationId:orgId,
         name,
         role: member?.account?.title || 'Direktor',
         crew: 'İdarəetmə',
@@ -347,7 +403,7 @@ export class PlatformService {
         status: 'ofisde',
         phone: org.phone || '—',
         email: member?.account?.email || org.email || '—',
-        departmentId: 'DEP-01',
+        departmentId: '',
         pin: '',
         hired: '',
         salary: 0,
@@ -360,7 +416,7 @@ export class PlatformService {
     this.tenant.allow(ctx, 'people');
     if (!ctx.orgId) return { directorId: '', people: [] };
     const director = await this.ensureDirector(ctx.orgId);
-    const people = await this.prisma.person.findMany({ orderBy: { name: 'asc' } });
+    const people = await this.prisma.person.findMany({ where:{organizationId:ctx.orgId},orderBy: { name: 'asc' } });
     return { directorId: director?.id ?? '', people: people.map((row) => this.staffRow(row)) };
   }
 
@@ -368,7 +424,7 @@ export class PlatformService {
     this.tenant.allow(ctx, 'people');
     if (!ctx.orgId) throw new NotFoundException('İşçi tapılmadı');
     await this.ensureDirector(ctx.orgId);
-    const row = await this.prisma.person.findUnique({ where: { id } });
+    const row = await this.prisma.person.findFirst({ where: { id,organizationId:ctx.orgId } });
     if (!row) throw new NotFoundException('İşçi tapılmadı');
     return this.staffRow(row);
   }
@@ -1072,13 +1128,15 @@ export class PlatformService {
 
   async saveTender(ctx: TenantCtx, body: Record<string, unknown>) {
     this.tenant.allow(ctx, 'tender');
+    if(body.confirmed===true)throw new BadRequestException('Yeni tender əvvəl yoxlanmalıdır');
+    if(text(body.projectId))await this.tenant.own(ctx,'project',text(body.projectId));
     const tender = await this.prisma.tenderCase.create({
       data: {
         organizationId: ctx.orgId as string,
         projectId: text(body.projectId) || null,
         ...tenderFields(body),
         checks: { create: checkRows(body) },
-        approvals: { create: approvalRows(body) },
+        approvals: { create: approvalRows(body).map(row=>({...row,status:'gozleyir'})) },
       },
       include: { checks: true, approvals: true },
     });
@@ -1100,19 +1158,82 @@ export class PlatformService {
       where: { id, organizationId: ctx.orgId as string },
     });
     if (!current) throw new NotFoundException('Tender tapılmadı');
-    await this.prisma.tenderCheck.deleteMany({ where: { tenderId: id } });
-    await this.prisma.tenderApproval.deleteMany({ where: { tenderId: id } });
-    return this.prisma.tenderCase.update({
-      where: { id },
-      data: {
-        ...tenderFields(body),
-        opened: body.opened === true,
-        confirmed: body.confirmed === true,
-        checks: { create: checkRows(body) },
-        approvals: { create: approvalRows(body) },
-      },
-      include: { checks: true, approvals: true },
+    const fields=tenderFields(body);
+    const changed=Object.entries(fields).some(([key,value])=>JSON.stringify(value)!==JSON.stringify((current as unknown as Record<string,unknown>)[key]));
+    return this.prisma.$transaction(async tx=>{
+      const fresh=await tx.tenderCase.findUniqueOrThrow({where:{id},include:{approvals:true,checks:true}});
+      if(fresh.contentVersion!==current.contentVersion)throw new BadRequestException('Tender paralel dəyişib. Yeniləyin.');
+      const checks=checkRows(body);
+      const ordered=(rows:{name:string;fit:string}[])=>[...rows].sort((a,b)=>a.name.localeCompare(b.name));
+      const checksChanged=JSON.stringify(ordered(checks))!==JSON.stringify(ordered(fresh.checks.map(r=>({name:r.name,fit:r.fit}))));
+      if(body.confirmed===true){
+        const analysis=await tx.tenderAnalysis.findFirst({where:{tenderId:id},orderBy:{revision:'desc'}});
+        if(changed||checksChanged||!analysis?.confirmedAt||!analysis.comparedAt||analysis.contentVersion!==fresh.contentVersion)throw new BadRequestException('Son sənəd versiyası yoxlanmalı və müqayisə edilməlidir');
+        if(fresh.finalApproverId!==ctx.accountId)throw new ForbiddenException('Yekun təsdiq yalnız təyin edilmiş şəxsə aiddir');
+        if(!checks.length||checks.some(r=>r.fit!=='uygun')||!fresh.approvals.length||fresh.approvals.some(r=>r.status!=='tesdiq'||!r.assignedAccountId||!r.signedBy))throw new BadRequestException('Məcburi sənədlər və təsdiq zənciri tamam deyil');
+      }
+      await tx.tenderCheck.deleteMany({where:{tenderId:id}});
+      if(changed||checksChanged)await tx.tenderApproval.updateMany({where:{tenderId:id},data:{status:'gozleyir',signedAt:null,signedBy:null}});
+      const updated=await tx.tenderCase.update({where:{id},data:{...fields,contentVersion:{increment:changed?1:0},opened:body.opened===true,confirmed:body.confirmed===true,checks:{create:checks}},include:{checks:true,approvals:true}});
+      await tx.auditEntry.create({data:{organizationId:ctx.orgId,at:new Date().toISOString(),actor:ctx.name,role:ctx.seat||ctx.accountRole,action:body.confirmed===true?'Tender yekun təsdiqi':'Tender dəyişdirildi',detail:JSON.stringify({id,before:current,after:updated})}});
+      return updated;
+    },{isolationLevel:Prisma.TransactionIsolationLevel.Serializable});
+  }
+
+  async tenderApprovalConfig(ctx:TenantCtx,id:string,body:Record<string,unknown>){
+    this.tenant.allow(ctx,'org');await this.tenant.own(ctx,'tenderCase',id);
+    const rows=Array.isArray(body.approvals)?body.approvals as {role:string;accountId:string}[]:[];
+    const finalApproverId=String(body.finalApproverId||'');
+    if(!rows.length||rows.length>30||rows.some(r=>!r.role?.trim()||!r.accountId)||!finalApproverId)throw new BadRequestException('Təsdiqçiləri və yekun təsdiqçini seçin');
+    const ids=[...new Set([...rows.map(r=>r.accountId),finalApproverId])];
+    const members=await this.prisma.organizationMember.count({where:{organizationId:ctx.orgId as string,accountId:{in:ids}}});
+    if(members!==ids.length)throw new BadRequestException('Bütün təsdiqçilər şirkətin daxil olan istifadəçiləri olmalıdır');
+    return this.prisma.$transaction(async tx=>{
+      const previous=await tx.tenderApproval.findMany({where:{tenderId:id}});
+      await tx.tenderApproval.deleteMany({where:{tenderId:id}});
+      const result=await tx.tenderCase.update({where:{id},data:{finalApproverId,confirmed:false,approvals:{create:rows.map(row=>({role:row.role.slice(0,150),assignedAccountId:row.accountId,status:'gozleyir'}))}},include:{checks:true,approvals:true}});
+      await tx.auditEntry.create({data:{organizationId:ctx.orgId,at:new Date().toISOString(),actor:ctx.name,role:ctx.seat||ctx.accountRole,action:'Tender təsdiqçiləri təyin edildi',detail:JSON.stringify({id,previous,approvals:rows,finalApproverId})}});
+      return result;
     });
+  }
+
+  async tenderApprovalState(ctx:TenantCtx,id:string){
+    this.tenant.requireOrg(ctx);
+    const tender=await this.prisma.tenderCase.findFirst({where:{id,organizationId:ctx.orgId as string},include:{approvals:true,checks:true}});
+    if(!tender)throw new NotFoundException('Tender tapılmadı');
+    const assigned=tender.approvals.some(row=>row.assignedAccountId===ctx.accountId)||tender.finalApproverId===ctx.accountId;
+    if(!assigned)this.tenant.allow(ctx,'tender');
+    const decisions=await this.prisma.tenderDecision.findMany({where:{tenderId:id,organizationId:ctx.orgId as string},orderBy:{createdAt:'desc'}});
+    return {tender,decisions,accountId:ctx.accountId};
+  }
+
+  async signTenderDocument(ctx:TenantCtx,id:string,approvalId:string,body:Record<string,unknown>){
+    this.tenant.requireOrg(ctx);await this.tenant.own(ctx,'tenderCase',id);
+    const status=body.status==='tesdiq'?'tesdiq':body.status==='geri'?'geri':null;
+    if(!status)throw new BadRequestException('Qərar düzgün deyil');
+    return this.prisma.$transaction(async tx=>{
+      const tender=await tx.tenderCase.findUniqueOrThrow({where:{id}});
+      const approval=await tx.tenderApproval.findFirst({where:{id:approvalId,tenderId:id}});
+      if(!approval||approval.assignedAccountId!==ctx.accountId)throw new ForbiddenException('Bu sənədin təsdiqçisi siz deyilsiniz');
+      const analysis=await tx.tenderAnalysis.findFirst({where:{tenderId:id},orderBy:{revision:'desc'}});
+      if(!analysis?.confirmedAt||!analysis.comparedAt||analysis.contentVersion!==tender.contentVersion)throw new BadRequestException('Əvvəl son tələbləri yoxlayıb müqayisə edin');
+      const note=String(body.note||'').trim().slice(0,4000);
+      if(status==='geri'&&!note)throw new BadRequestException('Qaytarma səbəbini yazın');
+      await tx.tenderApproval.update({where:{id:approvalId},data:{status,signedBy:ctx.accountId,signedAt:new Date(),note}});
+      await tx.tenderDecision.create({data:{organizationId:ctx.orgId as string,tenderId:id,accountId:ctx.accountId,role:approval.role,status,note,contentVersion:tender.contentVersion}});
+      await tx.tenderCase.update({where:{id},data:{confirmed:false}});
+      return tx.tenderCase.findUnique({where:{id},include:{checks:true,approvals:true}});
+    },{isolationLevel:Prisma.TransactionIsolationLevel.Serializable});
+  }
+
+  async recordTenderSubmission(ctx:TenantCtx,id:string,body:Record<string,unknown>){
+    this.tenant.allow(ctx,'tender');
+    const tender=await this.prisma.tenderCase.findFirst({where:{id,organizationId:ctx.orgId as string}});
+    if(!tender)throw new NotFoundException('Tender tapılmadı');
+    if(!tender.confirmed||tender.finalApproverId!==ctx.accountId)throw new ForbiddenException('Əvvəl yekun təsdiq tələb olunur');
+    const proof=String(body.proof||'').trim();const date=new Date(String(body.submittedAt||''));
+    if(!proof||!Number.isFinite(date.getTime()))throw new BadRequestException('Təqdimetmə tarixi və sübut qeydi vacibdir');
+    return this.prisma.tenderCase.update({where:{id},data:{submittedAt:date,submissionProof:proof.slice(0,4000)}});
   }
 
   async refreshTender(ctx: TenantCtx, id: string) {
@@ -1134,14 +1255,56 @@ export class PlatformService {
     if (!tender) throw new NotFoundException('Tender tapılmadı');
     const text = String(body.text ?? '');
     if (text.trim().length < 20) throw new BadRequestException('Oxunacaq mətn kifayət deyil.');
-    const brief = readTenderBrief(text);
+    const extracted = extractTender(text, String(body.sourceName || 'Daxil edilmiş tender mətni').slice(0, 240));
+    const analysis = await this.prisma.$transaction(async tx => {
+      const latest = await tx.tenderAnalysis.findFirst({where:{tenderId:id},orderBy:{revision:'desc'}});
+      const created = await tx.tenderAnalysis.create({data:{tenderId:id,organizationId:ctx.orgId as string,contentVersion:tender.contentVersion,revision:(latest?.revision || 0)+1,sourceName:String(body.sourceName || 'Daxil edilmiş tender mətni').slice(0,240),sourceText:text,sourceHash:extracted.sourceHash,brief:extracted.brief as unknown as Prisma.InputJsonValue,evidence:extracted.evidence}});
+      await tx.tenderCase.update({where:{id},data:{confirmed:false}});
+      await tx.tenderApproval.updateMany({where:{tenderId:id},data:{status:'gozleyir',signedBy:null,signedAt:null}});
+      return created;
+    },{isolationLevel:Prisma.TransactionIsolationLevel.Serializable});
+    return {analysis,brief:extracted.brief,evidence:extracted.evidence,needsReview:true,alerts:[],certs:[],letter:''};
+  }
+
+  async tenderAnalyses(ctx: TenantCtx, id: string) {
+    this.tenant.allow(ctx,'tender');
+    await this.tenant.own(ctx,'tenderCase',id);
+    return this.prisma.tenderAnalysis.findMany({where:{tenderId:id,organizationId:ctx.orgId as string},orderBy:{revision:'desc'},select:{id:true,revision:true,sourceName:true,sourceHash:true,brief:true,evidence:true,confirmedAt:true,confirmedBy:true,comparedAt:true,createdAt:true}});
+  }
+
+  async reviewTenderAnalysis(ctx: TenantCtx, id: string, analysisId: string, body: Record<string, unknown>) {
+    this.tenant.allow(ctx,'tender');
+    await this.tenant.own(ctx,'tenderCase',id);
+    const brief=reviewedBrief(body.brief);
+    return this.prisma.$transaction(async tx=>{
+      const latest=await tx.tenderAnalysis.findFirst({where:{tenderId:id,organizationId:ctx.orgId as string},orderBy:{revision:'desc'}});
+      if(!latest || latest.id!==analysisId) throw new BadRequestException('Mənbə yenilənib. Son versiyanı yoxlayın.');
+      const tender=await tx.tenderCase.findUniqueOrThrow({where:{id}});
+      if(latest.contentVersion!==tender.contentVersion)throw new BadRequestException('Tender şərtləri dəyişib. Mənbəni yenidən oxudun.');
+      const result=await tx.tenderAnalysis.update({where:{id:analysisId},data:{brief:brief as unknown as Prisma.InputJsonValue,confirmedAt:new Date(),confirmedBy:ctx.accountId,comparedAt:null}});
+      await tx.tenderCase.update({where:{id},data:{confirmed:false}});
+      await tx.tenderApproval.updateMany({where:{tenderId:id},data:{status:'gozleyir',signedBy:null,signedAt:null}});
+      return result;
+    },{isolationLevel:Prisma.TransactionIsolationLevel.Serializable});
+  }
+
+  async compareTenderAnalysis(ctx: TenantCtx, id: string, analysisId: string) {
+    this.tenant.allow(ctx,'tender');
+    const tender=await this.prisma.tenderCase.findFirst({where:{id,organizationId:ctx.orgId as string}});
+    if(!tender)throw new NotFoundException('Tender tapılmadı');
+    const analysis=await this.prisma.tenderAnalysis.findFirst({where:{tenderId:id,organizationId:ctx.orgId as string},orderBy:{revision:'desc'}});
+    if(!analysis || analysis.id!==analysisId || !analysis.confirmedAt || analysis.contentVersion!==tender.contentVersion) throw new BadRequestException('Əvvəl son versiyanın tələblərini insan təsdiqləməlidir.');
+    const brief=reviewedBrief(analysis.brief);
     const facts = await this.tenderFacts(ctx.orgId as string);
     const scored = scoreChecks(brief, facts);
-    await this.prisma.tenderCheck.deleteMany({ where: { tenderId: tender.id } });
-    const checks = [];
-    for (const row of scored) {
-      checks.push(await this.prisma.tenderCheck.create({ data: { tenderId: tender.id, name: row.name, fit: row.fit } }));
-    }
+    const checks=await this.prisma.$transaction(async tx=>{
+      const latest=await tx.tenderAnalysis.findFirst({where:{tenderId:id},orderBy:{revision:'desc'}});
+      if(latest?.id!==analysisId || !latest.confirmedAt || latest.confirmedAt.getTime()!==analysis.confirmedAt!.getTime())throw new BadRequestException('Tələblər dəyişib. Yenidən yoxlayın.');
+      await tx.tenderCheck.deleteMany({where:{tenderId:id}});
+      await tx.tenderCheck.createMany({data:scored.map(row=>({tenderId:id,name:row.name,fit:row.fit}))});
+      await tx.tenderAnalysis.update({where:{id:analysisId},data:{comparedAt:new Date()}});
+      return tx.tenderCheck.findMany({where:{tenderId:id}});
+    },{isolationLevel:Prisma.TransactionIsolationLevel.Serializable});
     const staff = facts.people
       .filter((person) => /mühəndis|muhendis|usta|fəhlə|fehle/i.test(person.profession))
       .map((person) => ({
@@ -1158,6 +1321,7 @@ export class PlatformService {
     const reminder = await this.remind(ctx, tender);
     return {
       brief,
+      analysis:{...analysis,comparedAt:new Date()},
       checks: checks.map((item, index) => ({ name: item.name, fit: item.fit, why: scored[index]?.why ?? '' })),
       staff,
       gear,
@@ -1170,7 +1334,7 @@ export class PlatformService {
     const [org, talents, assets, passports, books, schedules, bonds, files, templates] = await Promise.all([
       this.prisma.organization.findUnique({ where: { id: orgId } }),
       this.prisma.talent.findMany({ where: { organizationId: orgId }, include: { proofs: true } }),
-      this.prisma.asset.findMany(),
+      this.prisma.asset.findMany({where:{organizationId:orgId}}),
       this.prisma.materialPassport.findMany({ where: { organizationId: orgId } }),
       this.prisma.boqBook.findMany({ where: { organizationId: orgId }, include: { lines: true } }),
       this.prisma.workSchedule.findMany({ where: { organizationId: orgId }, include: { tasks: true } }),
@@ -1280,6 +1444,8 @@ export class PlatformService {
             material: money(row.material) ?? new Prisma.Decimal(0),
             labor: money(row.labor) ?? new Prisma.Decimal(0),
             laborOnly: row.laborOnly === true,
+            sourceRow: Number.isInteger(row.sourceRow)&&Number(row.sourceRow)>0?Number(row.sourceRow):null,
+            confirmed: row.confirmed===true, source:text(row.source), pricedOn:text(row.pricedOn), stale:row.stale===true,
           };
         }),
       },
@@ -1302,13 +1468,13 @@ export class PlatformService {
         where: { id: existingId, organizationId: ctx.orgId as string },
       });
       if (!current) throw new NotFoundException('Smeta tapılmadı');
-      await this.prisma.boqLine.deleteMany({ where: { bookId: existingId } });
-      await this.prisma.boqCost.deleteMany({ where: { bookId: existingId } });
-      return this.prisma.boqBook.update({
+      return this.prisma.$transaction(async tx=>{await tx.boqLine.deleteMany({ where: { bookId: existingId } });
+      await tx.boqCost.deleteMany({ where: { bookId: existingId } });
+      const updated=await tx.boqBook.update({
         where: { id: existingId },
         data,
         include: { lines: true, costs: true, gear: true },
-      });
+      });await tx.auditEntry.create({data:{organizationId:ctx.orgId,at:new Date().toISOString(),actor:ctx.name,role:ctx.seat||ctx.accountRole,action:'BOQ qiymət yoxlaması',detail:JSON.stringify({id:existingId,lines:updated.lines})}});return updated;});
     }
     await this.guardSmetaLimit(ctx.orgId as string);
     return this.prisma.boqBook.create({
@@ -1382,7 +1548,7 @@ export class PlatformService {
     this.tenant.allow(ctx, 'inquiry');
     return this.prisma.priceInquiry.findMany({
       where: { supplierId: ctx.orgId as string },
-      include: { lines: true, bids: true, organization: { select: { name: true, code: true } } },
+      include: { lines: true, bids: {where:{organizationId:ctx.orgId as string}}, organization: { select: { name: true, code: true } } },
     });
   }
 
@@ -1833,9 +1999,9 @@ export class PlatformService {
       where: { id: projectId, organizationId: ctx.orgId as string },
     });
     if (!project) throw new NotFoundException('Layihə tapılmadı');
-    const expenses = await this.prisma.expense.findMany({ where: { project: project.name } });
+    const expenses = await this.prisma.expense.findMany({ where: { project: project.name,organizationId:ctx.orgId } });
     const fact = expenses.reduce((sum, row) => sum + row.amount.toNumber(), 0);
-    const cash = await this.prisma.cashPlan.findFirst({ where: { projectId } });
+    const cash = await this.prisma.cashPlan.findFirst({ where: { projectId,organizationId:ctx.orgId } });
     return {
       budget: project.budget,
       spent: project.spent,

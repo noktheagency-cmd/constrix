@@ -1,0 +1,37 @@
+import {PrismaClient} from '@prisma/client';
+import {randomUUID} from 'node:crypto';
+import assert from 'node:assert/strict';
+import {PrismaService} from '../src/prisma/prisma.service';
+import {TenantService,TenantCtx} from '../src/platform/tenant.service';
+import {ActWorkflowsService} from '../src/records/act-workflows.service';
+import {RecordsService} from '../src/records/records.service';
+import {TenantDataService} from '../src/prisma/tenant-data.service';
+import {AuthUser} from '../src/auth/auth.service';
+export async function verifyActs(db:PrismaClient,ctx:TenantCtx,projectId:string,locationId:string,day:string){
+ const prisma=db as PrismaService,tenant=new TenantService(prisma),service=new ActWorkflowsService(prisma,tenant),records=new RecordsService(prisma,new TenantDataService(prisma,tenant));
+ const user:AuthUser={userId:ctx.accountId,email:ctx.email,name:ctx.name,role:'director',title:'QA',initials:'QA'},checks:string[]=[];
+ const check=(label:string)=>{checks.push(label);console.log(`PASS ${label}`)},organizationId=ctx.orgId!;
+ const smeta=await db.smeta.create({data:{organizationId,projectId,version:1,status:'tesdiq',lines:{create:{sort:1,code:'QA-1',name:'QA iş',unit:'m2',qty:10,doneQty:10,billedQty:10,unitPrice:5,laborHours:0}}},include:{lines:true}});
+ await db.contract.create({data:{organizationId,projectId,client:'QA',number:'QA-contract',signed:day,value:50,advancePct:0,retentionPct:0,vat:0}});
+ const source=smeta.lines[0];
+ const act=await db.act.create({data:{organizationId,projectId,project:'QA layihə',client:'QA',number:'QA-F2',contractNumber:'QA-contract',period:day.slice(0,7),date:day,status:'qaralama',net:50,vat:0,gross:50,lines:{create:{sort:1,smetaLineId:source.id,code:source.code,name:source.name,unit:source.unit,unitPrice:5,qty:10,cumulativeQty:10}}}});
+ await service.approveF2(user,act.id,randomUUID());await assert.rejects(()=>records.remove({route:'acts',delegate:'act'},act.id,user));check('confirmed F2 cannot be removed through generic API');
+ const doc=await db.forma3.create({data:{organizationId,projectId,project:'QA layihə',client:'QA',number:'QA-F3',contractNumber:'QA-contract',kind:'araliq',period:day.slice(0,7),date:day,status:'qaralama',smetaValue:50,priorValue:0,periodValue:50,cumulativeValue:50,remainValue:0,advanceBalance:0,retention:0,vat:0,payable:50,lines:{create:{sort:1,smetaLineId:source.id,code:source.code,name:source.name,unit:source.unit,smetaQty:10,smetaValue:50,priorQty:0,priorValue:0,periodQty:10,periodValue:50,cumulativeQty:10,cumulativeValue:50,remainQty:0,remainValue:0}}}});
+ await service.transitionF3(user,doc.id,{key:randomUUID()},true);
+ await assert.rejects(()=>service.returnF2(user,act.id,{key:randomUUID(),reason:'QA correction'}));check('confirmed F3 locks included F2; zero VAT remains zero');
+ await service.transitionF3(user,doc.id,{key:randomUUID(),reason:'QA F3 correction'},false);
+ await service.returnF2(user,act.id,{key:randomUUID(),reason:'QA F2 correction'});assert.equal((await db.act.findUniqueOrThrow({where:{id:act.id}})).status,'qaralama');check('F3 and F2 can reopen in dependency order with immutable audit snapshots');
+ await db.forma3.update({where:{id:doc.id},data:{periodValue:49}});await assert.rejects(()=>service.transitionF3(user,doc.id,{key:randomUUID()},true));check('stale or forged F3 snapshot cannot be confirmed');
+ const invoice=await db.invoice.create({data:{organizationId,client:'QA',project:'QA layihə',amount:50,net:50,vat:0,issued:day,due:day,status:'gonderilib',actId:act.id}});
+ await db.act.update({where:{id:act.id},data:{status:'faktura',invoiceId:invoice.id}});await service.reverseInvoice(user,invoice.id,{key:randomUUID(),reason:'QA invoice correction'});
+ assert.equal((await db.invoice.findUniqueOrThrow({where:{id:invoice.id}})).status,'legv');assert.equal((await db.invoice.aggregate({where:{organizationId,actId:act.id},_sum:{amount:true}}))._sum.amount?.toString(),'0');assert.equal((await db.act.findUniqueOrThrow({where:{id:act.id}})).status,'tesdiq');check('unpaid invoice reversal preserves original and matching contra-entry');
+ const paid=await db.invoice.create({data:{organizationId,client:'QA',project:'QA layihə',amount:10,issued:day,due:day,status:'odenilib'}});await assert.rejects(()=>service.reverseInvoice(user,paid.id,{key:randomUUID(),reason:'QA'}));check('paid invoice requires payment reconciliation and cannot be silently reversed');
+ const purchase=await db.purchaseAct.create({data:{organizationId,projectId,project:'QA layihə',number:'QA-PA',objectName:'QA',person:'QA',date:day,status:'qaralama',net:28,lines:{create:{sort:1,materialName:'QA boya',unit:'kq',qty:4,unitPrice:7,amount:28,firmName:'QA supplier'}}}});
+ await service.receivePurchase(user,purchase.id,{key:randomUUID(),locationId});const material=await db.material.findFirstOrThrow({where:{organizationId,name:'QA boya'}});
+ const reversal={key:randomUUID(),reason:'QA material return'};await Promise.all([service.reversePurchase(user,purchase.id,reversal),service.reversePurchase(user,purchase.id,reversal)]);
+ assert.equal((await db.material.findUniqueOrThrow({where:{id:material.id}})).qty.toString(),'0');assert.equal(await db.movement.count({where:{organizationId,materialId:material.id,type:'mexaric'}}),1);
+ const originalDebt=await db.payable.findFirstOrThrow({where:{organizationId,poId:purchase.id}});assert.equal(originalDebt.status,'legv');const contra=await db.payable.findFirstOrThrow({where:{organizationId,poId:`REVERSAL:${originalDebt.id}`}});assert.equal(contra.amount.toString(),'-28');check('concurrent purchase reversal posts one stock-out and preserves matching debt contra-entry');
+ await service.receivePurchase(user,purchase.id,{key:randomUUID(),locationId});assert.equal(await db.stockLot.count({where:{organizationId,materialId:material.id}}),2);check('reapproved corrected purchase gets a new source lot and posting cycle');
+ const lot=await db.stockLot.findFirstOrThrow({where:{organizationId,materialId:material.id,qty:{gt:0}}});await db.stockLot.update({where:{id:lot.id},data:{qty:2}});await assert.rejects(()=>service.reversePurchase(user,purchase.id,{key:randomUUID(),reason:'QA used stock'}));assert.equal((await db.purchaseAct.findUniqueOrThrow({where:{id:purchase.id}})).status,'tesdiq');assert.equal((await db.material.findUniqueOrThrow({where:{id:material.id}})).qty.toString(),'4');check('insufficient source lot blocks reversal and rolls back all effects');
+ return checks;
+}

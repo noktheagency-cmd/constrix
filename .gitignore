@@ -9,6 +9,7 @@ lerna-debug.log*
 
 node_modules
 dist
+backend/.local-backups/
 .env
 dist-ssr
 *.local
@@ -23,3 +24,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Local source audit extracts; originals remain in the database and user workbook files.
+docs/source-audit/*.xlsx.*.txt
+docs/source-audit/workbooks.json
+docs/source-audit/import-payload.json

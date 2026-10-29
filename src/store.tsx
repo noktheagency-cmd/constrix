@@ -1,17 +1,15 @@
-import { createContext, useCallback, useContext, useEffect, useReducer, useRef, useState, type Dispatch, type ReactNode, type SetStateAction } from "react"
+import { createContext, useCallback, useContext, useEffect, useReducer, useRef, useState, type Context, type Dispatch, type ReactNode, type SetStateAction } from "react"
 import { can } from "./domain/access"
+import {Modal,Field} from "./ui"
 import {
   acceptGear,
   addGear,
   addLocation,
   addShop,
   addQuote,
-  approveAct,
-  returnAct,
   updateAct,
   deleteAct,
   approveChange,
-  approveForma3,
   approveReport,
   awardQuote,
   closeService,
@@ -74,7 +72,6 @@ import {
   promoteLead,
   updateDeal,
   deleteDeal,
-  returnForma3,
   deleteForma3,
   refreshForma3,
   createRequest,
@@ -128,10 +125,8 @@ import { loadBooks } from "./books"
 import { syncBooks } from "./syncBooks"
 import { createEmptyState, createInitialState } from "./domain/seed"
 import {
-  approvePurchaseAct,
   createPurchaseAct,
   deletePurchaseAct,
-  returnPurchaseAct,
   updatePurchaseAct,
   type PurchaseActForm,
 } from "./domain/purchaseActs"
@@ -238,6 +233,8 @@ import { nextId } from "./format"
 type Action = { type: "PATCH"; patch: Partial<AppState> } | { type: "USER"; id: string }
 
 export interface StoreValue extends AppState {
+  loading: boolean
+  loadError: string
   query: string
   setQuery: Dispatch<SetStateAction<string>>
   notice: string
@@ -325,6 +322,7 @@ export interface StoreValue extends AppState {
   makeAct: (projectId: string) => string
   makeForma3: (projectId: string, kind: Forma3Kind) => string
   approveAct: (id: string) => string
+  reverseInvoice: (id: string) => string
   returnAct: (id: string) => string
   editAct: (id: string, lines: { smetaLineId: string; qty: number | string }[]) => string
   removeAct: (id: string) => string
@@ -410,7 +408,8 @@ export interface StoreValue extends AppState {
   reload: () => void
 }
 
-const StoreContext = createContext<StoreValue | null>(null)
+const StoreContext = (import.meta.hot?.data.storeContext as Context<StoreValue | null> | undefined) ?? createContext<StoreValue | null>(null)
+if(import.meta.hot)import.meta.hot.data.storeContext=StoreContext
 
 function reducer(state: AppState, action: Action): AppState {
   if (action.type === "PATCH") return { ...state, ...action.patch }
@@ -420,19 +419,22 @@ function reducer(state: AppState, action: Action): AppState {
 
 export function StoreProvider({ children }: { children: ReactNode }) {
   const { session } = usePrefs()
-  const [state, dispatch] = useReducer(reducer, null, createEmptyState)
+  const [loading,setLoading]=useState(Boolean(session?.userId))
+  const [loadError,setLoadError]=useState('')
+  const [state, dispatch] = useReducer(reducer, null, ()=>({...createEmptyState(),...(session?{users:[{id:session.userId,name:session.name,role:session.role,title:session.title,initials:session.initials}],currentUserId:session.userId}:{})}))
   useEffect(() => {
     if (session?.userId) dispatch({ type: "USER", id: session.userId })
   }, [session])
   const reload = useCallback(() => {
     if (!session?.userId) {
+      setLoading(false);setLoadError('')
       dispatch({ type: "PATCH", patch: createInitialState() })
       return
     }
+    setLoading(true);setLoadError('')
     loadBooks().then((patch) => {
-      const hasProjects = Array.isArray(patch.projects) && patch.projects.length > 0
-      dispatch({ type: "PATCH", patch: hasProjects ? patch : createInitialState() })
-    })
+      dispatch({ type: "PATCH", patch: {...createEmptyState(),...patch,users:[{id:session.userId,name:session.name,role:session.role,title:session.title,initials:session.initials}],currentUserId:session.userId} })
+    }).catch(reason=>{const message=reason instanceof Error?`Məlumatlar yüklənmədi: ${reason.message}`:'Məlumatlar yüklənmədi. Server bağlantısını yoxlayın.';setLoadError(message);toast(message)}).finally(()=>setLoading(false))
   }, [session?.userId])
   useEffect(() => {
     reload()
@@ -440,6 +442,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [query, setQuery] = useState("")
   const [notice, setNotice] = useState("")
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const workflowBusy = useRef(false)
+  const workflowKeys = useRef(new Map<string,string>())
   const actor = state.users.find((item) => item.id === state.currentUserId) ?? state.users[0]
   if (!actor) throw new Error("İstifadəçi tapılmadı")
 
@@ -461,10 +465,23 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     const before = state
     dispatch({ type: "PATCH", patch: result.patch })
     if (session?.userId) {
-      void syncBooks(before, result.patch)
+      void syncBooks(before, result.patch).catch(reason=>{reload();toast(reason instanceof Error?reason.message:"Dəyişiklik saxlanmadı")})
     }
     if (okMessage) toast(okMessage)
     return ""
+  }
+
+  const [workflowReturn,setWorkflowReturn]=useState<{id:string;kind:'return-f2'|'return-f3'|'return-purchase'|'return-invoice'}|null>(null)
+  const [workflowReason,setWorkflowReason]=useState('')
+  function requestWorkflowReturn(id:string,kind:'return-f2'|'return-f3'|'return-purchase'|'return-invoice'){setWorkflowReason('');setWorkflowReturn({id,kind});return ''}
+  function actWorkflow(id:string,kind:'approve-f2'|'receive-purchase'|'return-f2'|'approve-f3'|'return-f3'|'return-purchase'|'return-invoice',locationId?:string,reason?:string){
+    if(!session){toast('Əvvəlcə daxil olun');return 'Əvvəlcə daxil olun'}
+    if(workflowBusy.current)return 'Əvvəlki əməliyyat saxlanılır'
+    const identity=[id,kind,locationId||''].join('|')
+    const key=workflowKeys.current.get(identity)||crypto.randomUUID();workflowKeys.current.set(identity,key)
+    workflowBusy.current=true;toast('Əməliyyat serverdə yoxlanılır…')
+    void api(`/api/act-workflows/${encodeURIComponent(id)}/${kind}`,{method:'POST',body:JSON.stringify({key,locationId,reason})}).then(()=>{workflowKeys.current.delete(identity);reload();toast(kind==='approve-f2'?'Forma-2 təsdiqləndi':kind==='approve-f3'?'Forma-3 təsdiqləndi':kind==='receive-purchase'?'Alış aktı qəbul edildi və anbara yazıldı':'Sənəd qaralamaya qaytarıldı; düzəliş tarixçədə saxlandı')}).catch(reason=>{toast(reason instanceof Error?reason.message:'Əməliyyat saxlanmadı')}).finally(()=>{workflowBusy.current=false})
+    return ''
   }
 
   function patch(partial: Partial<AppState>, message?: string) {
@@ -666,6 +683,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }
 
   const value: StoreValue = {
+    loading,loadError,
     ...state,
     query,
     setQuery,
@@ -754,18 +772,19 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     removeNote: (id) => run(deleteJournal(state, id, actor), "Qeyd silindi"),
     makeAct: (projectId) => run(createAct(state, projectId, actor), "Forma-2 qaralaması açıldı"),
     makeForma3: (projectId, kind) => run(createForma3(state, projectId, kind, actor), kind === "yekun" ? "Yekun Forma-3 açıldı" : "Aralıq Forma-3 açıldı"),
-    approveAct: (id) => run(approveAct(state, id, actor), "Forma-2 təsdiqləndi"),
-    returnAct: (id) => run(returnAct(state, id, actor), "Forma-2 qaralamaya qaytarıldı"),
+    approveAct: (id) => actWorkflow(id,'approve-f2'),
+    reverseInvoice: (id) => requestWorkflowReturn(id, "return-invoice"),
+    returnAct: (id) => requestWorkflowReturn(id, "return-f2"),
     editAct: (id, lines) => run(updateAct(state, id, lines, actor), "Forma-2 redaktə olundu"),
     removeAct: (id) => run(deleteAct(state, id, actor), "Forma-2 silindi"),
     makePurchaseAct: (form) => run(createPurchaseAct(state, form, actor), "Alış aktı açıldı"),
     editPurchaseAct: (id, form) => run(updatePurchaseAct(state, id, form, actor), "Alış aktı yazıldı"),
-    approvePurchaseAct: (id, locationId) => run(approvePurchaseAct(state, id, actor, locationId), "Alış aktı təsdiqləndi, anbara düşdü"),
-    returnPurchaseAct: (id) => run(returnPurchaseAct(state, id, actor), "Alış aktı qaralamaya qaytarıldı"),
+    approvePurchaseAct: (id, locationId) => actWorkflow(id,'receive-purchase',locationId||state.locations[0]?.id),
+    returnPurchaseAct: (id) => requestWorkflowReturn(id, "return-purchase"),
     removePurchaseAct: (id) => run(deletePurchaseAct(state, id, actor), "Alış aktı silindi"),
     importSmeta: (projectId, rows) => run(applySmetaImport(state, projectId, rows, actor), "Smeta Excel-dən yükləndi"),
-    approveForma3Doc: (id) => run(approveForma3(state, id, actor), "Forma-3 təsdiqləndi və dondu"),
-    returnForma3Doc: (id) => run(returnForma3(state, id, actor), "Forma-3 qaralamaya qaytarıldı"),
+    approveForma3Doc: (id) => actWorkflow(id, "approve-f3"),
+    returnForma3Doc: (id) => requestWorkflowReturn(id, "return-f3"),
     removeForma3: (id) => run(deleteForma3(state, id, actor), "Forma-3 silindi"),
     refreshForma3Doc: (id) => run(refreshForma3(state, id, actor), "Forma-3 yeniləndi"),
     invoiceAct: (id) => run(invoiceAct(state, id, actor), "ƏDV-li faktura açıldı"),
@@ -844,7 +863,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     reload,
   }
 
-  return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>
+  return <StoreContext.Provider value={value}>{children}{workflowReturn&&<Modal title="Düzəliş üçün qaralamaya qaytar" onClose={()=>setWorkflowReturn(null)}><form onSubmit={event=>{event.preventDefault();if(!workflowReason.trim())return;const result=actWorkflow(workflowReturn.id,workflowReturn.kind,undefined,workflowReason.trim());if(!result)setWorkflowReturn(null)}}><p>Təsdiqlənmiş məzmun tarixçədə saxlanır. Alış aktında stok və borc yalnız server yoxlamasından sonra əks əməliyyatla düzəldilir.</p><Field label="Düzəliş səbəbi"><textarea required value={workflowReason} onChange={e=>setWorkflowReason(e.target.value)} /></Field><button className="btn primary" type="submit">Yoxla və qaytar</button></form></Modal>}</StoreContext.Provider>
 }
 
 export function useStore() {

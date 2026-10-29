@@ -1,3 +1,4 @@
+import { SourceWorkbookViewer } from "../components/SourceWorkbookViewer"
 import { DocumentSummary } from "../components/DocumentSummary"
 import { Button, Input, TableContainer, Toolbar } from "../components/primitives"
 import { useMemo, useRef, useState } from "react"
@@ -19,7 +20,7 @@ import { useStore } from "../store"
 import { downloadPdf, downloadWord, OfficialAct, useOfficialSheet } from "./officialForms"
 import { Badge, Drawer, Empty, Field, PageHead, RowMenu, Select, Tabs, useTitle } from "../ui"
 
-type Tab = "aktlar" | "nakopitel" | "hecm" | "smeta" | "hesablasma" | "faktura"
+type Tab = "aktlar" | "nakopitel" | "hecm" | "smeta" | "hesablasma" | "faktura" | "source"
 type Read =
   | { kind: "act"; id: string; edit?: boolean }
   | { kind: "open"; projectId: string }
@@ -36,8 +37,10 @@ export default function Forma2() {
   const { query, acts, projects, smetas, contracts, invoices, approveAct, invoiceAct, makeAct, editAct, removeAct, returnAct, importSmeta } = useStore()
   const [tab, setTab] = useState<Tab>("aktlar")
   const [reading, setReading] = useState<Read | null>(null)
-  const [projectId, setProjectId] = useState(projects.find((item) => item.id === "PRJ-XOCA")?.id || projects[0]?.id || "")
+  const [projectId, setProjectId] = useState(projects.find((item) => item.id === "source-xocali-60")?.id || projects.find((item) => item.id === "PRJ-XOCA")?.id || projects[0]?.id || "")
   const [nakoPeriod, setNakoPeriod] = useState("2026-04")
+  const [nakoHouse, setNakoHouse] = useState("")
+  const [nakoPage, setNakoPage] = useState(1)
   const [error, setError] = useState("")
   const fileRef = useRef<HTMLInputElement>(null)
   const q = query.trim().toLowerCase()
@@ -49,8 +52,13 @@ export default function Forma2() {
     [nakoSmeta, acts, nakoPeriod],
   )
   const nakoSum = useMemo(() => nakopitelTotals(nakoRows), [nakoRows])
+  const nakoHouses = [...new Set(nakoRows.map(row => row.houseNo).filter(Boolean))]
+  const filteredNako = nakoRows.filter(row => (!nakoHouse || row.houseNo === nakoHouse) && (!q || `${row.name} ${row.code} ${row.houseNo} ${row.section}`.toLocaleLowerCase("az").includes(q)))
+  const nakoPages = Math.max(1, Math.ceil(filteredNako.length / 100))
+  const currentNakoPage = Math.min(nakoPage, nakoPages)
+  const visibleNako = filteredNako.slice((currentNakoPage - 1) * 100, currentNakoPage * 100)
   const periodOptions = useMemo(() => {
-    const periods = new Set(acts.filter((act) => act.projectId === nakoProject?.id).map((act) => act.period))
+    const periods = new Set(acts.filter((act) => act.projectId === nakoProject?.id).map((act) => act.period).filter(Boolean))
     periods.add(nakoPeriod)
     periods.add("2026-04")
     return [...periods].sort()
@@ -143,6 +151,7 @@ export default function Forma2() {
           options={[
             { id: "aktlar", label: "Aktlar" },
             { id: "nakopitel", label: "Nakopitel" },
+            { id: "source", label: "Excel mənbəsi" },
             { id: "hecm", label: "Həcm" },
             { id: "smeta", label: "Smeta" },
             { id: "hesablasma", label: "Hesablaşma" },
@@ -156,16 +165,20 @@ export default function Forma2() {
         </span>
       </Toolbar>
 
+      {tab === "source" && <SourceWorkbookViewer kind="nakopitel" />}
       {tab === "nakopitel" && (
         <>
+          {nakoProject?.id === "source-xocali-60" && <p className="muted">İdxal edilmiş F2-lər yoxlama üçün qaralamadır. Bu cədvəl yalnız təsdiqlənmiş aktları hesablayır. Excel-dəki tarixi dövrlərə və F2-1/F2-2/F2-3 sütunlarına “Excel mənbəsi” tabından baxın.</p>}
           <Toolbar>
             <Field label="Layihə">
-              <Select value={nakoProject?.id || ""} onValueChange={setProjectId} options={projects.map((project) => ({ value: project.id, label: project.name }))} />
+              <Select value={nakoProject?.id || ""} onValueChange={value => { setProjectId(value); setNakoHouse(""); setNakoPage(1) }} options={projects.map((project) => ({ value: project.id, label: project.name }))} />
             </Field>
             <Field label="Hesabat ayı">
               <Select value={nakoPeriod} onValueChange={setNakoPeriod} options={periodOptions.map((period) => ({ value: period, label: monthAZ(period) }))} />
             </Field>
+            <Field label="Ev / obyekt"><Select value={nakoHouse} onValueChange={value => { setNakoHouse(value); setNakoPage(1) }} options={[{value:"",label:"Bütün evlər"},...nakoHouses.map(value=>({value,label:`Ev №${value}`}))]} /></Field>
           </Toolbar>
+          {filteredNako.length > 100 && <Toolbar><span>{filteredNako.length} sətir · {currentNakoPage} / {nakoPages}</span><Button className="ghost" disabled={currentNakoPage <= 1} onClick={() => setNakoPage(currentNakoPage - 1)}>Əvvəlki 100 sətir</Button><Button className="ghost" disabled={currentNakoPage >= nakoPages} onClick={() => setNakoPage(currentNakoPage + 1)}>Növbəti 100 sətir</Button></Toolbar>}
           <TableContainer className="wide">
             <table>
               <thead>
@@ -176,13 +189,11 @@ export default function Forma2() {
                   <th className="num">Həcm</th>
                   <th className="num">Qiymət</th>
                   <th className="num">Cəmi</th>
-                  <th className="num">Əvvəlindən</th>
-                  <th className="num">Bu ay</th>
-                  <th className="num">Qalıq</th>
+                  <th className="num">Əvvəlki miqdar</th><th className="num">Əvvəlki məbləğ</th><th className="num">Yığılan miqdar</th><th className="num">Yığılan məbləğ</th><th className="num">Bu ay miqdar</th><th className="num">Bu ay məbləğ</th><th className="num">Qalıq miqdar</th><th className="num">Qalıq məbləğ</th>
                 </tr>
               </thead>
               <tbody>
-                {nakoRows.map((row) => (
+                {visibleNako.map((row) => (
                   <tr key={row.id} className={row.kind === "house" || row.kind === "section" || row.kind === "sectionTotal" ? "muted" : undefined}>
                     <td>{row.code || ""}</td>
                     <td>
@@ -192,14 +203,14 @@ export default function Forma2() {
                     <td className="num">{row.kind === "work" ? num(row.smetaQty, 2) : ""}</td>
                     <td className="num">{row.kind === "work" ? money(row.unitPrice) : ""}</td>
                     <td className="num">{row.kind === "work" || row.kind === "sectionTotal" ? money(row.smetaValue) : ""}</td>
-                    <td className="num">{row.kind === "work" || row.kind === "sectionTotal" ? money(row.cumulativeValue) : ""}</td>
-                    <td className="num">{row.kind === "work" || row.kind === "sectionTotal" ? money(row.periodValue) : ""}</td>
-                    <td className="num">{row.kind === "work" || row.kind === "sectionTotal" ? money(row.remainValue) : ""}</td>
+                    <td className="num">{row.kind === "work" ? num(row.priorQty, 3) : ""}</td><td className="num">{row.kind === "work" || row.kind === "sectionTotal" ? money(row.priorValue) : ""}</td><td className="num">{row.kind === "work" ? num(row.cumulativeQty, 3) : ""}</td><td className="num">{row.kind === "work" || row.kind === "sectionTotal" ? money(row.cumulativeValue) : ""}</td>
+                    <td className="num">{row.kind === "work" ? num(row.periodQty, 3) : ""}</td><td className="num">{row.kind === "work" || row.kind === "sectionTotal" ? money(row.periodValue) : ""}</td>
+                    <td className="num">{row.kind === "work" ? num(row.remainQty, 3) : ""}</td><td className="num">{row.kind === "work" || row.kind === "sectionTotal" ? money(row.remainValue) : ""}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
-            {nakoRows.length === 0 && <Empty title="Nakopitel boşdur" text="Bu layihədə ev/bölmə smetası yoxdur. Xocalı nümunəsi yüklənib." />}
+            {nakoRows.length === 0 && <Empty title="Nakopitel boşdur" text="Bu layihədə ev/bölmə smetası yoxdur. Layihəni dəyişin və ya smeta idxal edin." />}
           </TableContainer>
           {nakoRows.length > 0 && (
             <p className="muted">Smeta {money(nakoSum.smetaValue)} · əvvəlindən {money(nakoSum.cumulativeValue)} · bu ay {money(nakoSum.periodValue)} · qalıq {money(nakoSum.remainValue)}</p>

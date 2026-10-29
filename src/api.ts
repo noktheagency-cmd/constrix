@@ -8,6 +8,7 @@ export class ApiError extends Error {
 }
 
 export async function api<T>(path: string, init?: RequestInit): Promise<T> {
+  if(init?.method && !['GET','HEAD'].includes(init.method.toUpperCase()) && !navigator.onLine)throw new ApiError(0,'İnternet bağlantısı yoxdur. Əməliyyat göndərilmədi.')
   const response = await fetch(path, {
     ...init,
     credentials: "include",
@@ -15,9 +16,11 @@ export async function api<T>(path: string, init?: RequestInit): Promise<T> {
       ...(init?.body ? { "Content-Type": "application/json" } : {}),
       ...init?.headers,
     },
-  })
+  }).catch(()=>{throw new ApiError(0,'Serverlə əlaqə alınmadı. Əməliyyatın vəziyyətini yeniləyib yoxlayın.')})
   const raw = await response.text()
-  const data = raw ? JSON.parse(raw) as { message?: string | string[] } : null
+  let data: { message?: string | string[] } | null = null
+  try { data = raw ? JSON.parse(raw) as { message?: string | string[] } : null }
+  catch { throw new ApiError(response.status, response.status >= 500 ? 'API hazır deyil və ya serverə bağlantı alınmadı. Bir az sonra yeniləyin.' : 'Serverdən düzgün JSON cavabı alınmadı.') }
   if (!response.ok) {
     if (response.status === 401 && !path.includes("/auth/login")) {
       localStorage.removeItem("afez.token")

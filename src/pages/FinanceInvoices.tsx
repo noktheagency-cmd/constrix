@@ -111,10 +111,10 @@ export default function FinanceInvoices() {
                 <td>
                   {item.side === "satis" && (
                     <RowMenu items={[
+                      ...(item.status!=="odenilib"&&item.status!=="legv"?[{ id: "reverse", label: "Əks qeyd ilə ləğv et", onClick: () => state.reverseInvoice(item.id) }]:[]),
                       ...(item.status === "qaralama" ? [
                         { id: "edit", label: "Redaktə", onClick: () => { setError(""); setEditing(item.id); setForm({ client: item.party, project: item.project, amount: String(item.amount), due: item.due }) } },
                         { id: "send", label: "Göndər", onClick: () => state.sendInvoice(item.id) },
-                        { id: "delete", label: "Sil", onClick: () => setDrop({ id: item.id, kind: "qaimə", label: item.id }) },
                       ] : []),
                       ...((item.status === "gonderilib" || item.status === "gecikir") && !item.ref ? [
                         { id: "return", label: "Qaralamaya qaytar", onClick: () => state.returnInvoice(item.id) },
@@ -153,7 +153,7 @@ export default function FinanceInvoices() {
           {selected.status === "qaralama" && !selected.actId && (
             <Button type="button" onClick={() => { state.sendInvoice(selected.id); setSelected(null) }}>Göndər</Button>
           )}
-          {selected.status !== "odenilib" && selected.status !== "qaralama" && (
+          {selected.status !== "odenilib" && selected.status !== "qaralama" && selected.status !== "legv" && (
             <Button type="button" onClick={() => { const message = state.markInvoicePaid(selected.id); if (!message) setSelected({ ...selected, status: "odenilib" }) }}>Banka düşdü</Button>
           )}
         </Drawer>

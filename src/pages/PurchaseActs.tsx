@@ -1,3 +1,4 @@
+import { SourceWorkbookViewer } from "../components/SourceWorkbookViewer"
 import { Button, Input, TableContainer, Toolbar } from "../components/primitives"
 import { useMemo, useState, type FormEvent } from "react"
 import { Link } from "react-router-dom"
@@ -10,7 +11,7 @@ import { usePrefs } from "../i18n"
 import { useStore } from "../store"
 import { Badge, Drawer, Empty, Field, PageHead, RowMenu, Select, Tabs, useTitle } from "../ui"
 
-type Tab = "aktlar" | "umumi" | "elave"
+type Tab = "aktlar" | "umumi" | "elave" | "source"
 type Reading = { kind: "act"; id: string; edit?: boolean } | { kind: "new" } | null
 
 const emptyLine = () => ({
@@ -19,6 +20,7 @@ const emptyLine = () => ({
   qty: "",
   unitPrice: "",
   amount: "",
+  cashPaid: "",
   firmName: "",
   note: "",
   sender: "",
@@ -74,11 +76,13 @@ export default function PurchaseActs() {
             { id: "aktlar", label: "Aktlar" },
             { id: "umumi", label: "Ümumi" },
             { id: "elave", label: "Əlavə" },
+            { id: "source", label: "Excel mənbəsi" },
           ]}
         />
         <span className="muted">{rows.filter((item) => item.status === "qaralama").length} qaralama · {money(rows.reduce((sum, item) => sum + item.net, 0))}</span>
       </Toolbar>
 
+      {tab === "source" && <SourceWorkbookViewer kind="purchase" />}
       {tab === "aktlar" && (
         <TableContainer className="wide">
           <table>
@@ -135,7 +139,7 @@ export default function PurchaseActs() {
                 <th className="num">Miqdar</th>
                 <th className="num">Qiymət</th>
                 <th className="num">Dəyər</th>
-                <th>Firma</th>
+                <th>Nağd ödəniş</th><th>Firma</th><th>Qeyd</th><th>Göndərən</th>
               </tr>
             </thead>
             <tbody>
@@ -148,7 +152,7 @@ export default function PurchaseActs() {
                   <td className="num">{num(item.qty, 2)}</td>
                   <td className="num">{num(item.unitPrice, 4)}</td>
                   <td className="num">{money(item.amount)}</td>
-                  <td>{item.firmName || "—"}</td>
+                  <td className="num">{item.cashPaid == null ? "—" : money(item.cashPaid)}</td><td>{item.firmName || "—"}</td><td>{item.note || "—"}</td><td>{item.sender || "—"}</td>
                 </tr>
               ))}
             </tbody>
@@ -166,7 +170,7 @@ export default function PurchaseActs() {
                 <th>Material</th>
                 <th className="num">Miqdar</th>
                 <th className="num">Qiymət</th>
-                <th className="num">Fərq</th>
+                <th className="num">Dəyər</th><th className="num">Fərq</th>
                 <th className="num">Yekun</th>
                 <th>Əsas akt</th>
               </tr>
@@ -178,7 +182,7 @@ export default function PurchaseActs() {
                   <td>{item.materialName}<div className="muted">{item.unit}</div></td>
                   <td className="num">{num(item.qty, 2)}</td>
                   <td className="num">{num(item.unitPrice, 4)}</td>
-                  <td className="num">{num(item.diff, 4)}</td>
+                  <td className="num">{money(item.amount)}</td><td className="num">{num(item.diff, 4)}</td>
                   <td className="num">{money(item.diffAmount)}</td>
                   <td>{item.actLabel || "—"}</td>
                 </tr>
@@ -341,6 +345,7 @@ function ActDrawer({
           qty: String(line.qty),
           unitPrice: String(line.unitPrice),
           amount: String(line.amount),
+          cashPaid: line.cashPaid == null ? "" : String(line.cashPaid),
           firmName: line.firmName,
           note: line.note,
           sender: line.sender,
@@ -399,7 +404,7 @@ function ActDrawer({
             {act.lines.map((line) => (
               <p key={line.id}>
                 <b>{line.materialName}</b> · {num(line.qty, 2)} {line.unit} · {num(line.unitPrice, 4)} · {money(line.amount)}
-                <span className="muted"> · {line.firmName || "firma yox"}{line.sender ? ` · göndərən ${line.sender}` : ""}</span>
+                <span className="muted"> · Nağd: {line.cashPaid == null ? "—" : money(line.cashPaid)} · {line.note || "Qeyd yoxdur"} · {line.firmName || "firma yox"}{line.sender ? ` · göndərən ${line.sender}` : ""}</span>
               </p>
             ))}
             {act.adjustments.length > 0 && (

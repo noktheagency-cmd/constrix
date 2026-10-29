@@ -20,3 +20,7 @@ createRoot(root).render(
     <App />
   </StrictMode>,
 )
+
+if ('serviceWorker' in navigator && import.meta.env.PROD) {
+  window.addEventListener('load',()=>{void navigator.serviceWorker.register('/sw.js').catch(()=>{/* The app remains usable when installation is unavailable. */})})
+}

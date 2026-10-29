@@ -1,0 +1,355 @@
+{
+  "verifiedAt": "2026-10-29T13:21:34.274Z",
+  "models": 58,
+  "readOnly": true,
+  "rows": [
+    {
+      "model": "Client",
+      "total": 11,
+      "owned": 11,
+      "hiddenWithoutOwner": 0
+    },
+    {
+      "model": "Project",
+      "total": 15,
+      "owned": 15,
+      "hiddenWithoutOwner": 0
+    },
+    {
+      "model": "User",
+      "total": 0,
+      "owned": 0,
+      "hiddenWithoutOwner": 0
+    },
+    {
+      "model": "Crew",
+      "total": 1,
+      "owned": 1,
+      "hiddenWithoutOwner": 0
+    },
+    {
+      "model": "Lead",
+      "total": 8,
+      "owned": 8,
+      "hiddenWithoutOwner": 0
+    },
+    {
+      "model": "Deal",
+      "total": 7,
+      "owned": 7,
+      "hiddenWithoutOwner": 0
+    },
+    {
+      "model": "CrmTask",
+      "total": 8,
+      "owned": 8,
+      "hiddenWithoutOwner": 0
+    },
+    {
+      "model": "CrmFile",
+      "total": 8,
+      "owned": 8,
+      "hiddenWithoutOwner": 0
+    },
+    {
+      "model": "CrmActivity",
+      "total": 6,
+      "owned": 6,
+      "hiddenWithoutOwner": 0
+    },
+    {
+      "model": "Invoice",
+      "total": 12,
+      "owned": 12,
+      "hiddenWithoutOwner": 0
+    },
+    {
+      "model": "Expense",
+      "total": 16,
+      "owned": 16,
+      "hiddenWithoutOwner": 0
+    },
+    {
+      "model": "Payable",
+      "total": 8,
+      "owned": 8,
+      "hiddenWithoutOwner": 0
+    },
+    {
+      "model": "Supplier",
+      "total": 6,
+      "owned": 6,
+      "hiddenWithoutOwner": 0
+    },
+    {
+      "model": "Quote",
+      "total": 6,
+      "owned": 6,
+      "hiddenWithoutOwner": 0
+    },
+    {
+      "model": "Smeta",
+      "total": 8,
+      "owned": 8,
+      "hiddenWithoutOwner": 0
+    },
+    {
+      "model": "PurchaseAct",
+      "total": 58,
+      "owned": 58,
+      "hiddenWithoutOwner": 0
+    },
+    {
+      "model": "Contract",
+      "total": 1,
+      "owned": 1,
+      "hiddenWithoutOwner": 0
+    },
+    {
+      "model": "Act",
+      "total": 11,
+      "owned": 11,
+      "hiddenWithoutOwner": 0
+    },
+    {
+      "model": "Forma3",
+      "total": 4,
+      "owned": 4,
+      "hiddenWithoutOwner": 0
+    },
+    {
+      "model": "DailyReport",
+      "total": 11,
+      "owned": 11,
+      "hiddenWithoutOwner": 0
+    },
+    {
+      "model": "Document",
+      "total": 10,
+      "owned": 10,
+      "hiddenWithoutOwner": 0
+    },
+    {
+      "model": "ChangeOrder",
+      "total": 0,
+      "owned": 0,
+      "hiddenWithoutOwner": 0
+    },
+    {
+      "model": "Location",
+      "total": 7,
+      "owned": 7,
+      "hiddenWithoutOwner": 0
+    },
+    {
+      "model": "Material",
+      "total": 13,
+      "owned": 13,
+      "hiddenWithoutOwner": 0
+    },
+    {
+      "model": "Stock",
+      "total": 13,
+      "owned": 13,
+      "hiddenWithoutOwner": 0
+    },
+    {
+      "model": "Movement",
+      "total": 13,
+      "owned": 13,
+      "hiddenWithoutOwner": 0
+    },
+    {
+      "model": "Shipment",
+      "total": 2,
+      "owned": 2,
+      "hiddenWithoutOwner": 0
+    },
+    {
+      "model": "PurchaseOrder",
+      "total": 8,
+      "owned": 8,
+      "hiddenWithoutOwner": 0
+    },
+    {
+      "model": "MaterialRequest",
+      "total": 8,
+      "owned": 8,
+      "hiddenWithoutOwner": 0
+    },
+    {
+      "model": "Recipe",
+      "total": 2,
+      "owned": 2,
+      "hiddenWithoutOwner": 0
+    },
+    {
+      "model": "Plant",
+      "total": 5,
+      "owned": 5,
+      "hiddenWithoutOwner": 0
+    },
+    {
+      "model": "WorkOrder",
+      "total": 9,
+      "owned": 9,
+      "hiddenWithoutOwner": 0
+    },
+    {
+      "model": "Asset",
+      "total": 10,
+      "owned": 10,
+      "hiddenWithoutOwner": 0
+    },
+    {
+      "model": "Driver",
+      "total": 3,
+      "owned": 3,
+      "hiddenWithoutOwner": 0
+    },
+    {
+      "model": "Trip",
+      "total": 3,
+      "owned": 3,
+      "hiddenWithoutOwner": 0
+    },
+    {
+      "model": "FuelFill",
+      "total": 2,
+      "owned": 2,
+      "hiddenWithoutOwner": 0
+    },
+    {
+      "model": "FleetDoc",
+      "total": 4,
+      "owned": 4,
+      "hiddenWithoutOwner": 0
+    },
+    {
+      "model": "Gear",
+      "total": 8,
+      "owned": 8,
+      "hiddenWithoutOwner": 0
+    },
+    {
+      "model": "GearEvent",
+      "total": 3,
+      "owned": 3,
+      "hiddenWithoutOwner": 0
+    },
+    {
+      "model": "ServiceJob",
+      "total": 2,
+      "owned": 2,
+      "hiddenWithoutOwner": 0
+    },
+    {
+      "model": "Person",
+      "total": 30,
+      "owned": 18,
+      "hiddenWithoutOwner": 12
+    },
+    {
+      "model": "Office",
+      "total": 1,
+      "owned": 1,
+      "hiddenWithoutOwner": 0
+    },
+    {
+      "model": "Department",
+      "total": 7,
+      "owned": 7,
+      "hiddenWithoutOwner": 0
+    },
+    {
+      "model": "Terminal",
+      "total": 4,
+      "owned": 4,
+      "hiddenWithoutOwner": 0
+    },
+    {
+      "model": "Attendance",
+      "total": 58,
+      "owned": 58,
+      "hiddenWithoutOwner": 0
+    },
+    {
+      "model": "LeaveRequest",
+      "total": 8,
+      "owned": 8,
+      "hiddenWithoutOwner": 0
+    },
+    {
+      "model": "HrPayment",
+      "total": 10,
+      "owned": 10,
+      "hiddenWithoutOwner": 0
+    },
+    {
+      "model": "HrMove",
+      "total": 4,
+      "owned": 4,
+      "hiddenWithoutOwner": 0
+    },
+    {
+      "model": "Payroll",
+      "total": 3,
+      "owned": 3,
+      "hiddenWithoutOwner": 0
+    },
+    {
+      "model": "JournalEntry",
+      "total": 12,
+      "owned": 12,
+      "hiddenWithoutOwner": 0
+    },
+    {
+      "model": "AuditEntry",
+      "total": 15,
+      "owned": 14,
+      "hiddenWithoutOwner": 1
+    },
+    {
+      "model": "ClosedPeriod",
+      "total": 0,
+      "owned": 0,
+      "hiddenWithoutOwner": 0
+    },
+    {
+      "model": "SubCompany",
+      "total": 0,
+      "owned": 0,
+      "hiddenWithoutOwner": 0
+    },
+    {
+      "model": "Complex",
+      "total": 0,
+      "owned": 0,
+      "hiddenWithoutOwner": 0
+    },
+    {
+      "model": "Building",
+      "total": 0,
+      "owned": 0,
+      "hiddenWithoutOwner": 0
+    },
+    {
+      "model": "Unit",
+      "total": 0,
+      "owned": 0,
+      "hiddenWithoutOwner": 0
+    },
+    {
+      "model": "Buyer",
+      "total": 0,
+      "owned": 0,
+      "hiddenWithoutOwner": 0
+    },
+    {
+      "model": "SaleContract",
+      "total": 0,
+      "owned": 0,
+      "hiddenWithoutOwner": 0
+    }
+  ]
+}
