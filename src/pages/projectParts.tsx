@@ -1,3 +1,4 @@
+import { Button, Input, Metric, Panel, SectionHeader, StatGrid, TableContainer } from "../components/primitives"
 import { useState, type FormEvent } from "react"
 import { Link } from "react-router-dom"
 import { projectEconomics } from "../domain/ops"
@@ -34,22 +35,22 @@ export function SmetaPanel({ project }: { project: Project }) {
   const done = smeta.lines.reduce((sum, line) => sum + Math.min(line.doneQty, line.qty) * line.unitPrice, 0)
   const open = smeta.lines.reduce((sum, line) => sum + Math.max(0, line.doneQty - line.billedQty) * line.unitPrice, 0)
   return (
-    <section className="panel pad">
-      <div className="panel-head">
+    <Panel className="pad">
+      <SectionHeader>
         <h2>Smeta · versiya {smeta.version}</h2>
         <div className="deal-actions">
           <span className="muted">Bağlanmamış həcm {money(open)}</span>
           {allowed("acts") && (
-            <button type="button" className="btn small" onClick={() => makeAct(project.id)}>
+            <Button type="button" className="small" onClick={() => makeAct(project.id)}>
               Forma-2
-            </button>
+            </Button>
           )}
         </div>
-      </div>
+      </SectionHeader>
       <p className="muted">
         Razılaşma {money(plan)} · yerinə yetirilib {money(done)}. Həcm yalnız təsdiqlənmiş gündəlikdən artır.
       </p>
-      <div className="table-wrap" style={{ marginTop: 12 }}>
+      <TableContainer  style={{ marginTop: 12 }}>
         <table>
           <thead>
             <tr>
@@ -86,8 +87,8 @@ export function SmetaPanel({ project }: { project: Project }) {
             ))}
           </tbody>
         </table>
-      </div>
-    </section>
+      </TableContainer>
+    </Panel>
   )
 }
 
@@ -103,7 +104,7 @@ export function ContractPanel({ project }: { project: Project }) {
   const retention = Math.round(contract.value * (contract.retentionPct / 100))
   return (
     <div className="grid-2">
-      <section className="panel pad">
+      <Panel className="pad">
         <h2>{contract.number}</h2>
         <dl className="kv" style={{ marginTop: 12 }}>
           <dt>Sifarişçi</dt>
@@ -123,8 +124,8 @@ export function ContractPanel({ project }: { project: Project }) {
           <dt>Saxlanc</dt>
           <dd>{money(held.retention)}</dd>
         </dl>
-      </section>
-      <section className="panel pad">
+      </Panel>
+      <Panel className="pad">
         <h2>Ödəniş qrafiki</h2>
         <div className="mini-list">
           {contract.schedule.map((row) => (
@@ -139,7 +140,7 @@ export function ContractPanel({ project }: { project: Project }) {
             </article>
           ))}
         </div>
-      </section>
+      </Panel>
     </div>
   )
 }
@@ -149,7 +150,7 @@ export function DocsPanel({ project }: { project: Project }) {
   const rows = documents.filter((item) => item.projectId === project.id)
   if (!rows.length) return <p className="muted">Sənəd yoxdur.</p>
   return (
-    <section className="panel pad">
+    <Panel className="pad">
       <h2>Sənədlər və əlavə işlər</h2>
       <div className="mini-list">
         {rows.map((doc) => (
@@ -161,15 +162,15 @@ export function DocsPanel({ project }: { project: Project }) {
             <span className="deal-actions">
               <Badge status={doc.status} />
               {doc.status === "gozleyir" && (actor.role === "director" || actor.role === "pm") && (
-                <button type="button" className="btn small" onClick={() => decideDocument(doc.id, "tesdiq")}>
+                <Button type="button" className="small" onClick={() => decideDocument(doc.id, "tesdiq")}>
                   Təsdiqlə
-                </button>
+                </Button>
               )}
             </span>
           </article>
         ))}
       </div>
-    </section>
+    </Panel>
   )
 }
 
@@ -191,29 +192,29 @@ export function CostPanel({ project }: { project: Project }) {
 
   return (
     <div className="stack">
-      <section className="statstrip">
-        <article>
+      <StatGrid>
+        <Metric>
           <span>Plan</span>
           <strong>{money(cost.planned)}</strong>
           <em>Smeta</em>
-        </article>
-        <article>
+        </Metric>
+        <Metric>
           <span>Qazanılmış</span>
           <strong>{money(cost.earned)}</strong>
           <em>Təsdiqlənmiş həcm</em>
-        </article>
-        <article>
+        </Metric>
+        <Metric>
           <span>Akt</span>
           <strong>{money(cost.billed)}</strong>
           <em>Bağlanmış həcm</em>
-        </article>
-        <article>
+        </Metric>
+        <Metric>
           <span>Xərc</span>
           <strong>{money(cost.spent)}</strong>
           <em className={cost.spent > cost.earned ? "warn" : ""}>Öhdəlik {money(cost.committed)}</em>
-        </article>
-      </section>
-      <section className="panel pad">
+        </Metric>
+      </StatGrid>
+      <Panel className="pad">
         <h2>Əlavə işlər</h2>
         <p className="muted">Təsdiq yeni smeta sətri əlavə edir və müqavilə məbləğini artırır. Köhnə sətirlər olduğu kimi qalır.</p>
         <div className="mini-list">
@@ -227,9 +228,9 @@ export function CostPanel({ project }: { project: Project }) {
               <span className="deal-actions">
                 <Badge status={item.status} />
                 {item.status === "qaralama" && canEdit && (
-                  <button type="button" className="btn small" onClick={() => approveChange(item.id)}>
+                  <Button type="button" className="small" onClick={() => approveChange(item.id)}>
                     Təsdiqlə
-                  </button>
+                  </Button>
                 )}
               </span>
             </article>
@@ -238,32 +239,32 @@ export function CostPanel({ project }: { project: Project }) {
         {canEdit && (
           <form className="form" onSubmit={submit} style={{ marginTop: 16 }}>
             <Field label="Başlıq">
-              <input value={form.title} onChange={(event) => setForm({ ...form, title: event.target.value })} />
+              <Input value={form.title} onChange={(event) => setForm({ ...form, title: event.target.value })} />
             </Field>
             <Field label="Səbəb">
-              <input value={form.reason} onChange={(event) => setForm({ ...form, reason: event.target.value })} />
+              <Input value={form.reason} onChange={(event) => setForm({ ...form, reason: event.target.value })} />
             </Field>
             <Field label="İş">
-              <input value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} />
+              <Input value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} />
             </Field>
             <div className="split">
               <Field label="Vahid">
-                <input value={form.unit} onChange={(event) => setForm({ ...form, unit: event.target.value })} />
+                <Input value={form.unit} onChange={(event) => setForm({ ...form, unit: event.target.value })} />
               </Field>
               <Field label="Həcm">
-                <input type="number" min="0" step="0.1" value={form.qty} onChange={(event) => setForm({ ...form, qty: event.target.value })} />
+                <Input type="number" min="0" step="0.1" value={form.qty} onChange={(event) => setForm({ ...form, qty: event.target.value })} />
               </Field>
               <Field label="Qiymət, ₼">
-                <input type="number" min="1" value={form.unitPrice} onChange={(event) => setForm({ ...form, unitPrice: event.target.value })} />
+                <Input type="number" min="1" value={form.unitPrice} onChange={(event) => setForm({ ...form, unitPrice: event.target.value })} />
               </Field>
             </div>
             {error && <p className="form-error">{error}</p>}
             <div className="form-actions">
-              <button className="btn" type="submit">Əlavə iş aç</button>
+              <Button  type="submit">Əlavə iş aç</Button>
             </div>
           </form>
         )}
-      </section>
+      </Panel>
     </div>
   )
 }

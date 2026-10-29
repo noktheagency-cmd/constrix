@@ -1,3 +1,4 @@
+import { Button, Input, TableContainer, Toolbar } from "../components/primitives"
 import { useRef, useState, type ReactNode } from "react"
 import { Link, useNavigate, useParams } from "react-router-dom"
 import { hit } from "../format"
@@ -128,7 +129,7 @@ function ChoiceField({
         options={options}
       />
       {adding && (
-        <input
+        <Input
           className="catalog-fresh"
           value={draft}
           autoFocus
@@ -170,8 +171,8 @@ function ProductForm({
 }) {
   return (
     <div className="form-row wide catalog-fields">
-        <label>Ad<input value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} /></label>
-        <label>Kod<input value={form.code} onChange={(event) => setForm({ ...form, code: event.target.value })} /></label>
+        <label>Ad<Input value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} /></label>
+        <label>Kod<Input value={form.code} onChange={(event) => setForm({ ...form, code: event.target.value })} /></label>
         <ChoiceField
           label="Kateqoriya"
           value={form.category}
@@ -180,9 +181,9 @@ function ProductForm({
           onValue={(category) => setForm({ ...form, category })}
           onCreate={(category) => setForm({ ...form, category: keepName("categories", category) })}
         />
-        <label>Parametr<input value={form.params} onChange={(event) => setForm({ ...form, params: event.target.value })} /></label>
-        <label>Rəng<input value={form.colors} onChange={(event) => setForm({ ...form, colors: event.target.value })} /></label>
-        <label>Ölçü<input value={form.sizes} onChange={(event) => setForm({ ...form, sizes: event.target.value })} /></label>
+        <label>Parametr<Input value={form.params} onChange={(event) => setForm({ ...form, params: event.target.value })} /></label>
+        <label>Rəng<Input value={form.colors} onChange={(event) => setForm({ ...form, colors: event.target.value })} /></label>
+        <label>Ölçü<Input value={form.sizes} onChange={(event) => setForm({ ...form, sizes: event.target.value })} /></label>
         <ChoiceField
           label="Vahid"
           value={form.unit}
@@ -191,16 +192,16 @@ function ProductForm({
           onValue={(unit) => setForm({ ...form, unit })}
           onCreate={(unit) => setForm({ ...form, unit: keepName("units", unit) })}
         />
-        <label>Satış qiyməti<input value={form.price} onChange={(event) => setForm({ ...form, price: event.target.value })} /></label>
-        {showCost && <label>Maya<input value={form.cost} onChange={(event) => setForm({ ...form, cost: event.target.value })} /></label>}
-        <label>Qüvvədədir<input value={form.validUntil} onChange={(event) => setForm({ ...form, validUntil: event.target.value })} placeholder="2026-12-31" /></label>
-        <label>Minimum<input value={form.minQty} onChange={(event) => setForm({ ...form, minQty: event.target.value })} /></label>
-        <label>İstehsal, gün<input value={form.leadDays} onChange={(event) => setForm({ ...form, leadDays: event.target.value })} /></label>
-        <label>Çatdırılma<input value={form.deliveryPrice} onChange={(event) => setForm({ ...form, deliveryPrice: event.target.value })} /></label>
-        <label>Montaj<input value={form.installPrice} onChange={(event) => setForm({ ...form, installPrice: event.target.value })} /></label>
+        <label>Satış qiyməti<Input value={form.price} onChange={(event) => setForm({ ...form, price: event.target.value })} /></label>
+        {showCost && <label>Maya<Input value={form.cost} onChange={(event) => setForm({ ...form, cost: event.target.value })} /></label>}
+        <label>Qüvvədədir<Input value={form.validUntil} onChange={(event) => setForm({ ...form, validUntil: event.target.value })} placeholder="2026-12-31" /></label>
+        <label>Minimum<Input value={form.minQty} onChange={(event) => setForm({ ...form, minQty: event.target.value })} /></label>
+        <label>İstehsal, gün<Input value={form.leadDays} onChange={(event) => setForm({ ...form, leadDays: event.target.value })} /></label>
+        <label>Çatdırılma<Input value={form.deliveryPrice} onChange={(event) => setForm({ ...form, deliveryPrice: event.target.value })} /></label>
+        <label>Montaj<Input value={form.installPrice} onChange={(event) => setForm({ ...form, installPrice: event.target.value })} /></label>
         <div className="pricebook-actions">
-          <button type="button" className="btn" onClick={onSave} disabled={!form.name.trim()}>{saveLabel}</button>
-          <button type="button" className="btn ghost" onClick={onCancel}>Ləğv et</button>
+          <Button type="button" onClick={onSave} disabled={!form.name.trim()}>{saveLabel}</Button>
+          <Button type="button" className="ghost" onClick={onCancel}>Ləğv et</Button>
         </div>
     </div>
   )
@@ -317,11 +318,11 @@ export function CatalogPage() {
 
   return (
     <Guard>
-      <PageHead kicker="Təchizat" title="Kataloq" text="Hər sətir satış şərtini göstərir. Sətrə basanda tam spesifikasiya açılır. Maya və qiymət tarixçəsi yalnız sahibinə və administratora görünür.">
+      <PageHead kicker="Təchizat" title="Kataloq" text="Məhsullar, satış şərtləri və texniki göstəricilər.">
         {active && (
-          <button type="button" className="btn" onClick={openNew}>
+          <Button type="button" onClick={openNew}>
             <Icon name="plus" /> Məhsul
-          </button>
+          </Button>
         )}
       </PageHead>
       {!active && <p className="lede">Əvvəl şirkət seçilməlidir.</p>}
@@ -339,21 +340,21 @@ export function CatalogPage() {
           />
         </Modal>
       )}
-      <div className="toolbar">
+      <Toolbar>
         <form className="search" role="search" onSubmit={(event) => event.preventDefault()}>
           <Icon name="search" />
-          <input value={find} onChange={(event) => setFind(event.target.value)} placeholder="Ad, kod, parametr" aria-label="Kataloqda axtar" />
+          <Input value={find} onChange={(event) => setFind(event.target.value)} placeholder="Ad, kod, parametr" aria-label="Kataloqda axtar" />
         </form>
         <Tabs
           value={current}
           onChange={setCategory}
           options={[{ id: "hamisi", label: "Hamısı" }, ...categories.map((item) => ({ id: item, label: item }))]}
         />
-      </div>
+      </Toolbar>
       {visible.length === 0 && <Empty title="Kataloq boşdur" text="İstehsalçı məhsul yazanda o, bu siyahıda görünəcək." />}
       {visible.length > 0 && shown.length === 0 && <Empty title="Uyğun məhsul yoxdur" text="Axtarışı və ya kateqoriyanı dəyişin." />}
       {shown.length > 0 && (
-        <div className="pricebook">
+        <TableContainer className="pricebook">
           <table>
             <thead>
               <tr>
@@ -411,7 +412,7 @@ export function CatalogPage() {
               })}
             </tbody>
           </table>
-        </div>
+        </TableContainer>
       )}
       {drop && <Confirm title="Məhsulu sil" text={`${drop.name} kataloqdan silinəcək. Qiymət tarixçəsi də silinir.`} onClose={() => setDrop(null)} onYes={() => removeProduct(drop)} />}
     </Guard>
@@ -571,7 +572,7 @@ export function CatalogDetail() {
                   <td>{text(row.spec)}</td>
                   <td>{text(row.delivery)}</td>
                   <td className="num ask">{row.price} AZN</td>
-                  {secret && <td className="acts"><button type="button" className="btn ghost small" onClick={() => removeBreak(row.id)}>Sil</button></td>}
+                  {secret && <td className="acts"><Button type="button" className="ghost small" onClick={() => removeBreak(row.id)}>Sil</Button></td>}
                 </tr>
               ))}
             </tbody>
@@ -579,12 +580,12 @@ export function CatalogDetail() {
         )}
         {secret && (
           <div className="form-row wide doc-form">
-            <label>Minimum həcm<input value={breakForm.minQty} onChange={(event) => setBreakForm({ ...breakForm, minQty: event.target.value })} /></label>
-            <label>Ölçü<input value={breakForm.size} onChange={(event) => setBreakForm({ ...breakForm, size: event.target.value })} /></label>
-            <label>Texniki şərt<input value={breakForm.spec} onChange={(event) => setBreakForm({ ...breakForm, spec: event.target.value })} /></label>
-            <label>Çatdırılma<input value={breakForm.delivery} onChange={(event) => setBreakForm({ ...breakForm, delivery: event.target.value })} /></label>
-            <label>Qiymət<input value={breakForm.price} onChange={(event) => setBreakForm({ ...breakForm, price: event.target.value })} /></label>
-            <button type="button" className="btn" onClick={addBreak} disabled={!breakForm.price.trim()}>Şərti yaz</button>
+            <label>Minimum həcm<Input value={breakForm.minQty} onChange={(event) => setBreakForm({ ...breakForm, minQty: event.target.value })} /></label>
+            <label>Ölçü<Input value={breakForm.size} onChange={(event) => setBreakForm({ ...breakForm, size: event.target.value })} /></label>
+            <label>Texniki şərt<Input value={breakForm.spec} onChange={(event) => setBreakForm({ ...breakForm, spec: event.target.value })} /></label>
+            <label>Çatdırılma<Input value={breakForm.delivery} onChange={(event) => setBreakForm({ ...breakForm, delivery: event.target.value })} /></label>
+            <label>Qiymət<Input value={breakForm.price} onChange={(event) => setBreakForm({ ...breakForm, price: event.target.value })} /></label>
+            <Button type="button" onClick={addBreak} disabled={!breakForm.price.trim()}>Şərti yaz</Button>
           </div>
         )}
         {secret && (
@@ -593,7 +594,7 @@ export function CatalogDetail() {
             <p className="doc-note">Maya {text(product.cost)} AZN. Bu bölmə yalnız bu məhsulun sahibinə və administratora açılır.</p>
             <label className="doc-edit">
               Satış qiyməti
-              <input key={product.price} defaultValue={product.price} onBlur={(event) => { if (event.target.value !== product.price) setPrice(product, event.target.value) }} />
+              <Input key={product.price} defaultValue={product.price} onBlur={(event) => { if (event.target.value !== product.price) setPrice(product, event.target.value) }} />
             </label>
             {history.length === 0 && <p className="doc-note">Qiymət tarixçəsi yoxdur.</p>}
             {history.length > 0 && (

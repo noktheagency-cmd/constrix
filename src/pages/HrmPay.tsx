@@ -1,3 +1,4 @@
+import { Button, Input, Metric, StatGrid, TableContainer, Toolbar } from "../components/primitives"
 import { useState, type FormEvent } from "react"
 import { PAY_KINDS } from "../domain/hrm"
 import { TODAY } from "../domain/ops"
@@ -45,21 +46,21 @@ export default function HrmPay() {
   return (
     <>
       <PageHead kicker={t("page.hrpay.kicker")} title={t("page.hrpay.title")} text={t("page.hrpay.text")}>
-        <button type="button" className="btn" onClick={() => openForm()}><Icon name="plus" /> Ödəniş</button>
+        <Button type="button" onClick={() => openForm()}><Icon name="plus" /> Ödəniş</Button>
       </PageHead>
-      <section className="statstrip">
-        <article>
+      <StatGrid>
+        <Metric>
           <span>Gözləyir</span>
           <strong>{money(waiting.reduce((sum, item) => sum + item.amount, 0))}</strong>
           <em>{waiting.length} sətir</em>
-        </article>
-        <article>
+        </Metric>
+        <Metric>
           <span>Ödənilib</span>
           <strong>{money(paid.reduce((sum, item) => sum + item.amount, 0))}</strong>
           <em>Maliyyə xərci</em>
-        </article>
-      </section>
-      <div className="toolbar">
+        </Metric>
+      </StatGrid>
+      <Toolbar>
         <Tabs
           value={tab}
           onChange={setTab}
@@ -69,9 +70,9 @@ export default function HrmPay() {
             { id: "odenilib", label: "Ödənilib" },
           ]}
         />
-      </div>
+      </Toolbar>
       {error && !modal && <p className="form-error">{error}</p>}
-      <div className="table-wrap">
+      <TableContainer>
         <table>
           <thead>
             <tr>
@@ -107,7 +108,7 @@ export default function HrmPay() {
           </tbody>
         </table>
         {rows.length === 0 && <Empty title="Ödəniş yoxdur" text="Avans, mükafat və ya maaş sətri açın." />}
-      </div>
+      </TableContainer>
 
       {modal && (
         <Modal wide title={editing ? "Ödənişi yaz" : "Yeni ödəniş"} onClose={() => setModal(false)}>
@@ -119,18 +120,18 @@ export default function HrmPay() {
               <Select value={form.kind} onValueChange={(kind) => setForm({ ...form, kind: kind as HrPayKind })} options={PAY_KINDS.map((item) => ({ value: item, label: t(`status.${item}`) }))} />
             </Field>
             <Field label="Məbləğ, ₼">
-              <input type="number" min="0" value={form.amount} onChange={(event) => setForm({ ...form, amount: event.target.value })} />
+              <Input type="number" min="0" value={form.amount} onChange={(event) => setForm({ ...form, amount: event.target.value })} />
             </Field>
             <Field label="Tarix">
               <DateField value={form.date} onChange={(date) => setForm({ ...form, date })} />
             </Field>
             <Field label="Qeyd">
-              <input value={form.note} onChange={(event) => setForm({ ...form, note: event.target.value })} />
+              <Input value={form.note} onChange={(event) => setForm({ ...form, note: event.target.value })} />
             </Field>
             {error && <p className="form-error">{error}</p>}
             <div className="form-actions">
-              <button type="button" className="btn ghost" onClick={() => setModal(false)}>Ləğv et</button>
-              <button className="btn" type="submit">Saxla</button>
+              <Button type="button" className="ghost" onClick={() => setModal(false)}>Ləğv et</Button>
+              <Button  type="submit">Saxla</Button>
             </div>
           </form>
         </Modal>

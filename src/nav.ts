@@ -3,14 +3,14 @@ import type { IconName } from "./icons"
 
 export type ModuleId = "hesab" | "insaat" | "tender" | "techizat" | "maliyye" | "kadr" | "klub"
 
-export const MODULES: { id: ModuleId; label: string; hint: string; icon: IconName; to: string; area: Area }[] = [
+export const MODULES: { id: ModuleId; label: string; hint: string; icon: IconName; to: string; area: Area; accordionOnly?: boolean }[] = [
   { id: "hesab", label: "mod.hesab", hint: "mod.hesab.hint", icon: "office", to: "/sirket", area: "procure" },
-  { id: "insaat", label: "mod.insaat", hint: "mod.insaat.hint", icon: "crane", to: "/", area: "dashboard" },
+  { id: "insaat", label: "mod.insaat", hint: "mod.insaat.hint", icon: "crane", to: "/", area: "dashboard", accordionOnly: true },
   { id: "tender", label: "mod.tender", hint: "mod.tender.hint", icon: "stamp", to: "/e-tender", area: "tender" },
   { id: "techizat", label: "mod.techizat", hint: "mod.techizat.hint", icon: "truck", to: "/techizat", area: "supply" },
-  { id: "maliyye", label: "mod.maliyye", hint: "mod.maliyye.hint", icon: "wallet", to: "/maliyye", area: "finance" },
-  { id: "kadr", label: "mod.kadr", hint: "mod.kadr.hint", icon: "user", to: "/isciler", area: "people" },
-  { id: "klub", label: "mod.klub", hint: "mod.klub.hint", icon: "users", to: "/emekdasliq", area: "club" },
+  { id: "maliyye", label: "mod.maliyye", hint: "mod.maliyye.hint", icon: "wallet", to: "/maliyye", area: "finance", accordionOnly: true },
+  { id: "kadr", label: "mod.kadr", hint: "mod.kadr.hint", icon: "user", to: "/isciler", area: "people", accordionOnly: true },
+  { id: "klub", label: "mod.klub", hint: "mod.klub.hint", icon: "users", to: "/emekdasliq", area: "club", accordionOnly: true },
 ]
 
 type NavItem = { to: string; label: string; icon: IconName; end?: boolean; area: Area }
@@ -25,7 +25,7 @@ export const MODULE_NAV: Record<ModuleId, { label: string; items: NavItem[] }[]>
         { to: "/hesablama", label: "nav.calc", icon: "calc", area: "procure" },
         { to: "/dasima", label: "nav.haul", icon: "route", area: "procure" },
         { to: "/teklif", label: "nav.offer", icon: "tag", area: "procure" },
-        { to: "/sifaris-merhele", label: "nav.flow", icon: "flow", area: "procure" },
+        { to: "/sifaris", label: "nav.flow", icon: "flow", area: "procure" },
         { to: "/tarif", label: "nav.tariff", icon: "percent", area: "procure" },
         { to: "/platforma", label: "nav.platform", icon: "layers", area: "procure" },
       ],
@@ -116,7 +116,7 @@ export const MODULE_NAV: Record<ModuleId, { label: string; items: NavItem[] }[]>
   ],
 }
 
-const PROCURE_PATHS = new Set(["/sirket", "/layihe-fayl", "/kataloq", "/hesablama", "/dasima", "/teklif", "/sifaris-merhele", "/tarif", "/platforma"])
+const PROCURE_PATHS = new Set(["/sirket", "/layihe-fayl", "/kataloq", "/hesablama", "/dasima", "/teklif", "/sifaris", "/tarif", "/platforma"])
 const TENDER_PATHS = new Set(["/e-tender", "/boq", "/qarantiya", "/yoxlama"])
 const SUPPLY_PATHS = new Set(["/techizat", "/bazar", "/alis-akti", "/anbar", "/aktivler", "/zavod", "/sexler", "/reseptler"])
 const MONEY_PATHS = new Set(["/maliyye", "/pul-axini", "/emeliyyatlar", "/hesablar", "/qaimeler", "/bank", "/emek-haqqi", "/vesaitler", "/terefler", "/hesabatlar", "/partnyorlar", "/sigorta"])

@@ -127,6 +127,29 @@ function demoFiles(companyId: string): ProjectFile[] {
   ]
 }
 
+function extraDemoFiles(companyId: string): ProjectFile[] {
+  const examples = [
+    { key: "balkon", name: "Balkon-meheccerleri-test.xlsx", ext: "xlsx", size: 98304, profile: "Paslanmaz AISI 304", rows: ["Balkon məhəccəri B-01", "Balkon məhəccəri B-02", "Pilləkən məhəccəri P-01"] },
+    { key: "dam", name: "Dam-isiq-panelleri-test.csv", ext: "csv", size: 16384, profile: "Alüminium termo", rows: ["Dam işıq paneli D-01", "Dam işıq paneli D-02"] },
+    { key: "giris", name: "Giris-fasadi-test.dxf", ext: "dxf", size: 524288, profile: "Fasad dayaq", rows: ["Giriş vitrin bloku G-01", "Giriş vitrin bloku G-02"] },
+    { key: "ofis", name: "Ofis-bolmeleri-test.pdf", ext: "pdf", size: 262144, profile: "Şüşə bölmə", rows: ["Ofis bölməsi O-01", "Ofis bölməsi O-02", "Ofis qapısı Q-01"] },
+  ]
+  return examples.map((example) => ({
+    id: `demo-${companyId}-ux-${example.key}`,
+    companyId,
+    name: example.name,
+    ext: example.ext,
+    size: example.size,
+    at: "2026-10-28T08:00:00.000Z",
+    scan: "temiz",
+    scanNote: "Kitabxana görünüşü üçün test nümunəsi",
+    rows: example.rows.map((name, i) => line(`demo-${companyId}-ux-${example.key}-${i + 1}`, {
+      name, code: `${example.key.toUpperCase()}-${i + 1}`, qty: String((i + 1) * 2), width: "1200", height: "2100",
+      profile: example.profile, glass: "8 mm temperli", hardware: "Standart", confirmed: i === 0,
+    })),
+  }))
+}
+
 function demoProducts(companyId: string, owner: string): { products: Product[]; prices: PriceLog[] } {
   const made: Product[] = [
     { id: `demo-${companyId}-p1`, companyId, name: "Alüminium profil 45 mm", code: "AL-45", category: "Alüminium profil", params: "Divar 1.4 mm", colors: "Ağ, antrasit, qoz", sizes: "6 m çubuq", unit: "m", price: "9.80", cost: "6.40", validUntil: "2026-12-31", minQty: "30", leadDays: "7", deliveryPrice: "40", installPrice: "", breaks: [] },
@@ -169,6 +192,11 @@ export function withDemo(state: ProcureState, orgs: { id: string; kind: string; 
     if (BUYERS.has(org.kind)) {
       if (!files.some((file) => file.companyId === org.id)) files = [...files, ...demoFiles(org.id)]
       files = withFormats(withHistory(files, org.id), org.id)
+      // Extend only the existing demo collection; leave real-only libraries alone.
+      if (files.some((file) => file.id === `demo-${org.id}-pencere`)) {
+        const additions = extraDemoFiles(org.id).filter((file) => !files.some((saved) => saved.id === file.id))
+        if (additions.length) files = [...files, ...additions]
+      }
     }
     if (MAKERS.has(org.kind) && !products.some((product) => product.companyId === org.id)) {
       const made = demoProducts(org.id, org.name)

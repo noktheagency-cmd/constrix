@@ -1,3 +1,4 @@
+import { Button, Input, Metric, StatGrid, TableContainer, Toolbar } from "../components/primitives"
 import { useState, type FormEvent } from "react"
 import { MARKS } from "../domain/hrm"
 import { TODAY } from "../domain/ops"
@@ -47,23 +48,23 @@ export default function HrmAttendance() {
   return (
     <>
       <PageHead kicker={t("page.attendance.kicker")} title={t("page.attendance.title")} text={t("page.attendance.text")}>
-        <button type="button" className="btn" onClick={() => openForm()}><Icon name="plus" /> Sətir</button>
+        <Button type="button" onClick={() => openForm()}><Icon name="plus" /> Sətir</Button>
       </PageHead>
-      <section className="statstrip">
+      <StatGrid>
         {(["geldi", "gec", "gelmedi", "mezuniyyet"] as const).map((mark) => (
-          <article key={mark}>
+          <Metric key={mark}>
             <span>{t(`status.${mark}`)}</span>
             <strong>{rows.filter((item) => item.mark === mark).length}</strong>
             <em>{dateAZ(day)}</em>
-          </article>
+          </Metric>
         ))}
-      </section>
-      <div className="toolbar">
+      </StatGrid>
+      <Toolbar>
         <DateField value={day} onChange={setDay} />
         <span className="muted">{rows.length} sətir</span>
-      </div>
+      </Toolbar>
       {error && !modal && <p className="form-error">{error}</p>}
-      <div className="table-wrap">
+      <TableContainer>
         <table>
           <thead>
             <tr>
@@ -102,7 +103,7 @@ export default function HrmAttendance() {
           </tbody>
         </table>
         {rows.length === 0 && <Empty title="Bu gün boşdur" text="Terminaldan və ya əl ilə sətir yazın." />}
-      </div>
+      </TableContainer>
 
       {modal && (
         <Modal wide title={editing ? "Davamiyyəti yaz" : "Yeni davamiyyət"} onClose={() => setModal(false)}>
@@ -120,18 +121,18 @@ export default function HrmAttendance() {
               <Select value={form.terminalId} onValueChange={(terminalId) => setForm({ ...form, terminalId })} options={[{ value: "", label: "—" }, ...store.terminals.map((item) => ({ value: item.id, label: `${item.name} · ${item.site}` }))]} />
             </Field>
             <Field label="Giriş">
-              <input type="time" value={form.inAt} onChange={(event) => setForm({ ...form, inAt: event.target.value })} />
+              <Input type="time" value={form.inAt} onChange={(event) => setForm({ ...form, inAt: event.target.value })} />
             </Field>
             <Field label="Çıxış">
-              <input type="time" value={form.outAt} onChange={(event) => setForm({ ...form, outAt: event.target.value })} />
+              <Input type="time" value={form.outAt} onChange={(event) => setForm({ ...form, outAt: event.target.value })} />
             </Field>
             <Field label="Qeyd">
-              <input value={form.note} onChange={(event) => setForm({ ...form, note: event.target.value })} />
+              <Input value={form.note} onChange={(event) => setForm({ ...form, note: event.target.value })} />
             </Field>
             {error && <p className="form-error">{error}</p>}
             <div className="form-actions">
-              <button type="button" className="btn ghost" onClick={() => setModal(false)}>Ləğv et</button>
-              <button className="btn" type="submit">Saxla</button>
+              <Button type="button" className="ghost" onClick={() => setModal(false)}>Ləğv et</Button>
+              <Button  type="submit">Saxla</Button>
             </div>
           </form>
         </Modal>

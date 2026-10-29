@@ -1,3 +1,5 @@
+import { DocumentSummary } from "../components/DocumentSummary"
+import { Button, Input, TableContainer, Toolbar } from "../components/primitives"
 import { useMemo, useRef, useState } from "react"
 import { company } from "../data"
 import { nakopitelBook, nakopitelTotals } from "../domain/nakopitel"
@@ -113,28 +115,28 @@ export default function Forma2() {
                 setReading({ kind: "import", projectId: projectId || projects[0]?.id || "", rows: parsed.rows, errors: parsed.errors })
               }}
             />
-            <button type="button" className="btn ghost" onClick={() => fileRef.current?.click()}>Excel idxal</button>
+            <Button type="button" className="ghost" onClick={() => fileRef.current?.click()}>Excel idxal</Button>
           </>
         )}
         {tab === "nakopitel" && nakoRows.length > 0 && (
-          <button
+          <Button
             type="button"
-            className="btn ghost"
+            className="ghost"
             onClick={() => {
               const bytes = exportNakopitelSheet(nakoProject?.name || "Layihə", nakoPeriod, nakoRows)
               downloadBytes(`Nakopitel-${nakoPeriod}.xlsx`, bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
             }}
           >
             Excel
-          </button>
+          </Button>
         )}
         {(tab === "aktlar" || tab === "hecm" || tab === "smeta" || tab === "nakopitel") && (
-          <button type="button" className="btn" onClick={() => { setError(""); setProjectId(projects.find((item) => item.id === "PRJ-XOCA")?.id || projects[0]?.id || ""); setReading({ kind: "new" }) }}>
+          <Button type="button" onClick={() => { setError(""); setProjectId(projects.find((item) => item.id === "PRJ-XOCA")?.id || projects[0]?.id || ""); setReading({ kind: "new" }) }}>
             <Icon name="plus" /> Forma-2
-          </button>
+          </Button>
         )}
       </PageHead>
-      <div className="toolbar">
+      <Toolbar>
         <Tabs
           value={tab}
           onChange={openTab}
@@ -152,19 +154,19 @@ export default function Forma2() {
             ? `${nakoSum.houses} ev · ${nakoSum.works} iş · ay ${money(nakoSum.periodValue)}`
             : tab === "hecm" ? `${openJobs.length} layihədə açıq həcm` : tab === "smeta" ? `${books.length} smeta` : tab === "hesablasma" ? `${ledgers.length} müqavilə` : tab === "faktura" ? `${bills.length} bağlanmış akt` : `${rows.filter((item) => item.status === "qaralama").length} qaralama`}
         </span>
-      </div>
+      </Toolbar>
 
       {tab === "nakopitel" && (
         <>
-          <div className="toolbar">
+          <Toolbar>
             <Field label="Layihə">
               <Select value={nakoProject?.id || ""} onValueChange={setProjectId} options={projects.map((project) => ({ value: project.id, label: project.name }))} />
             </Field>
             <Field label="Hesabat ayı">
               <Select value={nakoPeriod} onValueChange={setNakoPeriod} options={periodOptions.map((period) => ({ value: period, label: monthAZ(period) }))} />
             </Field>
-          </div>
-          <div className="table-wrap wide">
+          </Toolbar>
+          <TableContainer className="wide">
             <table>
               <thead>
                 <tr>
@@ -198,7 +200,7 @@ export default function Forma2() {
               </tbody>
             </table>
             {nakoRows.length === 0 && <Empty title="Nakopitel boşdur" text="Bu layihədə ev/bölmə smetası yoxdur. Xocalı nümunəsi yüklənib." />}
-          </div>
+          </TableContainer>
           {nakoRows.length > 0 && (
             <p className="muted">Smeta {money(nakoSum.smetaValue)} · əvvəlindən {money(nakoSum.cumulativeValue)} · bu ay {money(nakoSum.periodValue)} · qalıq {money(nakoSum.remainValue)}</p>
           )}
@@ -206,7 +208,7 @@ export default function Forma2() {
       )}
 
       {tab === "aktlar" && (
-        <div className="table-wrap wide">
+        <TableContainer className="wide">
           <table>
             <thead>
               <tr>
@@ -244,11 +246,11 @@ export default function Forma2() {
             </tbody>
           </table>
           {rows.length === 0 && <Empty title="Forma-2 yoxdur" text="Təsdiqlənmiş gündəlikdən sonra bu ayın aktını açın." />}
-        </div>
+        </TableContainer>
       )}
 
       {tab === "hecm" && (
-        <div className="table-wrap">
+        <TableContainer>
           <table>
             <thead>
               <tr>
@@ -273,11 +275,11 @@ export default function Forma2() {
             </tbody>
           </table>
           {openJobs.length === 0 && <Empty title="Açıq həcm yoxdur" text="Təsdiqlənmiş gündəlik smeta həcmini artırır. Aktlaşmamış hissə burada durur." />}
-        </div>
+        </TableContainer>
       )}
 
       {tab === "smeta" && (
-        <div className="table-wrap">
+        <TableContainer>
           <table>
             <thead>
               <tr>
@@ -300,11 +302,11 @@ export default function Forma2() {
               ))}
             </tbody>
           </table>
-        </div>
+        </TableContainer>
       )}
 
       {tab === "hesablasma" && (
-        <div className="table-wrap">
+        <TableContainer>
           <table>
             <thead>
               <tr>
@@ -327,11 +329,11 @@ export default function Forma2() {
               ))}
             </tbody>
           </table>
-        </div>
+        </TableContainer>
       )}
 
       {tab === "faktura" && (
-        <div className="table-wrap">
+        <TableContainer>
           <table>
             <thead>
               <tr>
@@ -356,7 +358,7 @@ export default function Forma2() {
             </tbody>
           </table>
           {bills.length === 0 && <Empty title="Faktura yoxdur" text="Təsdiqlənmiş aktdan faktura açılınca burada durur." />}
-        </div>
+        </TableContainer>
       )}
 
       {act && (
@@ -382,7 +384,7 @@ export default function Forma2() {
       )}
 
       {reading?.kind === "import" && (
-        <Drawer title="Smeta idxalı" onClose={() => setReading(null)}>
+        <Drawer className="financial-drawer" title="Smeta idxalı" onClose={() => setReading(null)}>
           <div className="form">
             <Field label="Layihə">
               <Select
@@ -398,7 +400,7 @@ export default function Forma2() {
             {reading.errors.slice(0, 5).map((item) => (
               <p key={item} className="form-error">{item}</p>
             ))}
-            <div className="table-wrap">
+            <TableContainer>
               <table>
                 <thead>
                   <tr>
@@ -419,13 +421,13 @@ export default function Forma2() {
                   ))}
                 </tbody>
               </table>
-            </div>
+            </TableContainer>
             {error && <p className="form-error">{error}</p>}
             <div className="form-actions">
-              <button type="button" className="btn ghost" onClick={() => setReading(null)}>Ləğv et</button>
-              <button
+              <Button type="button" className="ghost" onClick={() => setReading(null)}>Ləğv et</Button>
+              <Button
                 type="button"
-                className="btn"
+
                 disabled={!reading.rows.some((row) => row.kind === "work")}
                 onClick={() => {
                   const message = importSmeta(reading.projectId, reading.rows)
@@ -438,14 +440,14 @@ export default function Forma2() {
                 }}
               >
                 Smetaya yaz
-              </button>
+              </Button>
             </div>
           </div>
         </Drawer>
       )}
 
       {opened && (
-        <Drawer title={opened.project.name} onClose={() => setReading(null)}>
+        <Drawer className="financial-drawer" title={opened.project.name} onClose={() => setReading(null)}>
           <div className="form">
             <p className="muted">{opened.project.client}. Bu sətirlər görülüb, hələ akta düşməyib.</p>
             {opened.lines.map((line) => (
@@ -454,14 +456,14 @@ export default function Forma2() {
             <p><b>Cəmi {money(opened.amount)}</b></p>
             {error && <p className="form-error">{error}</p>}
             <div className="form-actions">
-              <button type="button" className="btn" onClick={() => { const message = makeAct(opened.project.id); setError(message); if (!message) { setReading(null); setTab("aktlar") } }}>Aktı aç</button>
+              <Button type="button" onClick={() => { const message = makeAct(opened.project.id); setError(message); if (!message) { setReading(null); setTab("aktlar") } }}>Aktı aç</Button>
             </div>
           </div>
         </Drawer>
       )}
 
       {book && (
-        <Drawer title={book.project.name} onClose={() => setReading(null)}>
+        <Drawer className="financial-drawer" title={book.project.name} onClose={() => setReading(null)}>
           <div className="form">
             <p className="muted">Smeta {money(book.plan)} · görülən {money(book.done)} · akta düşən {money(book.billed)} · qalıq {money(book.remain)}</p>
             {book.lines.map((line) => (
@@ -481,18 +483,16 @@ export default function Forma2() {
       )}
 
       {ledger && (
-        <Drawer title={ledger.project.name} onClose={() => setReading(null)}>
+        <Drawer className="financial-drawer" title={ledger.project.name} onClose={() => setReading(null)}>
           <div className="form">
             <p>Müqavilə {ledger.contract?.number || "—"}{ledger.contract ? ` · dəyər ${money(ledger.contract.value)}` : ""}</p>
-            <p>Avans hovuzu {money(ledger.advancePool)}. Tutulub {money(ledger.recovered)}. Qalıq {money(ledger.left)}.</p>
-            <p>Saxlanc fakturalarda {money(ledger.retention)}.</p>
-            <p>Aktlaşmamış həcm {money(ledger.open)}.</p>
+            <DocumentSummary rows={[{label:"Avans hovuzu",value:money(ledger.advancePool)},{label:"Tutulmuş avans",value:money(ledger.recovered)},{label:"Avans qalığı",value:money(ledger.left)},{label:"Saxlanc",value:money(ledger.retention)}]} totalLabel="Aktlaşmamış həcm" total={money(ledger.open)} />
           </div>
         </Drawer>
       )}
 
       {reading?.kind === "new" && chosen && (
-        <Drawer title="Bu ayın Forma-2-si" onClose={() => setReading(null)}>
+        <Drawer className="financial-drawer" title="Bu ayın Forma-2-si" onClose={() => setReading(null)}>
           <div className="form">
             <Field label="Layihə">
               <Select value={chosen.id} onValueChange={setProjectId} options={projects.map((project) => ({ value: project.id, label: project.name }))} />
@@ -505,8 +505,8 @@ export default function Forma2() {
             <p><b>Cəmi {money(preview.reduce((sum, line) => sum + line.open * line.unitPrice, 0))}</b></p>
             {error && <p className="form-error">{error}</p>}
             <div className="form-actions">
-              <button type="button" className="btn ghost" onClick={() => setReading(null)}>Ləğv et</button>
-              <button type="button" className="btn" onClick={() => { const message = makeAct(chosen.id); setError(message); if (!message) { setReading(null); setTab("aktlar") } }}>Aktı aç</button>
+              <Button type="button" className="ghost" onClick={() => setReading(null)}>Ləğv et</Button>
+              <Button type="button" onClick={() => { const message = makeAct(chosen.id); setError(message); if (!message) { setReading(null); setTab("aktlar") } }}>Aktı aç</Button>
             </div>
           </div>
         </Drawer>
@@ -551,7 +551,7 @@ function ActRead({
   const [qty, setQty] = useState<Record<string, string>>(() => startEdit ? Object.fromEntries(editable.map((line) => [line.id, line.old ? String(line.old) : ""])) : {})
   const sheetRef = useOfficialSheet()
   return (
-    <Drawer title={act.number} onClose={onClose}>
+    <Drawer className="financial-drawer" title={act.number} onClose={onClose}>
       <div className="form act-sheet">
         <Track status={act.status} />
         <p className="muted">Tikinti işlərinin təhvil-qəbul aktı · {monthAZ(act.period)} · {dateAZ(act.date)}</p>
@@ -561,37 +561,34 @@ function ActRead({
         <p><Badge status={act.status} /></p>
         {act.status === "faktura" && <p className="muted">Fakturalanmış akt redaktə olunmur və silinmir.</p>}
         {error && <p className="form-error">{error}</p>}
-        <div className="form-actions no-print">
-          <button type="button" className="btn ghost" onClick={() => window.print()}>Çap</button>
-          <button type="button" className="btn ghost" onClick={onExportExcel}>Excel</button>
-          <button type="button" className="btn ghost" onClick={() => downloadPdf(act.number, sheetRef.current)}>PDF</button>
-          <button type="button" className="btn ghost" onClick={() => downloadWord(act.number, sheetRef.current)}>Word</button>
-          {act.status === "qaralama" && !editing && <button type="button" className="btn ghost" onClick={() => { setQty(Object.fromEntries(editable.map((line) => [line.id, line.old ? String(line.old) : ""]))); setEditing(true) }}><Icon name="edit" /> Redaktə</button>}
-          {act.status === "qaralama" && !editing && <button type="button" className="btn ghost" onClick={onDelete}><Icon name="trash" /> Sil</button>}
-          {editing && <button type="button" className="btn ghost" onClick={() => setEditing(false)}>Ləğv et</button>}
-          {editing && <button type="button" className="btn" onClick={() => { const message = onSave(editable.map((line) => ({ smetaLineId: line.id, qty: qty[line.id] || "0" }))); if (!message) setEditing(false) }}>Yaz</button>}
-          {act.status === "qaralama" && !editing && <button type="button" className="btn" onClick={onApprove}>Təsdiqlə</button>}
-          {act.status === "tesdiq" && <button type="button" className="btn ghost" onClick={onReturn}>Qaralamaya qaytar</button>}
-          {act.status === "tesdiq" && <button type="button" className="btn" onClick={onInvoice}>Faktura aç</button>}
+        <div className="document-export no-print"><span>Sənədi yüklə</span>
+          <Button type="button" className="ghost" onClick={() => window.print()}>Çap</Button>
+          <Button type="button" className="ghost" onClick={onExportExcel}>Excel</Button>
+          <Button type="button" className="ghost" onClick={() => downloadPdf(act.number, sheetRef.current)}>PDF</Button>
+          <Button type="button" className="ghost" onClick={() => downloadWord(act.number, sheetRef.current)}>Word</Button>
+        </div>
+        <div className="form-actions document-actions no-print">
+          {act.status === "qaralama" && !editing && <Button type="button" className="ghost" onClick={() => { setQty(Object.fromEntries(editable.map((line) => [line.id, line.old ? String(line.old) : ""]))); setEditing(true) }}><Icon name="edit" /> Redaktə</Button>}
+          {act.status === "qaralama" && !editing && <Button type="button" className="ghost" onClick={onDelete}><Icon name="trash" /> Sil</Button>}
+          {editing && <Button type="button" className="ghost" onClick={() => setEditing(false)}>Ləğv et</Button>}
+          {editing && <Button type="button" onClick={() => { const message = onSave(editable.map((line) => ({ smetaLineId: line.id, qty: qty[line.id] || "0" }))); if (!message) setEditing(false) }}>Yaz</Button>}
+          {act.status === "qaralama" && !editing && <Button type="button" onClick={onApprove}>Təsdiqlə</Button>}
+          {act.status === "tesdiq" && <Button type="button" className="ghost" onClick={onReturn}>Qaralamaya qaytar</Button>}
+          {act.status === "tesdiq" && <Button type="button" onClick={onInvoice}>Faktura aç</Button>}
         </div>
         {editing ? editable.map((line) => (
           <div className="recipe-line" key={line.id}>
             <b>{line.code} {line.name}</b>
             <div className="recipe-line-qty">
-              <input aria-label={`${line.name} miqdarı`} type="number" min="0" step="0.1" value={qty[line.id] ?? ""} onChange={(event) => setQty({ ...qty, [line.id]: event.target.value })} />
+              <Input aria-label={`${line.name} miqdarı`} type="number" min="0" step="0.1" value={qty[line.id] ?? ""} onChange={(event) => setQty({ ...qty, [line.id]: event.target.value })} />
               <span className="muted">{line.unit} · ən çox {num(line.room, 1)}</span>
             </div>
           </div>
-        )) : act.lines.map((line) => {
+        )) : <TableContainer className="document-lines"><table><thead><tr><th>İş</th><th>Vahid</th><th className="num">Həcm</th><th className="num">Qiymət</th><th className="num">Məbləğ</th><th className="num">Əvvəlindən</th><th className="num">Qalıq</th></tr></thead><tbody>{act.lines.map((line) => {
           const smeta = smetaLines.find((item) => item.id === line.smetaLineId)
-          return (
-            <p key={line.smetaLineId}>
-              <b>{line.code} {line.name}</b> · {num(line.qty, 1)} {line.unit} · {money(line.unitPrice)} · {money(line.qty * line.unitPrice)}
-              <span className="muted"> · əvvəldən {num(line.cumulativeQty, 1)}{smeta ? `, smeta ${num(smeta.qty, 1)}, qalıq ${num(roundQty(smeta.qty - line.cumulativeQty), 1)}` : ""}</span>
-            </p>
-          )
-        })}
-        <p>Xalis {money(act.net)} · ƏDV {money(act.vat)} · <b>Yekun {money(act.gross)}</b></p>
+          return <tr key={line.smetaLineId}><td><strong>{line.name}</strong><span className="document-line-code">{line.code}</span></td><td>{line.unit}</td><td className="num">{num(line.qty,1)}</td><td className="num">{money(line.unitPrice)}</td><td className="num">{money(line.qty * line.unitPrice)}</td><td className="num">{num(line.cumulativeQty,1)}</td><td className="num">{smeta ? num(roundQty(smeta.qty-line.cumulativeQty),1) : "—"}</td></tr>
+        })}</tbody></table></TableContainer>}
+        <DocumentSummary rows={[{label:"Xalis məbləğ",value:money(act.net)},{label:"ƏDV",value:money(act.vat)}]} totalLabel="Yekun məbləğ" total={money(act.gross)} />
         {settlement && (
           <p className="muted">Fakturada saxlanc {money(settlement.retention)}, avans tutulması {money(settlement.advance)}. Ödəniləcək {money(settlement.payable)}, ondan ƏDV {money(settlement.vat)}.</p>
         )}

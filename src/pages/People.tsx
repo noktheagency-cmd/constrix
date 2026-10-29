@@ -1,3 +1,4 @@
+import { Button, Input, Metric, StatGrid, TableContainer, Toolbar } from "../components/primitives"
 import { useEffect, useState, type FormEvent } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { api } from "../api"
@@ -115,31 +116,31 @@ export default function People() {
   return (
     <>
       <PageHead kicker={t("page.people.kicker")} title={t("page.people.title")} text={t("page.people.text")}>
-        <button type="button" className="btn" onClick={() => openForm()}><Icon name="plus" /> İşçi</button>
+        <Button type="button" onClick={() => openForm()}><Icon name="plus" /> İşçi</Button>
       </PageHead>
-      <section className="statstrip">
-        <article>
+      <StatGrid>
+        <Metric>
           <span>Sahə</span>
           <strong>{count("sahe")}</strong>
           <em>Layihə</em>
-        </article>
-        <article>
+        </Metric>
+        <Metric>
           <span>Ofis</span>
           <strong>{count("ofis")}</strong>
           <em>{store.offices.length} ünvan</em>
-        </article>
-        <article>
+        </Metric>
+        <Metric>
           <span>İstehsal</span>
           <strong>{count("istehsal")}</strong>
           <em>Zavod və anbar</em>
-        </article>
-        <article>
+        </Metric>
+        <Metric>
           <span>Kənarda</span>
           <strong>{store.people.filter((item) => isAway(item.status)).length}</strong>
           <em>Məzuniyyət və sair</em>
-        </article>
-      </section>
-      <div className="toolbar">
+        </Metric>
+      </StatGrid>
+      <Toolbar>
         <Tabs
           value={place}
           onChange={setPlace}
@@ -151,9 +152,9 @@ export default function People() {
           ]}
         />
         <Select compact ariaLabel="Status" value={statusFilter} onValueChange={setStatusFilter} options={[{ value: "hamisi", label: "Bütün statuslar" }, ...statuses]} />
-      </div>
+      </Toolbar>
       {error && !modal && <p className="form-error">{error}</p>}
-      <div className="table-wrap">
+      <TableContainer>
         <table>
           <thead>
             <tr>
@@ -211,7 +212,7 @@ export default function People() {
           </tbody>
         </table>
         {rows.length === 0 && <Empty title="İşçi tapılmadı" text="Filtri və ya axtarışı dəyişin." />}
-      </div>
+      </TableContainer>
 
       {selected && (
         <Drawer title={selected.name} onClose={() => setOpenId("")}>
@@ -231,9 +232,9 @@ export default function People() {
           </dl>
           {error && <p className="form-error">{error}</p>}
           <div className="form-actions">
-            <button type="button" className="btn ghost" onClick={() => setMoveFor(selected.id)}>Köçür</button>
-            <button type="button" className="btn ghost" onClick={() => openForm(selected)}><Icon name="edit" /> Redaktə</button>
-            <button type="button" className="btn ghost" onClick={() => { const message = store.removeCrew(selected.id); setError(message); if (!message) setOpenId("") }}><Icon name="trash" /> Sil</button>
+            <Button type="button" className="ghost" onClick={() => setMoveFor(selected.id)}>Köçür</Button>
+            <Button type="button" className="ghost" onClick={() => openForm(selected)}><Icon name="edit" /> Redaktə</Button>
+            <Button type="button" className="ghost" onClick={() => { const message = store.removeCrew(selected.id); setError(message); if (!message) setOpenId("") }}><Icon name="trash" /> Sil</Button>
           </div>
         </Drawer>
       )}
@@ -244,10 +245,10 @@ export default function People() {
         <Modal wide title={editing ? "İşçini yaz" : "Yeni işçi"} onClose={() => setModal(false)}>
           <form className="form cols" onSubmit={submit}>
             <Field label="Ad">
-              <input value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} />
+              <Input value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} />
             </Field>
             <Field label="Vəzifə">
-              <input value={form.role} onChange={(event) => setForm({ ...form, role: event.target.value })} />
+              <Input value={form.role} onChange={(event) => setForm({ ...form, role: event.target.value })} />
             </Field>
             <Field label="Şöbə">
               <Select value={form.departmentId} onValueChange={(departmentId) => setForm({ ...form, departmentId })} options={store.departments.map((item) => ({ value: item.id, label: item.name }))} />
@@ -256,33 +257,33 @@ export default function People() {
               <Select value={form.site} onValueChange={chooseSite} groups={groups} />
             </Field>
             <Field label="Briqada">
-              <input value={form.crew} onChange={(event) => setForm({ ...form, crew: event.target.value })} />
+              <Input value={form.crew} onChange={(event) => setForm({ ...form, crew: event.target.value })} />
             </Field>
             <Field label="Status">
               <Select value={form.status} onValueChange={(status) => setForm({ ...form, status: status as PersonStatus })} options={statuses} />
             </Field>
             <Field label="Telefon">
-              <input value={form.phone} onChange={(event) => setForm({ ...form, phone: event.target.value })} />
+              <Input value={form.phone} onChange={(event) => setForm({ ...form, phone: event.target.value })} />
             </Field>
             <Field label="E-poçt">
-              <input value={form.email} onChange={(event) => setForm({ ...form, email: event.target.value })} />
+              <Input value={form.email} onChange={(event) => setForm({ ...form, email: event.target.value })} />
             </Field>
             <Field label="FİN">
-              <input value={form.pin} onChange={(event) => setForm({ ...form, pin: event.target.value })} />
+              <Input value={form.pin} onChange={(event) => setForm({ ...form, pin: event.target.value })} />
             </Field>
             <Field label="Kart">
-              <input value={form.card} onChange={(event) => setForm({ ...form, card: event.target.value })} />
+              <Input value={form.card} onChange={(event) => setForm({ ...form, card: event.target.value })} />
             </Field>
             <Field label="İşə qəbul">
               <DateField value={form.hired} onChange={(hired) => setForm({ ...form, hired })} />
             </Field>
             <Field label="Maaş, ₼">
-              <input type="number" min="0" value={form.salary} onChange={(event) => setForm({ ...form, salary: event.target.value })} />
+              <Input type="number" min="0" value={form.salary} onChange={(event) => setForm({ ...form, salary: event.target.value })} />
             </Field>
             {error && <p className="form-error">{error}</p>}
             <div className="form-actions">
-              <button type="button" className="btn ghost" onClick={() => setModal(false)}>Ləğv et</button>
-              <button className="btn" type="submit">Saxla</button>
+              <Button type="button" className="ghost" onClick={() => setModal(false)}>Ləğv et</Button>
+              <Button  type="submit">Saxla</Button>
             </div>
           </form>
         </Modal>
@@ -330,12 +331,12 @@ function StaffMoveModal({ personId, onClose }: { personId: string; onClose: () =
           <DateField value={form.date} onChange={(date) => setForm({ ...form, date })} />
         </Field>
         <Field label="Qeyd">
-          <input value={form.note} onChange={(event) => setForm({ ...form, note: event.target.value })} />
+          <Input value={form.note} onChange={(event) => setForm({ ...form, note: event.target.value })} />
         </Field>
         {error && <p className="form-error">{error}</p>}
         <div className="form-actions">
-          <button type="button" className="btn ghost" onClick={onClose}>Ləğv et</button>
-          <button className="btn" type="submit">Köçür</button>
+          <Button type="button" className="ghost" onClick={onClose}>Ləğv et</Button>
+          <Button  type="submit">Köçür</Button>
         </div>
       </form>
     </Modal>

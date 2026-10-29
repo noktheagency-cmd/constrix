@@ -1,3 +1,4 @@
+import { Button, Input, TableContainer } from "../components/primitives"
 import { useState } from "react"
 import type { FormulaLine, Recipe } from "../domain/types"
 import { num } from "../format"
@@ -33,10 +34,10 @@ export default function Recipes() {
         }}
       >
         <Field label="Məhsul">
-          <input value={product.name} onChange={(event) => setProduct({ ...product, name: event.target.value })} />
+          <Input value={product.name} onChange={(event) => setProduct({ ...product, name: event.target.value })} />
         </Field>
         <Field label="Vahid">
-          <input value={product.unit} onChange={(event) => setProduct({ ...product, unit: event.target.value })} />
+          <Input value={product.unit} onChange={(event) => setProduct({ ...product, unit: event.target.value })} />
         </Field>
         <Field label="Yer">
           <Select
@@ -49,10 +50,10 @@ export default function Recipes() {
             options={sites.map((item) => ({ value: item.id, label: item.name }))}
           />
         </Field>
-        <button className="btn" type="submit">Məhsulu yaz</button>
+        <Button  type="submit">Məhsulu yaz</Button>
       </form>
       {error && <p className="form-error">{error}</p>}
-      <div className="table-wrap">
+      <TableContainer>
         <table>
           <thead>
             <tr>
@@ -103,7 +104,7 @@ export default function Recipes() {
           </tbody>
         </table>
         {recipes.length === 0 && <Empty title="Məhsul yoxdur" text="Cədvəlin üstündən məhsul yazın, normasını redaktədə doldurun." />}
-      </div>
+      </TableContainer>
       {open && (
         <Drawer title={open.product} onClose={() => setEditing("")}>
           <RecipeEditor
@@ -151,10 +152,10 @@ function RecipeEditor({
       }}
     >
       <Field label="Məhsul">
-        <input value={name} onChange={(event) => setName(event.target.value)} />
+        <Input value={name} onChange={(event) => setName(event.target.value)} />
       </Field>
       <Field label="Vahid">
-        <input value={unit} onChange={(event) => setUnit(event.target.value)} />
+        <Input value={unit} onChange={(event) => setUnit(event.target.value)} />
       </Field>
       <p className="muted">1 {unit || recipe.unit} üçün xammal norması.</p>
       {lines.map((line, index) => {
@@ -168,7 +169,7 @@ function RecipeEditor({
               options={materials.map((item) => ({ value: item.id, label: item.name }))}
             />
             <div className="recipe-line-qty">
-              <input
+              <Input
                 type="number"
                 min="0"
                 step="0.01"
@@ -177,15 +178,15 @@ function RecipeEditor({
                 onChange={(event) => setLines(lines.map((row, rowIndex) => (rowIndex === index ? { ...row, qty: event.target.value } : row)))}
               />
               <span className="muted">{material ? `${num(Number(line.qty) || 0, 2)} ${material.unit}` : "Norma"}</span>
-              <button type="button" className="btn ghost small" onClick={() => setLines(lines.filter((_, rowIndex) => rowIndex !== index))}><Icon name="trash" /> Sil</button>
+              <Button type="button" className="ghost small" onClick={() => setLines(lines.filter((_, rowIndex) => rowIndex !== index))}><Icon name="trash" /> Sil</Button>
             </div>
           </div>
         )
       })}
       <div className="form-actions">
-        <button type="button" className="btn ghost" disabled={!spare} onClick={() => spare && setLines([...lines, { materialId: spare.id, qty: "" }])}>Xammal əlavə et</button>
-        <button type="button" className="btn ghost" onClick={onDelete}>Məhsulu sil</button>
-        <button className="btn" type="submit">Yaz</button>
+        <Button type="button" className="ghost" disabled={!spare} onClick={() => spare && setLines([...lines, { materialId: spare.id, qty: "" }])}>Xammal əlavə et</Button>
+        <Button type="button" className="ghost" onClick={onDelete}>Məhsulu sil</Button>
+        <Button  type="submit">Yaz</Button>
       </div>
       {error && <p className="form-error">{error}</p>}
     </form>

@@ -1,3 +1,4 @@
+import { Button, Input, Metric, StatGrid, TableContainer, Toolbar } from "../components/primitives"
 import { useEffect, useState } from "react"
 import { DateField } from "../DateField"
 import { onHand, TODAY } from "../domain/ops"
@@ -101,15 +102,15 @@ export default function Zavod({ kind = "zavod" }: { kind?: PlantKind }) {
           }
         }}
       >
-        <Field label="Ad"><input value={shopForm.name} onChange={(event) => setShopForm({ ...shopForm, name: event.target.value })} /></Field>
-        <Field label="Yer"><input value={shopForm.place} onChange={(event) => setShopForm({ ...shopForm, place: event.target.value })} /></Field>
-        <Field label="Növbə"><input value={shopForm.shift} onChange={(event) => setShopForm({ ...shopForm, shift: event.target.value })} /></Field>
-        <Field label="Vahid"><input value={shopForm.unit} onChange={(event) => setShopForm({ ...shopForm, unit: event.target.value })} /></Field>
-        <Field label="Plan"><input type="number" min="0" step="0.1" value={shopForm.plan} onChange={(event) => setShopForm({ ...shopForm, plan: event.target.value })} /></Field>
+        <Field label="Ad"><Input value={shopForm.name} onChange={(event) => setShopForm({ ...shopForm, name: event.target.value })} /></Field>
+        <Field label="Yer"><Input value={shopForm.place} onChange={(event) => setShopForm({ ...shopForm, place: event.target.value })} /></Field>
+        <Field label="Növbə"><Input value={shopForm.shift} onChange={(event) => setShopForm({ ...shopForm, shift: event.target.value })} /></Field>
+        <Field label="Vahid"><Input value={shopForm.unit} onChange={(event) => setShopForm({ ...shopForm, unit: event.target.value })} /></Field>
+        <Field label="Plan"><Input type="number" min="0" step="0.1" value={shopForm.plan} onChange={(event) => setShopForm({ ...shopForm, plan: event.target.value })} /></Field>
         {shopError && <p className="form-error">{shopError}</p>}
         <div className="form-actions">
-          <button type="button" className="btn ghost" onClick={() => setShopMode("")}>Ləğv et</button>
-          <button className="btn" type="submit">Yaz</button>
+          <Button type="button" className="ghost" onClick={() => setShopMode("")}>Ləğv et</Button>
+          <Button  type="submit">Yaz</Button>
         </div>
       </form>
     </Drawer>
@@ -119,7 +120,7 @@ export default function Zavod({ kind = "zavod" }: { kind?: PlantKind }) {
     return (
       <>
         <PageHead kicker={t(`${page}.kicker`)} title={t(`${page}.title`)} text={t(`${page}.text`)}>
-          {kind === "sex" && <button type="button" className="btn" onClick={openShopAdd}><Icon name="plus" /> Sex</button>}
+          {kind === "sex" && <Button type="button" onClick={openShopAdd}><Icon name="plus" /> Sex</Button>}
         </PageHead>
         <Empty title={kind === "zavod" ? "Zavod yoxdur" : "Sex yoxdur"} text={kind === "zavod" ? "Beton zavodu açılmayıb." : "Sex əlavə et düyməsi ilə yeni sex açılır."} />
         {shopDrawer}
@@ -172,10 +173,10 @@ export default function Zavod({ kind = "zavod" }: { kind?: PlantKind }) {
   return (
     <>
       <PageHead kicker={t(`${page}.kicker`)} title={t(`${page}.title`)} text={t(`${page}.text`)}>
-        {kind === "sex" && <button type="button" className="btn" onClick={openShopAdd}><Icon name="plus" /> Sex</button>}
+        {kind === "sex" && <Button type="button" onClick={openShopAdd}><Icon name="plus" /> Sex</Button>}
       </PageHead>
       {(kind === "sex" || sites.length > 1) && (
-        <div className="toolbar">
+        <Toolbar>
           <Tabs
             value={plant.id}
             onChange={(id) => {
@@ -200,10 +201,10 @@ export default function Zavod({ kind = "zavod" }: { kind?: PlantKind }) {
               ]}
             />
           )}
-        </div>
+        </Toolbar>
       )}
       {shopError && !shopMode && <p className="form-error">{shopError}</p>}
-      <div className="toolbar">
+      <Toolbar>
         <Tabs
           value={tab}
           onChange={setTab}
@@ -233,7 +234,7 @@ export default function Zavod({ kind = "zavod" }: { kind?: PlantKind }) {
             Avtomatik keçid
           </button>
         )}
-      </div>
+      </Toolbar>
 
       {tab === "novbe" && (
         <section className="plant">
@@ -244,7 +245,7 @@ export default function Zavod({ kind = "zavod" }: { kind?: PlantKind }) {
             </div>
           </div>
           <h2 className="block-title">Heyət</h2>
-          <div className="table-wrap">
+          <TableContainer>
             <table>
               <thead>
                 <tr>
@@ -264,26 +265,26 @@ export default function Zavod({ kind = "zavod" }: { kind?: PlantKind }) {
               </tbody>
             </table>
             {crew.length === 0 && <Empty title="Heyət yoxdur" text="Bu növbəyə usta yazılmayıb." />}
-          </div>
+          </TableContainer>
           <h2 className="block-title">Günün hədəfi</h2>
           <p className="muted">{kind === "zavod" ? "Plan bu növbənin tökməli olduğu həcmdir." : "Plan bu növbənin çıxarmalı olduğu həcmdir."} Fakt bağlanmış partiyadır. Açıq əmrlər hələ növbədə və ya işdədir.</p>
-          <div className="statstrip">
-            <article>
+          <StatGrid>
+            <Metric>
               <span>Plan</span>
               <strong>{num(plant.plan, plant.plan % 1 ? 1 : 0)} {plant.unit}</strong>
               <em>{plant.planStatus === "tesdiq" ? `təsdiqləyən ${plant.planBy}` : "qaralama"}</em>
-            </article>
-            <article>
+            </Metric>
+            <Metric>
               <span>Fakt</span>
               <strong>{num(plant.fact, plant.fact % 1 ? 1 : 0)} {plant.unit}</strong>
               <em>bağlanmış partiyalar</em>
-            </article>
-            <article>
+            </Metric>
+            <Metric>
               <span>Açıq əmrlər</span>
               <strong>{num(openQty, openQty % 1 ? 1 : 0)} {plant.unit}</strong>
               {gap > 0 && <em className="warn">plandan {num(gap, gap % 1 ? 1 : 0)} {plant.unit} çoxdur</em>}
-            </article>
-          </div>
+            </Metric>
+          </StatGrid>
           <form
             className="pull-row"
             style={{ marginTop: 14 }}
@@ -292,15 +293,15 @@ export default function Zavod({ kind = "zavod" }: { kind?: PlantKind }) {
               setPlanError(setPlan(plant.id, planQty))
             }}
           >
-            <input type="number" min="0" step="0.1" aria-label="Növbə planı" value={planQty} onChange={(event) => setPlanQty(event.target.value)} />
-            <button className="btn small ghost" type="submit">Planı yaz</button>
+            <Input type="number" min="0" step="0.1" aria-label="Növbə planı" value={planQty} onChange={(event) => setPlanQty(event.target.value)} />
+            <Button className="small ghost" type="submit">Planı yaz</Button>
             {plant.planStatus !== "tesdiq" && (
-              <button className="btn small" type="button" onClick={() => setPlanError(confirmPlan(plant.id))}>Planı təsdiqlə</button>
+              <Button className="small" type="button" onClick={() => setPlanError(confirmPlan(plant.id))}>Planı təsdiqlə</Button>
             )}
           </form>
           {planError && <p className="form-error">{planError}</p>}
           <h2 className="block-title">{kind === "zavod" ? "Bu günün tökmələri" : "Bu günün işi"}</h2>
-          <div className="table-wrap wide">
+          <TableContainer className="wide">
             <table>
               <thead>
                 <tr>
@@ -328,7 +329,7 @@ export default function Zavod({ kind = "zavod" }: { kind?: PlantKind }) {
               </tbody>
             </table>
             {todayOrders.length === 0 && <Empty title="Bu günə əmr yoxdur" text="Tarixi bu gün olan iş əmri yazılmayıb." />}
-          </div>
+          </TableContainer>
           <h2 className="block-title">Hadisə jurnalı</h2>
           <p className="muted">Nasos dayanması, keyfiyyət və bu növbəyə aid hadisə buraya yazılır.</p>
           <form
@@ -342,12 +343,12 @@ export default function Zavod({ kind = "zavod" }: { kind?: PlantKind }) {
             }}
           >
             <Field label="Hadisə">
-              <input value={note} onChange={(event) => setNote(event.target.value)} placeholder="Nə baş verdi" />
+              <Input value={note} onChange={(event) => setNote(event.target.value)} placeholder="Nə baş verdi" />
             </Field>
-            <button className="btn" type="submit">Jurnala yaz</button>
+            <Button  type="submit">Jurnala yaz</Button>
           </form>
           {noteError && <p className="form-error">{noteError}</p>}
-          <div className="table-wrap">
+          <TableContainer>
             <table>
               <thead>
                 <tr>
@@ -364,14 +365,14 @@ export default function Zavod({ kind = "zavod" }: { kind?: PlantKind }) {
                 ))}
               </tbody>
             </table>
-          </div>
+          </TableContainer>
         </section>
       )}
 
       {tab === "emrler" && (
         <section>
           <form
-            className="form-row"
+            className="form-row production-order-form"
             style={{ marginBottom: 12 }}
             onSubmit={(event) => {
               event.preventDefault()
@@ -390,15 +391,15 @@ export default function Zavod({ kind = "zavod" }: { kind?: PlantKind }) {
               <Select value={project} onValueChange={(value) => setDraft({ ...draft, project: value })} options={projects.map((item) => ({ value: item.name, label: item.name }))} />
             </Field>
             <Field label="Miqdar">
-              <input type="number" min="0" step="0.1" value={draft.qty} onChange={(event) => setDraft({ ...draft, qty: event.target.value })} />
+              <Input type="number" min="0" step="0.1" value={draft.qty} onChange={(event) => setDraft({ ...draft, qty: event.target.value })} />
             </Field>
             <Field label="Tarix">
               <DateField value={draft.due} onChange={(due) => setDraft({ ...draft, due })} />
             </Field>
-            <button className="btn" type="submit">Növbəyə yaz</button>
+            <Button  type="submit">Növbəyə yaz</Button>
           </form>
           {orderError && <p className="form-error">{orderError}</p>}
-          <div className="table-wrap wide">
+          <TableContainer className="wide">
             <table>
               <thead>
                 <tr>
@@ -429,18 +430,18 @@ export default function Zavod({ kind = "zavod" }: { kind?: PlantKind }) {
                       <div className="row-actions stay" onClick={(event) => event.stopPropagation()}>
                         {order.status === "novbede" && (
                           <>
-                            <button type="button" className="btn ghost small" onClick={() => act(cancelOrder, order.id)}>Ləğv et</button>
-                            <button type="button" className="btn small" onClick={() => act(startOrder, order.id)}>İşə sal</button>
+                            <Button type="button" className="ghost small" onClick={() => act(cancelOrder, order.id)}>Ləğv et</Button>
+                            <Button type="button" className="small" onClick={() => act(startOrder, order.id)}>İşə sal</Button>
                           </>
                         )}
                         {order.status === "gedir" && (
                           <>
-                            <button type="button" className="btn ghost small" onClick={() => act(returnOrder, order.id)}>Növbəyə qaytar</button>
-                            <button type="button" className="btn small" onClick={() => act(completeOrder, order.id)}>Bağla</button>
+                            <Button type="button" className="ghost small" onClick={() => act(returnOrder, order.id)}>Növbəyə qaytar</Button>
+                            <Button type="button" className="small" onClick={() => act(completeOrder, order.id)}>Bağla</Button>
                           </>
                         )}
                         {order.status === "hazir" && (
-                          <button type="button" className="btn small" onClick={() => setOrderFor(order.id)}>Sahəyə göndər</button>
+                          <Button type="button" className="small" onClick={() => setOrderFor(order.id)}>Sahəyə göndər</Button>
                         )}
                         {order.status === "gonderildi" && <span className="muted">Sahəyə yazılıb</span>}
                         {order.status === "legv" && <span className="muted">Ləğv olunub</span>}
@@ -450,13 +451,13 @@ export default function Zavod({ kind = "zavod" }: { kind?: PlantKind }) {
                 ))}
               </tbody>
             </table>
-          </div>
+          </TableContainer>
         </section>
       )}
 
       {tab === "teleb" && (
         <section>
-          <div className="table-wrap wide">
+          <TableContainer className="wide">
             <table>
               <thead>
                 <tr>
@@ -481,7 +482,7 @@ export default function Zavod({ kind = "zavod" }: { kind?: PlantKind }) {
                 ))}
               </tbody>
             </table>
-          </div>
+          </TableContainer>
         </section>
       )}
 
@@ -502,12 +503,12 @@ export default function Zavod({ kind = "zavod" }: { kind?: PlantKind }) {
               <Select value={receiptMaterial} onValueChange={(value) => setReceipt({ ...receipt, materialId: value })} options={receiptChoices.map((item) => ({ value: item.id, label: item.name }))} />
             </Field>
             <Field label="Miqdar">
-              <input type="number" min="0" step="0.1" value={receipt.qty} onChange={(event) => setReceipt({ ...receipt, qty: event.target.value })} />
+              <Input type="number" min="0" step="0.1" value={receipt.qty} onChange={(event) => setReceipt({ ...receipt, qty: event.target.value })} />
             </Field>
-            <button className="btn" type="submit">Qəbul et</button>
+            <Button  type="submit">Qəbul et</Button>
           </form>
           {receiptError && <p className="form-error">{receiptError}</p>}
-          <div className="table-wrap">
+          <TableContainer>
             <table>
               <thead>
                 <tr>
@@ -532,7 +533,7 @@ export default function Zavod({ kind = "zavod" }: { kind?: PlantKind }) {
                 })}
               </tbody>
             </table>
-          </div>
+          </TableContainer>
         </section>
       )}
 
@@ -558,9 +559,9 @@ export default function Zavod({ kind = "zavod" }: { kind?: PlantKind }) {
             }}
           >
             <Select ariaLabel="Dayanacaq" value={pick} onValueChange={setStopPick} options={destinations.map((item) => ({ value: item.id, label: item.name }))} />
-            <button className="btn ghost small" type="submit">Dayanacaq əlavə et</button>
+            <Button className="ghost small" type="submit">Dayanacaq əlavə et</Button>
           </form>
-          <div className="table-wrap" style={{ marginBottom: 12 }}>
+          <TableContainer  style={{ marginBottom: 12 }}>
             <table>
               <thead>
                 <tr>
@@ -589,30 +590,30 @@ export default function Zavod({ kind = "zavod" }: { kind?: PlantKind }) {
                         />
                       </td>
                       <td>
-                        <input aria-label="Miqdar" type="number" min="0" step="0.1" value={line.qty} onChange={(event) => setLines(lines.map((row) => (row.key === line.key ? { ...row, qty: event.target.value } : row)))} />
+                        <Input aria-label="Miqdar" type="number" min="0" step="0.1" value={line.qty} onChange={(event) => setLines(lines.map((row) => (row.key === line.key ? { ...row, qty: event.target.value } : row)))} />
                         {material && <div className="muted">anbarda {num(onHand(stocks, material.id, plant.locationId), 1)} {material.unit}</div>}
                       </td>
                       <td>
-                        <input aria-label="Qiymət" type="number" min="0" step="1" value={line.price} onChange={(event) => setLines(lines.map((row) => (row.key === line.key ? { ...row, price: event.target.value } : row)))} />
+                        <Input aria-label="Qiymət" type="number" min="0" step="1" value={line.price} onChange={(event) => setLines(lines.map((row) => (row.key === line.key ? { ...row, price: event.target.value } : row)))} />
                       </td>
                       <td>{money(amount)}</td>
                       <td>
-                        <button type="button" className="btn ghost small" onClick={() => setLines(lines.length === 1 ? lines : lines.filter((row) => row.key !== line.key))}><Icon name="trash" /> Sil</button>
+                        <Button type="button" className="ghost small" onClick={() => setLines(lines.length === 1 ? lines : lines.filter((row) => row.key !== line.key))}><Icon name="trash" /> Sil</Button>
                       </td>
                     </tr>
                   )
                 })}
               </tbody>
             </table>
-          </div>
+          </TableContainer>
           <div className="row-actions" style={{ justifyContent: "space-between", marginBottom: 12 }}>
-            <button type="button" className="btn ghost small" onClick={() => { setLines([...lines, { key: lineKey, materialId: "", qty: "", price: "" }]); setLineKey(lineKey + 1) }}>Material əlavə et</button>
+            <Button type="button" className="ghost small" onClick={() => { setLines([...lines, { key: lineKey, materialId: "", qty: "", price: "" }]); setLineKey(lineKey + 1) }}>Material əlavə et</Button>
             <strong>{money(lines.reduce((sum, line) => sum + (Number(line.qty) || 0) * (Number(line.price) || 0), 0))}</strong>
           </div>
           {transferError && <p className="form-error">{transferError}</p>}
-          <button
+          <Button
             type="button"
-            className="btn"
+
             onClick={() => {
               const message = createShipment({
                 stops: [plant.locationId, ...stops],
@@ -623,9 +624,9 @@ export default function Zavod({ kind = "zavod" }: { kind?: PlantKind }) {
             }}
           >
             Marşrutu yaz
-          </button>
+          </Button>
           <h2 className="block-title">Yoldakı və çatan sənədlər</h2>
-          <div className="table-wrap wide">
+          <TableContainer className="wide">
             <table>
               <thead>
                 <tr>
@@ -650,14 +651,14 @@ export default function Zavod({ kind = "zavod" }: { kind?: PlantKind }) {
                 ))}
               </tbody>
             </table>
-          </div>
+          </TableContainer>
         </section>
       )}
 
       {tab === "texnika" && (
         <section>
           <p className="muted" style={{ marginBottom: 12 }}>{kind === "zavod" ? "Zavodun mikseri, nasosu və daşıyan texnikası." : "Bu sexin dəzgahı və maşını."} Status sətirin özündən dəyişir.</p>
-          <div className="table-wrap">
+          <TableContainer>
             <table>
               <thead>
                 <tr>
@@ -691,7 +692,7 @@ export default function Zavod({ kind = "zavod" }: { kind?: PlantKind }) {
                 ))}
               </tbody>
             </table>
-          </div>
+          </TableContainer>
         </section>
       )}
 
@@ -714,15 +715,15 @@ export default function Zavod({ kind = "zavod" }: { kind?: PlantKind }) {
               <Select value={waste.project} onValueChange={(value) => setWaste({ ...waste, project: value })} options={[{ value: "", label: "Layihəsiz" }, ...projects.map((item) => ({ value: item.name, label: item.name }))]} />
             </Field>
             <Field label="Miqdar">
-              <input type="number" min="0" step="0.1" value={waste.qty} onChange={(event) => setWaste({ ...waste, qty: event.target.value })} />
+              <Input type="number" min="0" step="0.1" value={waste.qty} onChange={(event) => setWaste({ ...waste, qty: event.target.value })} />
             </Field>
             <Field label="Səbəb">
-              <input value={waste.reason} onChange={(event) => setWaste({ ...waste, reason: event.target.value })} />
+              <Input value={waste.reason} onChange={(event) => setWaste({ ...waste, reason: event.target.value })} />
             </Field>
-            <button className="btn ghost" type="submit">İtkini yaz</button>
+            <Button className="ghost" type="submit">İtkini yaz</Button>
           </form>
           {wasteError && <p className="form-error">{wasteError}</p>}
-          <div className="table-wrap">
+          <TableContainer>
             <table>
               <thead>
                 <tr>
@@ -749,7 +750,7 @@ export default function Zavod({ kind = "zavod" }: { kind?: PlantKind }) {
               </tbody>
             </table>
             {losses.length === 0 && <Empty title="İtki yoxdur" text="Bu növbədə silinmiş xammal yoxdur." />}
-          </div>
+          </TableContainer>
         </section>
       )}
 
@@ -789,13 +790,13 @@ export default function Zavod({ kind = "zavod" }: { kind?: PlantKind }) {
             {(openRequest.status === "gozleyir" || openRequest.status === "teklif") && (
               <>
                 <Field label="Rədd səbəbi">
-                  <input value={reason} onChange={(event) => setReason(event.target.value)} />
+                  <Input value={reason} onChange={(event) => setReason(event.target.value)} />
                 </Field>
                 {requestError && <p className="form-error">{requestError}</p>}
                 <div className="form-actions">
-                  <button type="button" className="btn ghost" onClick={() => setRequestError(rejectRequest(openRequest.id, reason))}>Rədd et</button>
-                  <button type="button" className="btn ghost" onClick={() => setRequestError(convertRequest(openRequest.id))}>Təchizata yönəlt</button>
-                  <button type="button" className="btn" onClick={() => setRequestError(coverRequest(openRequest.id))}>Anbardan təsdiq</button>
+                  <Button type="button" className="ghost" onClick={() => setRequestError(rejectRequest(openRequest.id, reason))}>Rədd et</Button>
+                  <Button type="button" className="ghost" onClick={() => setRequestError(convertRequest(openRequest.id))}>Təchizata yönəlt</Button>
+                  <Button type="button" onClick={() => setRequestError(coverRequest(openRequest.id))}>Anbardan təsdiq</Button>
                 </div>
               </>
             )}
@@ -817,7 +818,7 @@ export default function Zavod({ kind = "zavod" }: { kind?: PlantKind }) {
             {transferError && <p className="form-error">{transferError}</p>}
             {openShipment.step < openShipment.stops.length - 1 && (
               <div className="form-actions">
-                <button type="button" className="btn" onClick={() => setTransferError(advanceShipment(openShipment.id))}>Növbəti dayanacağa</button>
+                <Button type="button" onClick={() => setTransferError(advanceShipment(openShipment.id))}>Növbəti dayanacağa</Button>
               </div>
             )}
           </div>
@@ -900,7 +901,7 @@ function OrderRead({
             <Select value={vehicle} onValueChange={setVehicle} options={fleet.length ? fleet : [{ value: "", label: "Texnikasız" }]} />
           </Field>
           <Field label="Yol qeydi">
-            <input value={ticketNote} onChange={(event) => setTicketNote(event.target.value)} placeholder="Mərtəbə, qəbul edən" />
+            <Input value={ticketNote} onChange={(event) => setTicketNote(event.target.value)} placeholder="Mərtəbə, qəbul edən" />
           </Field>
         </>
       )}
@@ -908,18 +909,18 @@ function OrderRead({
       <div className="form-actions">
         {order.status === "novbede" && (
           <>
-            <button type="button" className="btn ghost" onClick={onCancel}>Ləğv et</button>
-            <button type="button" className="btn" onClick={onStart}>İşə sal</button>
+            <Button type="button" className="ghost" onClick={onCancel}>Ləğv et</Button>
+            <Button type="button" onClick={onStart}>İşə sal</Button>
           </>
         )}
         {order.status === "gedir" && (
           <>
-            <button type="button" className="btn ghost" onClick={onReturn}>Növbəyə qaytar</button>
-            <button type="button" className="btn" onClick={onClose}>Bağla</button>
+            <Button type="button" className="ghost" onClick={onReturn}>Növbəyə qaytar</Button>
+            <Button type="button" onClick={onClose}>Bağla</Button>
           </>
         )}
         {order.status === "hazir" && (
-          <button type="button" className="btn" onClick={() => onSend(vehicle, ticketNote)}>Sahəyə yaz</button>
+          <Button type="button" onClick={() => onSend(vehicle, ticketNote)}>Sahəyə yaz</Button>
         )}
       </div>
     </div>

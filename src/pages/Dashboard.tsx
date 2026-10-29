@@ -1,36 +1,44 @@
+import { Icon } from "../icons"
+import { Disclosure, Metric, Panel, SectionHeader, StatGrid, TableContainer, Toolbar } from "../components/primitives"
 import { useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { dateAZ, hit, num } from "../format"
 import { usePrefs } from "../i18n"
 import { useStore } from "../store"
-import { Badge, Meter, Tabs, useTitle } from "../ui"
+import { Badge, Empty, Meter, PageHead, Select, Tabs, useTitle } from "../ui"
 import { WeatherSummary } from "./Weather"
 
 type Sheet = "project" | "volume" | "report" | "request" | "stock" | "asset" | "journal"
 
 function counts(rows: { label: string; value: number }[]) {
-  const max = Math.max(...rows.map((item) => item.value), 1)
-  return (
-    <div className="bars" aria-hidden="true">
-      {rows.map((item) => (
-        <div key={item.label} className="bar">
-          <div className="bar-fill" style={{ height: item.value ? `${Math.max(8, (item.value / max) * 100)}%` : "0%" }} />
-          <span>{item.value} {item.label}</span>
-        </div>
-      ))}
-    </div>
-  )
+  const total = rows.reduce((sum, item) => sum + item.value, 0)
+  const colors = ["#174ea6", "#f0ad32", "#16825d", "#8654c9", "#d74a62"]
+  return <div className="overview-breakdown">{rows.map((item, index) => <div key={item.label} className="overview-breakdown-row">
+    <div><span><i style={{ background: colors[index % colors.length] }} />{item.label}</span><b>{item.value}</b></div>
+    <div className="overview-track"><i style={{ width: total ? (item.value / total * 100) + "%" : "0%", background: colors[index % colors.length] }} /></div>
+  </div>)}</div>
+}
+
+function projectImage(name: string) {
+  const value = name.toLocaleLowerCase("az")
+  if (value.includes("su anbar")) return 0
+  if (value.includes("lojistik") || value.includes("anbar")) return 1
+  if (value.includes("villa")) return 2
+  if (value.includes("klinika")) return 4
+  if (value.includes("körpü") || value.includes("metro")) return 5
+  return 3
 }
 
 export default function Dashboard() {
   const { t } = usePrefs()
   useTitle(t("nav.overview"))
-  const { query, projects, smetas, reports, requests, materials, assets, journal, orders, actor } = useStore()
+  const { query, projects, smetas, reports, requests, materials, assets, journal, orders } = useStore()
   const navigate = useNavigate()
   const [tab, setTab] = useState("qrafik")
   const [sheet, setSheet] = useState<Sheet>("project")
 
-  const ongoing = projects.filter((item) => item.status !== "plan")
+  const ongoing = projects.filter((item) => item.status === "aktiv" || item.status === "gecikir")
+  const delayed = projects.filter((item) => item.status === "gecikir")
   const avg = projects.length ? Math.round(projects.reduce((sum, item) => sum + item.progress, 0) / projects.length) : 0
   const volumes = projects.map((project) => {
     const lines = smetas.find((item) => item.projectId === project.id)?.lines || []
@@ -44,113 +52,87 @@ export default function Dashboard() {
   const working = assets.filter((item) => item.status === "sahede" || item.status === "icarede")
   const util = working.length ? Math.round(working.reduce((sum, item) => sum + item.utilization, 0) / working.length) : 0
 
-  const summary = [
-    t("dash.ongoing", { count: ongoing.length }),
-    low.length ? t("dash.low", { count: low.length }) : null,
-    waiting.length ? t("dash.late", { count: waiting.length }) : null,
-    service.length ? t("dash.service", { count: service.length }) : null,
-  ]
-    .filter(Boolean)
-    .join(". ")
-
   const visibleProjects = projects.filter((item) => hit(query, item.name, item.client, item.city, item.district, item.phase, item.manager, item.id))
   const projectName = (id: string) => projects.find((item) => item.id === id)?.name || id
 
   return (
-    <>
-      <header className="hero">
-        <div>
-          <p className="eyebrow">{t("dash.place")}</p>
-          <h1>{t("dash.hello", { name: actor.name.split(" ")[0] || actor.name })}</h1>
-          <p className="lede">{summary}.</p>
-        </div>
-      </header>
+    <div className="construction-overview">
+      <PageHead title="İnşaat icmalı" text="Layihələrin gedişi və diqqət tələb edən işlər."><Link className="btn ghost" to="/layiheler">Layihələrə bax<Icon name="chevron" /></Link></PageHead>
 
-      <div className="toolbar">
+      <Toolbar>
         <Tabs
           value={tab}
           onChange={setTab}
           options={[
-            { id: "qrafik", label: t("dash.graph") },
-            { id: "cedvel", label: t("dash.table") },
+            { id: "qrafik", label: "İcmal" },
+            { id: "cedvel", label: "Məlumat cədvəlləri" },
           ]}
         />
-      </div>
+      </Toolbar>
 
       {tab === "qrafik" && (
         <>
-          <section className="statstrip">
-            <article>
-              <span>{t("dash.live")}</span>
-              <strong>{ongoing.length}</strong>
-              <em>{t("dash.avg", { count: avg })}</em>
-            </article>
-            <article>
-              <span>{t("dash.openLines")}</span>
-              <strong>{openLines}</strong>
-              <em>{t("dash.openLinesMeta", { count: volumes.reduce((sum, item) => sum + item.lines, 0) })}</em>
-            </article>
-            <article>
-              <span>{t("dash.waiting")}</span>
-              <strong>{waiting.length}</strong>
-              <em className={waiting.length ? "warn" : ""}>{t("dash.waitingMeta", { count: waiting.length })}</em>
-            </article>
-            <article>
-              <span>{t("dash.util")}</span>
-              <strong>{util}%</strong>
-              <em>{t("dash.working", { count: working.length })}</em>
-            </article>
-          </section>
+          <StatGrid className="overview-stats">
+            <Metric><span className="overview-stat-icon"><Icon name="office" /></span><span>Davam edən layihələr</span><strong>{ongoing.length}</strong><em>Aktiv və gecikən layihələr</em></Metric>
+            <Metric><span className="overview-stat-icon"><Icon name="chart" /></span><span>Orta irəliləyiş</span><strong>{avg}%</strong><em>{projects.length} layihə üzrə</em></Metric>
+            <Metric><span className="overview-stat-icon"><Icon name="clock" /></span><span>Təsdiq gözləyən gündəliklər</span><strong>{waiting.length}</strong><em>Sahə hesabatları</em></Metric>
+          </StatGrid>
+            <div className="overview-top-cards">
+              <Panel className="overview-attention"><SectionHeader><h2>Diqqət tələb edir</h2></SectionHeader>
+                {[
+                  { to: "/layiheler", label: "Gecikən layihələr", hint: "Gedişi nəzərdən keçirin", count: delayed.length, icon: "clock" as const, tone: "rose" },
+                  { to: "/sahe?tab=gundelik", label: "Təsdiq gözləyən gündəliklər", hint: "Sahə hesabatlarını yoxlayın", count: waiting.length, icon: "files" as const, tone: "gold" },
+                  { to: "/anbar", label: "Minimumdan az materiallar", hint: "Anbar ehtiyatlarına baxın", count: low.length, icon: "boxes" as const, tone: "gold" },
+                  { to: "/aktivler", label: "Texniki servisdə", hint: "Avadanlıqların vəziyyətini izləyin", count: service.length, icon: "asset" as const, tone: "stone" },
+                ].map((item) => <Link key={item.label} to={item.to}><span className={"overview-action-icon " + item.tone}><Icon name={item.icon} /></span><div><strong>{item.label}</strong><span>{item.hint}</span></div><b className={"badge " + (item.count ? item.tone : "stone")}>{item.count}</b><Icon name="chevron" /></Link>)}
+              </Panel>
+              <Panel className="pad overview-weather-card"><SectionHeader><h2><Icon name="cloud" />Hava və sahə məlumatları</h2></SectionHeader><WeatherSummary compact /></Panel>
+            </div>
+          <div className="overview-main">
+            <Panel className="overview-projects">
+              <SectionHeader><h2>Layihələrin gedişi</h2><Link to="/layiheler">Hamısına bax<Icon name="chevron" /></Link></SectionHeader>
+              <div className="overview-project-list">
+                {[...visibleProjects].sort((a, b) => Number(b.status === "gecikir") - Number(a.status === "gecikir")).slice(0, 6).map((project) => <Link key={project.id} to={"/layiheler/" + project.id} className="overview-project">
+                  <span className={"overview-project-photo photo-" + projectImage(project.name)} role="img" aria-label="Layihə üçün nümunə təsvir" />
+                  <div className="overview-project-name"><strong>{project.name}</strong><span>{[project.city, project.phase].filter(Boolean).join(" · ")}</span></div>
+                  <Badge status={project.status} />
+                  <div className="overview-project-progress"><b>{project.progress}%</b><Meter value={project.progress} tone={project.status === "gecikir" ? "rose" : "pine"} /></div>
+                  <Icon name="chevron" />
+                </Link>)}
+                {visibleProjects.length === 0 && <Empty title={projects.length ? "Layihə tapılmadı" : "Hələ layihə yoxdur"} text={projects.length ? "Axtarış sözünü dəyişin." : "Layihələr bölməsindən yeni layihə yaradın."} />}
+              </div>
+              {visibleProjects.length > 6 && <Link className="overview-more" to="/layiheler">Daha çox layihə<Icon name="chevron" /></Link>}
+            </Panel>
 
-          <div className="grid-2">
-            <WeatherSummary />
-            <section className="panel pad">
-              <div className="panel-head">
-                <h2>{t("dash.projectsChart")}</h2>
-                <Link to="/layiheler">Hamısı</Link>
-              </div>
-              <div className="pipe">
-                {visibleProjects.map((project) => (
-                  <div key={project.id}>
-                    <div className="pipe-top">
-                      <span>{project.name}</span>
-                      <b>{project.progress}%</b>
-                    </div>
-                    <div className="pipe-bar">
-                      <i style={{ width: `${project.progress}%` }} />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </section>
-            <section className="panel pad">
-              <div className="panel-head">
+          </div>
+            <Disclosure title="Əlavə göstəricilər" className="overview-details"><p className="muted overview-details-note">Açıq iş sətirləri: {openLines} · Texnikanın orta yüklənməsi: {util}%</p><div className="grid-2"><Panel className="pad">
+              <SectionHeader>
                 <h2>{t("dash.statusChart")}</h2>
-              </div>
+              </SectionHeader>
               {counts([
                 { label: t("status.aktiv"), value: projects.filter((item) => item.status === "aktiv").length },
                 { label: t("status.gecikir"), value: projects.filter((item) => item.status === "gecikir").length },
                 { label: t("status.tehvil"), value: projects.filter((item) => item.status === "tehvil").length },
                 { label: t("status.plan"), value: projects.filter((item) => item.status === "plan").length },
               ])}
-            </section>
-            <section className="panel pad">
-              <div className="panel-head">
+            </Panel>
+            <Panel className="pad">
+              <SectionHeader>
                 <h2>{t("dash.reportChart")}</h2>
                 <Link to="/sahe?tab=gundelik">Hamısı</Link>
-              </div>
+              </SectionHeader>
               {counts([
                 { label: t("status.qaralama"), value: reports.filter((item) => item.status === "qaralama").length },
                 { label: t("status.gonderilib"), value: reports.filter((item) => item.status === "gonderilib").length },
                 { label: t("status.duzelis"), value: reports.filter((item) => item.status === "duzelis").length },
                 { label: t("status.tesdiq"), value: reports.filter((item) => item.status === "tesdiq").length },
               ])}
-            </section>
-            <section className="panel pad">
-              <div className="panel-head">
+            </Panel>
+            <Panel className="pad">
+              <SectionHeader>
                 <h2>{t("dash.requestChart")}</h2>
                 <Link to="/anbar">Anbar</Link>
-              </div>
+              </SectionHeader>
               {counts([
                 { label: t("status.gozleyir"), value: requests.filter((item) => item.status === "gozleyir").length },
                 { label: t("status.teklif"), value: requests.filter((item) => item.status === "teklif").length },
@@ -158,24 +140,24 @@ export default function Dashboard() {
                 { label: t("status.anbar"), value: requests.filter((item) => item.status === "anbar").length },
                 { label: t("status.redd"), value: requests.filter((item) => item.status === "redd").length },
               ])}
-            </section>
-            <section className="panel pad">
-              <div className="panel-head">
+            </Panel>
+            <Panel className="pad">
+              <SectionHeader>
                 <h2>{t("dash.assetChart")}</h2>
                 <Link to="/aktivler">Park</Link>
-              </div>
+              </SectionHeader>
               {counts([
                 { label: t("status.sahede"), value: assets.filter((item) => item.status === "sahede").length },
                 { label: t("status.icarede"), value: assets.filter((item) => item.status === "icarede").length },
                 { label: t("status.bos"), value: assets.filter((item) => item.status === "bos").length },
                 { label: t("status.servis"), value: service.length },
               ])}
-            </section>
-            <section className="panel pad">
-              <div className="panel-head">
+            </Panel>
+            <Panel className="pad">
+              <SectionHeader>
                 <h2>{t("dash.utilChart")}</h2>
                 <span className="muted">{orders.filter((item) => item.status === "gedir" || item.status === "novbede").length} iş əmri</span>
-              </div>
+              </SectionHeader>
               <div className="pipe">
                 {working.filter((item) => hit(query, item.name, item.site)).map((item) => (
                   <div key={item.id}>
@@ -189,29 +171,16 @@ export default function Dashboard() {
                   </div>
                 ))}
               </div>
-            </section>
-          </div>
+            </Panel></div></Disclosure>
         </>
       )}
 
       {tab === "cedvel" && (
         <>
-          <div className="toolbar">
-            <Tabs
-              value={sheet}
-              onChange={(value) => setSheet(value as Sheet)}
-              options={[
-                { id: "project", label: t("dash.sheet.project") },
-                { id: "volume", label: t("dash.sheet.volume") },
-                { id: "report", label: t("dash.sheet.report") },
-                { id: "request", label: t("dash.sheet.request") },
-                { id: "stock", label: t("dash.sheet.stock") },
-                { id: "asset", label: t("dash.sheet.asset") },
-                { id: "journal", label: t("dash.sheet.journal") },
-              ]}
-            />
-          </div>
-          <div className="table-wrap">
+          <Toolbar className="overview-table-toolbar"><label>Məlumat növü<Select ariaLabel="Məlumat növü" value={sheet} onValueChange={(value) => setSheet(value as Sheet)} options={[
+            { value: "project", label: t("dash.sheet.project") }, { value: "volume", label: t("dash.sheet.volume") }, { value: "report", label: t("dash.sheet.report") }, { value: "request", label: t("dash.sheet.request") }, { value: "stock", label: t("dash.sheet.stock") }, { value: "asset", label: t("dash.sheet.asset") }, { value: "journal", label: t("dash.sheet.journal") },
+          ]} /></label></Toolbar>
+          <TableContainer>
             {sheet === "project" && (
               <table>
                 <thead>
@@ -396,9 +365,9 @@ export default function Dashboard() {
                 </tbody>
               </table>
             )}
-          </div>
+          </TableContainer>
         </>
       )}
-    </>
+    </div>
   )
 }

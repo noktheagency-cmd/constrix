@@ -1,9 +1,10 @@
+import { Button, Input, Panel, SearchInput, TableContainer, Textarea, Toolbar } from "../components/primitives"
 import { useEffect, useState } from "react"
 import { ApiError, api } from "../api"
 import { company } from "../data"
 import { dateAZ } from "../format"
 import { Icon } from "../icons"
-import { Empty, Meter, PageHead, Select, Tabs, useTitle } from "../ui"
+import { Empty, Modal, PageHead, Select, Tabs, useTitle } from "../ui"
 import { useWorkspace } from "../workspace"
 
 type Inquiry = {
@@ -71,8 +72,8 @@ function latestOf(rows: Inquiry[], topic?: string) {
 }
 
 function toneWord(tone: Tone) {
-  if (tone === "clear") return "Təmiz"
-  if (tone === "flag") return "Əlavə"
+  if (tone === "clear") return "Alınıb"
+  if (tone === "flag") return "Diqqət tələb edir"
   return "Gözləyir"
 }
 
@@ -80,7 +81,13 @@ export function ChecksPage() {
   useTitle("Yoxlama")
   const { cabinet } = useWorkspace()
   const [saved, setSaved] = useState<Inquiry[]>([])
-  const [topic, setTopic] = useState("muflis")
+  const [view, setView] = useState("topics")
+  const [query, setQuery] = useState("")
+  const [topicFilter, setTopicFilter] = useState("all")
+  const [selected, setSelected] = useState<{ topic: string; row?: Inquiry } | null>(null)
+  const [formOpen, setFormOpen] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [loadError, setLoadError] = useState("")
   const [filter, setFilter] = useState("hamisi")
   const [form, setForm] = useState({ topic: "muflis", resultNote: "", document: "", asOf: "2026-10-14", legal: "aktiv" })
   const [note, setNote] = useState("")
@@ -89,45 +96,47 @@ export function ChecksPage() {
   useEffect(() => {
     api<Inquiry[]>("/api/platform/official-checks")
       .then(setSaved)
-      .catch((reason) => setError(reason instanceof ApiError ? reason.message : "Sorğular oxunmadı. Arxiv qeydləri açıqdır."))
+      .catch((reason) => setLoadError(reason instanceof ApiError ? reason.message : "Sorğular oxunmadı."))
   }, [])
 
   const firm = cabinet.name.trim() || company.name
-  const place = cabinet.legalAddress.trim() || company.legal
   const showDemo = typeof localStorage !== "undefined" && localStorage.getItem("afez.demo") === "1"
   const book = showDemo
     ? [...saved, ...ARCHIVE.filter((item) => !saved.some((row) => row.id === item.id))]
     : saved
-  const fresh = latestOf(book, topic) ?? latestOf(book)
-  const guide = topicOf(topic)
   const cards = TOPICS.map((item) => ({ ...item, row: latestOf(book, item.id) }))
   const clear = cards.filter((item) => item.row && toneOf(item.row.state) === "clear").length
   const waiting = cards.filter((item) => item.row && toneOf(item.row.state) === "wait").length
   const flagged = cards.filter((item) => item.row && toneOf(item.row.state) === "flag").length
+  const queryText = query.trim().toLocaleLowerCase("az")
+  function matchesState(row?: Inquiry) {
+    if (filter === "hamisi") return true
+    if (filter === "none") return !row
+    if (!row) return false
+    return filter === "alindi" ? row.state === "alindi" : filter === "gozle" ? toneOf(row.state) === "wait" : toneOf(row.state) === "flag"
+  }
+  const shownTopics = cards.filter((item) => matchesState(item.row) && `${item.label} ${item.paper} ${item.row?.document || ""} ${item.row?.resultNote || ""}`.toLocaleLowerCase("az").includes(queryText))
   const shown = book
-    .filter((row) => {
-      if (filter === "alindi") return row.state === "alindi"
-      if (filter === "gozle") return toneOf(row.state) === "wait"
-      if (filter === "diqqet") return toneOf(row.state) === "flag"
-      if (filter === "movzu") return row.topic === topic
-      return true
-    })
+    .filter((row) => matchesState(row) && (topicFilter === "all" || row.topic === topicFilter) && `${topicOf(row.topic)?.label || row.topic} ${row.document} ${row.source} ${row.resultNote}`.toLocaleLowerCase("az").includes(queryText))
     .sort((a, b) => dayOf(b.asOf).localeCompare(dayOf(a.asOf)))
 
-  function openTopic(id: string) {
-    setTopic(id)
-    setFilter("movzu")
-    setForm((current) => ({ ...current, topic: id }))
+  function openForm(topic = "selahiyyet") {
+    setForm((current) => ({ ...current, topic }))
+    setSelected(null)
+    setError("")
     setNote("")
+    setFormOpen(true)
   }
 
   async function save() {
+    if (saving) return
     if (!form.document.trim() || !form.asOf) {
       setNote("")
       setError("Sənəd adı və tarix yazılmalıdır. Məlumat şirkətin öz sənədindən götürülür.")
       return
     }
     const resultNote = form.topic === "qeydiyyat" ? `${form.legal === "legv" ? "Ləğv edilib" : "Aktivdir"}. ${form.resultNote}`.trim() : form.resultNote
+    setSaving(true)
     try {
       const created = await api<Inquiry>("/api/platform/official-checks", {
         method: "POST",
@@ -141,203 +150,81 @@ export function ChecksPage() {
         }),
       })
       setSaved((current) => [created, ...current])
-      setTopic(form.topic)
+      setView("journal")
+      setFilter("hamisi")
+      setTopicFilter("all")
+      setQuery("")
+      setFormOpen(false)
       setForm((current) => ({ ...current, resultNote: "", document: "" }))
       setError("")
-      setNote("Qeyd bazada saxlandı. Canlı reyestr sorğusu bağlanmayıb.")
+      setNote("Sənəd qeydi saxlanıldı.")
     } catch (reason) {
       setNote("")
       setError(reason instanceof ApiError ? reason.message : "Qeyd saxlanmadı")
+    } finally {
+      setSaving(false)
     }
   }
 
-  const freshTone = fresh ? toneOf(fresh.state) : "wait"
+  const detailTopic = selected ? topicOf(selected.topic) : undefined
+  const detailRow = selected?.row
+  const filters = [{value:"hamisi",label:"Hamısı"},{value:"alindi",label:"Alınıb"},{value:"gozle",label:"Gözləyir"},{value:"diqqet",label:"Diqqət tələb edir"}, ...(view === "topics" ? [{value:"none",label:"Qeyd yoxdur"}] : [])]
 
   return (
-    <div className="yoxlama">
-      <PageHead
-        kicker="Tender"
-        title="Rəsmi yoxlama"
-        text="SIMA, VÖEN, vergi, qeydiyyat, müflislik və satınalma qadağası şirkətin gətirdiyi sənədlə saxlanır. Xarici reyestrə avtomatik sorğu bağlanmayıb."
-      />
-
-      <div className="statstrip">
-        <article>
-          <span>Mövzu</span>
-          <strong>{TOPICS.length}</strong>
-          <em>{firm}</em>
-        </article>
-        <article>
-          <span>Təmiz</span>
-          <strong>{clear}</strong>
-          <em>Son sənəd uyğundur</em>
-        </article>
-        <article>
-          <span>Gözləyir</span>
-          <strong>{waiting}</strong>
-          <em className={waiting ? "warn" : undefined}>{waiting ? "Cavab hələ gəlməyib" : "Açıq sorğu yoxdur"}</em>
-        </article>
-        <article>
-          <span>Əlavə</span>
-          <strong>{flagged}</strong>
-          <em className={flagged ? "warn" : undefined}>{flagged ? "Sənəd çatışmır və ya köhnəlib" : "Açıq uyğunsuzluq yoxdur"}</em>
-        </article>
-      </div>
-
-      {fresh && guide && (
-        <section className={`yox-now ${freshTone}`}>
-          <div className="yox-now-top">
-            <div className="yox-mark" aria-hidden="true">
-              <Icon name="checks" />
-            </div>
-            <div>
-              <p>{firm} · {place}</p>
-              <h2>{guide.label}</h2>
-              <span>{guide.ask}</span>
-            </div>
-            <div className="yox-score">
-              <strong>{clear}/{TOPICS.length}</strong>
-              <em>təmiz mövzu</em>
-            </div>
+    <div className="yoxlama checks-workspace">
+      <PageHead title="Rəsmi yoxlama" text="Şirkətin yoxlama sənədlərini və son nəticələrini izləyin." ><Button className="primary" onClick={() => openForm()}><Icon name="plus" />Yeni sənəd qeydi</Button></PageHead>
+      <Panel className="checks-summary" aria-label={`${firm} yoxlama xülasəsi`}>
+        {[
+          {label:"Mövzular",value:TOPICS.length,icon:"checks" as const,tone:"total"},
+          {label:"Alınıb",value:clear,icon:"check" as const,tone:"clear"},
+          {label:"Gözləyir",value:waiting,icon:"clock" as const,tone:"wait"},
+          {label:"Diqqət tələb edir",value:flagged,icon:"checks" as const,tone:"flag"},
+          {label:"Qeyd yoxdur",value:cards.filter((item) => !item.row).length,icon:"files" as const,tone:"none"},
+        ].map((item) => <div className={`checks-summary-item ${item.tone}`} key={item.tone}><span className="checks-summary-icon"><Icon name={item.icon} /></span><div><span>{item.label}</span><strong>{item.value}</strong></div></div>)}
+      </Panel>
+      {loadError && <p className="form-error" role="alert">{loadError}</p>}
+      {note && <p className="checks-notice" role="status">{note}</p>}
+      <Tabs value={view} onChange={(next) => {setView(next); if(filter === "none") setFilter("hamisi")}} options={[{id:"topics",label:"Mövzular"},{id:"journal",label:`Jurnal · ${book.length}`}]} />
+      <Toolbar className={`checks-toolbar ${view === "journal" ? "with-topics" : ""}`}>
+        <SearchInput value={query} onChange={(event) => setQuery(event.target.value)} placeholder={view === "topics" ? "Mövzu axtar" : "Sənəd və ya nəticə axtar"} />
+        {view === "journal" && <Select ariaLabel="Mövzu filtri" value={topicFilter} onValueChange={setTopicFilter} options={[{value:"all",label:"Bütün mövzular"},...TOPICS.map((item) => ({value:item.id,label:item.label}))]} />}
+        <Select ariaLabel="Nəticə statusu" value={filter} onValueChange={setFilter} options={filters} />
+      </Toolbar>
+      {view === "topics" ? <TableContainer className="checks-table checks-topics-table"><table><thead><tr><th>Mövzu</th><th>Son sənəd</th><th>Tarix</th><th>Status</th><th><span className="sr-only">Detala bax</span></th></tr></thead><tbody>
+        {shownTopics.map((item) => <tr key={item.id} tabIndex={0} onClick={() => setSelected({topic:item.id,row:item.row})} onKeyDown={(event) => {if(event.key === "Enter" || event.key === " ") {event.preventDefault();setSelected({topic:item.id,row:item.row})}}}>
+          <td><strong>{item.label}</strong><small>{item.ask}</small></td><td>{item.row?.document || "Sənəd yoxdur"}<small>{item.paper}</small></td><td>{item.row?.asOf ? dateAZ(dayOf(item.row.asOf)) : "—"}</td><td><CheckStatus row={item.row} /></td><td><Icon name="chevron" /></td>
+        </tr>)}
+      </tbody></table>{!shownTopics.length && <Empty title="Uyğun mövzu yoxdur" text="Axtarış və ya status filtrini dəyişin." />}</TableContainer> : <>
+        <p className="checks-count">{shown.length} qeyd</p>
+        <TableContainer className="checks-table checks-journal-table"><table><thead><tr><th>Tarix</th><th>Mövzu</th><th>Sənəd və mənbə</th><th>Nəticə</th><th><span className="sr-only">Detala bax</span></th></tr></thead><tbody>{shown.map((row) => <tr key={row.id} tabIndex={0} onClick={() => setSelected({topic:row.topic,row})} onKeyDown={(event) => {if(event.key === "Enter" || event.key === " ") {event.preventDefault();setSelected({topic:row.topic,row})}}}>
+          <td>{row.asOf ? dateAZ(dayOf(row.asOf)) : "—"}</td><td><strong>{topicOf(row.topic)?.label || row.topic}</strong><small>{row.id}</small></td><td>{row.document || "Sənəd yoxdur"}<small>{row.source || "Mənbə yoxdur"}</small></td><td><CheckStatus row={row} /><small className="checks-result-preview">{row.resultNote || "Nəticə yazılmayıb"}</small></td><td><Icon name="chevron" /></td>
+        </tr>)}</tbody></table>{!shown.length && <Empty title="Uyğun qeyd yoxdur" text="Başqa filtr seçin və ya yeni sənəd qeydi əlavə edin." />}</TableContainer>
+      </>}
+      <p className="checks-footnote">Məlumat şirkətin təqdim etdiyi sənədlərə əsaslanır. Xarici reyestrə avtomatik sorğu göndərilmir.</p>
+      {selected && <Modal title={detailTopic?.label || selected.topic} className="checks-detail-modal" onClose={() => setSelected(null)}>
+        <p className="checks-question">{detailTopic?.ask}</p>
+        <div className={`checks-result ${detailRow ? toneOf(detailRow.state) : "none"}`}><Icon name={detailRow?.state === "alindi" ? "check" : "checks"} /><div><strong>Son nəticə: <CheckStatus row={detailRow} /></strong><p>{detailRow?.resultNote || (detailRow ? "Nəticə yazılmayıb." : "Bu mövzu üzrə sənəd qeydi yoxdur.")}</p></div></div>
+        <dl className="checks-detail-fields"><div><dt>Sənəd</dt><dd>{detailRow?.document || detailTopic?.paper || "Sənəd yoxdur"}</dd></div><div><dt>Mənbə</dt><dd>{detailRow?.source || "—"}</dd></div><div><dt>Tarix</dt><dd>{detailRow?.asOf ? dateAZ(dayOf(detailRow.asOf)) : "—"}</dd></div></dl>
+        <div className="checks-modal-actions"><Button className="primary" onClick={() => openForm(selected.topic)}><Icon name="plus" />Yeni sənəd qeydi</Button></div>
+      </Modal>}
+      {formOpen && <Modal title="Yeni sənəd qeydi" className="checks-form-modal" onClose={() => {if(!saving) setFormOpen(false)}}>
+        <p className="lede">Sənədin məlumatlarını daxil edin.</p>
+        <form onSubmit={(event) => {event.preventDefault(); void save()}}>
+          <div className="checks-form-fields">
+            <label>Mövzu<Select value={form.topic} onValueChange={(topic) => setForm((current) => ({...current,topic}))} options={TOPICS.map((item) => ({value:item.id,label:item.label}))} /></label>
+            {form.topic === "qeydiyyat" && <label>Hüquqi status<Select value={form.legal} onValueChange={(legal) => setForm((current) => ({...current,legal}))} options={[{value:"aktiv",label:"Aktivdir"},{value:"legv",label:"Ləğv edilib"}]} /></label>}
+            <label>Sənədin adı<Input required value={form.document} onChange={(event) => setForm({...form,document:event.target.value})} placeholder="Sənədin adı və ya nömrəsi" /></label>
+            <label>Tarix<Input required type="date" value={form.asOf} onChange={(event) => setForm({...form,asOf:event.target.value})} /></label>
+            <label className="checks-form-result">Nəticə<Textarea value={form.resultNote} onChange={(event) => setForm({...form,resultNote:event.target.value})} placeholder="Sənəddə göstərilən nəticə" rows={3} /></label>
           </div>
-          <div className="yox-meters">
-            <article><span>Son sənəd</span><strong>{fresh.document || "Sənəd yoxdur"}</strong></article>
-            <article><span>Tarix</span><strong>{fresh.asOf ? dateAZ(dayOf(fresh.asOf)) : "Tarix yoxdur"}</strong></article>
-            <article><span>Mənbə</span><strong>{fresh.source || "Mənbə yoxdur"}</strong></article>
-            <article><span>Vəziyyət</span><strong>{STATE_LABEL[fresh.state] || fresh.state}</strong></article>
-          </div>
-          <p className={freshTone === "clear" ? "yox-ok" : "yox-alert"}>{fresh.resultNote || "Nəticə yazılmayıb."}</p>
-          <Meter value={TOPICS.length ? (clear / TOPICS.length) * 100 : 0} tone="pine" />
-        </section>
-      )}
-
-      <section className="yox-topics" aria-label="Yoxlama mövzuları">
-        {cards.map((item) => {
-          const tone = item.row ? toneOf(item.row.state) : "wait"
-          return (
-            <button
-              type="button"
-              key={item.id}
-              className={`yox-topic ${tone}${item.id === topic ? " on" : ""}`}
-              onClick={() => openTopic(item.id)}
-              aria-pressed={item.id === topic}
-            >
-              <div className="yox-topic-top">
-                <span className={`yox-pill ${tone}`}>{toneWord(tone)}</span>
-                <b>{item.row ? dateAZ(dayOf(item.row.asOf)).split(" ").slice(0, 2).join(" ") : "—"}</b>
-              </div>
-              <strong>{item.label}</strong>
-              <span>{item.paper}</span>
-              <em>{item.row?.resultNote || "Bu mövzuda qeyd yoxdur."}</em>
-            </button>
-          )
-        })}
-      </section>
-
-      <div className="yox-split">
-        <section className="panel pad">
-          <div className="panel-head">
-            <h2>Nə yoxlanılır</h2>
-          </div>
-          <p className="lede">Hər mövzu bir sualdır. Son sənəd kartın rəngini verir.</p>
-          {TOPICS.map((item) => (
-            <div className="step-row" key={item.id}>
-              <span>{item.label}</span>
-              <strong>{item.paper}</strong>
-            </div>
-          ))}
-        </section>
-
-        <section className="panel pad">
-          <div className="panel-head">
-            <h2>Sənədi yaz</h2>
-            <span className="muted">{guide?.label}</span>
-          </div>
-          <div className="form-row wide">
-            <label>Mövzu
-              <Select value={form.topic} onValueChange={(next) => { setForm({ ...form, topic: next }); setTopic(next) }} options={TOPICS.map((item) => ({ value: item.id, label: item.label }))} />
-            </label>
-            {form.topic === "qeydiyyat" && (
-              <label>Hüquqi status
-                <Select value={form.legal} onValueChange={(legal) => setForm({ ...form, legal })} options={[{ value: "aktiv", label: "Aktivdir" }, { value: "legv", label: "Ləğv edilib" }]} />
-              </label>
-            )}
-            <label>Nəticə
-              <input value={form.resultNote} onChange={(event) => setForm({ ...form, resultNote: event.target.value })} placeholder="məs. borc yoxdur" />
-            </label>
-            <label>Sənəd
-              <input value={form.document} onChange={(event) => setForm({ ...form, document: event.target.value })} placeholder="sənədin adı" />
-            </label>
-            <label>Tarix
-              <input type="date" value={form.asOf} onChange={(event) => setForm({ ...form, asOf: event.target.value })} />
-            </label>
-            <button type="button" className="btn" onClick={() => void save()}>Bazaya yaz</button>
-          </div>
-          {error && <p className="form-error">{error}</p>}
-          {note && <p className="lede">{note}</p>}
-        </section>
-      </div>
-
-      <section className="panel pad">
-        <div className="panel-head">
-          <h2>Jurnal</h2>
-          <span className="muted">{shown.length} qeyd</span>
-        </div>
-        <div className="toolbar">
-          <Tabs
-            value={filter}
-            onChange={setFilter}
-            options={[
-              { id: "hamisi", label: "Hamısı" },
-              { id: "movzu", label: "Bu mövzu" },
-              { id: "alindi", label: "Alınıb" },
-              { id: "gozle", label: "Gözləyir" },
-              { id: "diqqet", label: "Əlavə" },
-            ]}
-          />
-        </div>
-        {shown.length === 0 ? (
-          <Empty title="Bu süzgəcə düşən qeyd yoxdur" text="Başqa süzgəc və ya mövzu seçin. Arxiv qeydləri silinmir." />
-        ) : (
-          <div className="table-wrap flat">
-            <table className="yox-table">
-              <thead>
-                <tr>
-                  <th>Tarix</th>
-                  <th>Mövzu</th>
-                  <th>Sənəd</th>
-                  <th>Mənbə</th>
-                  <th>Nəticə</th>
-                </tr>
-              </thead>
-              <tbody>
-                {shown.map((row) => {
-                  const tone = toneOf(row.state)
-                  return (
-                    <tr key={row.id}>
-                      <td>{row.asOf ? dateAZ(dayOf(row.asOf)) : "Tarix yoxdur"}</td>
-                      <td>{topicOf(row.topic)?.label || row.topic}</td>
-                      <td>
-                        <div className="name-cell">
-                          <b>{row.document || "Sənəd yoxdur"}</b>
-                          <span className="muted">{row.id}</span>
-                        </div>
-                      </td>
-                      <td>{row.source || "Mənbə yoxdur"}</td>
-                      <td>
-                        <div className="name-cell">
-                          <span className={`yox-pill ${tone}`}>{STATE_LABEL[row.state] || row.state}</span>
-                          <span className="yox-note">{row.resultNote}</span>
-                        </div>
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </section>
+          {error && <p className="form-error" role="alert">{error}</p>}
+          <div className="checks-modal-actions"><Button disabled={saving} onClick={() => setFormOpen(false)}>Ləğv et</Button><Button className="primary" type="submit" disabled={saving}>{saving ? "Saxlanılır…" : "Qeydi saxla"}</Button></div>
+        </form>
+      </Modal>}
     </div>
   )
+}
+
+function CheckStatus({ row }: { row?: Inquiry }) {
+  return <span className={`checks-status ${row ? toneOf(row.state) : "none"}`}>{row ? STATE_LABEL[row.state] || toneWord(toneOf(row.state)) : "Qeyd yoxdur"}</span>
 }

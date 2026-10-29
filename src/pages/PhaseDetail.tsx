@@ -1,3 +1,4 @@
+import { Panel } from "../components/primitives"
 import { useEffect, useState } from "react"
 import { Link, useParams } from "react-router-dom"
 import { api } from "../api"
@@ -112,9 +113,9 @@ export default function PhaseDetail() {
         </div>
         <span className="muted">{status}</span>
       </header>
-      <section className="panel pad">
+      <Panel className="pad">
         <PhaseTrack projectId={project.id} phases={project.phases} active={phase.name} />
-      </section>
+      </Panel>
 
       {failed && <Empty title="Prosedurlar açılmadı" text="Mərhələ siyahısı bazadan gəlmədi. Səhifəni yeniləyin." />}
       {!failed && phaseRows === null && <p className="muted">Prosedurlar açılır.</p>}
@@ -122,7 +123,7 @@ export default function PhaseDetail() {
         <Empty title="Prosedur yoxdur" text="Bu mərhələ üçün bazada iş sətri yazılmayıb." />
       )}
       {!failed && phaseRows && phaseRows.length > 0 && (
-        <section className="panel pad">
+        <Panel className="pad">
           <h2>{done ? "Görülən prosedurlar" : "Görüləcək işlər"}</h2>
           <div className="mini-list">
             {phaseRows.map((item) => {
@@ -147,11 +148,11 @@ export default function PhaseDetail() {
               )
             })}
           </div>
-        </section>
+        </Panel>
       )}
 
       {hasEvidence && (
-        <section className="panel pad">
+        <Panel className="pad">
           <h2>{done ? "Bu mərhələyə bağlı qeydlər" : "Artıq qeydə alınan həcm"}</h2>
           {lines.length > 0 && (
             <>
@@ -238,7 +239,7 @@ export default function PhaseDetail() {
               </div>
             </>
           )}
-        </section>
+        </Panel>
       )}
     </>
   )

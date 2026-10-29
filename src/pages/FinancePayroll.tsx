@@ -1,3 +1,4 @@
+import { Disclosure, Button, Metric, Panel, SectionHeader, StatGrid, TableContainer, Toolbar } from "../components/primitives"
 import { useState } from "react"
 import { payrollView } from "../domain/financeView"
 import { dateAZ, hit, money, moneyShort } from "../format"
@@ -20,34 +21,34 @@ export default function FinancePayroll() {
   return (
     <>
       <PageHead kicker={t("page.payroll.kicker")} title={t("page.payroll.title")} text={t("page.payroll.text")}>
-        <button type="button" className="btn" onClick={() => state.runPayroll()}><Icon name="plus" /> Cədvəl</button>
+        <Button type="button" onClick={() => state.runPayroll()}><Icon name="plus" /> Cədvəl</Button>
       </PageHead>
-      <section className="statstrip">
-        <article>
+      <StatGrid>
+        <Metric>
           <span>Ştat norması</span>
           <strong>{moneyShort(sheet.staffTotal)}</strong>
           <em>Aylıq</em>
-        </article>
-        <article>
+        </Metric>
+        <Metric>
           <span>Sahədən ödənilib</span>
           <strong>{moneyShort(sheet.paidTotal)}</strong>
           <em>Təsdiqli xərc</em>
-        </article>
-        <article>
+        </Metric>
+        <Metric>
           <span>Açıq cədvəl</span>
           <strong>{moneyShort(sheet.openTotal)}</strong>
           <em>{sheet.openRuns.length ? "Ödəniş gözləyir" : "Yoxdur"}</em>
-        </article>
-      </section>
-      <section className="panel pad">
-        <div className="panel-head"><h2>Norma, ödəniş və açıq cədvəl</h2></div>
+        </Metric>
+      </StatGrid>
+      <Disclosure title="Norma, ödəniş və açıq cədvəl"><Panel className="pad">
+        <SectionHeader><h2>Norma, ödəniş və açıq cədvəl</h2></SectionHeader>
         <Columns rows={[
           { label: "Ştat", value: sheet.staffTotal, tone: "" },
           { label: "Ödənilib", value: sheet.paidTotal, tone: "pine" },
           { label: "Açıq", value: sheet.openTotal, tone: "copper" },
         ]} />
-      </section>
-      <div className="toolbar">
+      </Panel></Disclosure>
+      <Toolbar>
         <Tabs
           value={tab}
           onChange={setTab}
@@ -57,9 +58,9 @@ export default function FinancePayroll() {
             { id: "cedvel", label: "Cədvəl" },
           ]}
         />
-      </div>
+      </Toolbar>
       {tab === "stat" && (
-        <div className="table-wrap">
+        <TableContainer>
           <table>
             <thead>
               <tr>
@@ -81,10 +82,10 @@ export default function FinancePayroll() {
             </tbody>
           </table>
           {staff.length === 0 && <Empty title="Ştat yoxdur" text="Axtarışa uyğun işçi tapılmadı." />}
-        </div>
+        </TableContainer>
       )}
       {tab === "odenis" && (
-        <div className="table-wrap">
+        <TableContainer>
           <table>
             <thead>
               <tr>
@@ -111,13 +112,13 @@ export default function FinancePayroll() {
             </tbody>
           </table>
           {paid.length === 0 && <Empty title="Ödəniş yoxdur" text="Əmək haqqı xərci tapılmadı." />}
-        </div>
+        </TableContainer>
       )}
       {tab === "cedvel" && (
         <div className="stack">
           {runs.map((run) => (
-            <section key={run.id} className="panel pad">
-              <div className="panel-head">
+            <Panel key={run.id} className="pad">
+              <SectionHeader>
                 <h2>{run.id}</h2>
                 <span className="deal-side">
                   <Badge status={run.status} />
@@ -128,9 +129,9 @@ export default function FinancePayroll() {
                     ]} />
                   )}
                 </span>
-              </div>
+              </SectionHeader>
               <p className="muted">{dateAZ(run.date)} · {money(run.total)}</p>
-              <div className="table-wrap">
+              <TableContainer>
                 <table>
                   <thead>
                     <tr>
@@ -149,8 +150,8 @@ export default function FinancePayroll() {
                     ))}
                   </tbody>
                 </table>
-              </div>
-            </section>
+              </TableContainer>
+            </Panel>
           ))}
           {runs.length === 0 && <Empty title="Cədvəl yoxdur" text="Tabeli bağlanmış gündəlikdən cədvəl açılır. Ödənişdən sonra pula düşür." />}
         </div>

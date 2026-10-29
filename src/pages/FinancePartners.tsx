@@ -1,3 +1,4 @@
+import { Disclosure, Metric, Panel, SectionHeader, StatGrid, TableContainer, Toolbar } from "../components/primitives"
 import { useState } from "react"
 import { payablesAging, receivables } from "../domain/financeView"
 import { hit, money, moneyShort } from "../format"
@@ -23,23 +24,23 @@ export default function FinancePartners() {
   return (
     <>
       <PageHead kicker={t("page.partners.kicker")} title={t("page.partners.title")} text={t("page.partners.text")} />
-      <section className="statstrip">
-        <article>
+      <StatGrid>
+        <Metric>
           <span>{tab === "debitor" ? "Bizə borc" : "Bizim borc"}</span>
           <strong>{moneyShort(total)}</strong>
           <em>{rows.length} tərəf</em>
-        </article>
-        <article>
+        </Metric>
+        <Metric>
           <span>Vaxtı keçən</span>
           <strong>{moneyShort(aged)}</strong>
           <em className={aged ? "warn" : ""}>{aged ? "Zəng siyahısı" : "Hamısı cari"}</em>
-        </article>
-      </section>
-      <section className="panel pad">
-        <div className="panel-head"><h2>{tab === "debitor" ? "Debitor köhnəlməsi" : "Kreditor köhnəlməsi"}</h2></div>
+        </Metric>
+      </StatGrid>
+      <Disclosure title={tab === "debitor" ? "Debitor köhnəlməsi" : "Kreditor köhnəlməsi"}><Panel className="pad">
+        <SectionHeader><h2>{tab === "debitor" ? "Debitor köhnəlməsi" : "Kreditor köhnəlməsi"}</h2></SectionHeader>
         <Columns rows={buckets} />
-      </section>
-      <div className="toolbar">
+      </Panel></Disclosure>
+      <Toolbar>
         <Tabs
           value={tab}
           onChange={setTab}
@@ -48,8 +49,8 @@ export default function FinancePartners() {
             { id: "kreditor", label: "Kreditor" },
           ]}
         />
-      </div>
-      <div className="table-wrap">
+      </Toolbar>
+      <TableContainer>
         <table>
           <thead>
             <tr>
@@ -75,7 +76,7 @@ export default function FinancePartners() {
           </tbody>
         </table>
         {rows.length === 0 && <Empty title="Tərəf yoxdur" text="Açıq borc tapılmadı." />}
-      </div>
+      </TableContainer>
     </>
   )
 }

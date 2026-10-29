@@ -1,3 +1,19 @@
+# AFEZ local development
+
+Run `npm run dev` from this directory to start the frontend and API together.
+
+The API port is configured with `PORT` in `backend/.env` (default: `3001`).
+Vite reads the same setting for its `/api` proxy. If another application uses
+that port, choose a free port, for example `PORT=3002`, then restart
+`npm run dev`. A `PORT` environment variable in your terminal overrides the file
+for both servers.
+
+`npm run dev` checks that the API port is free before starting. If AFEZ is
+already running, use that instance or press `Ctrl+C` in its terminal before
+starting again. `npm run start:dev` in `backend` performs the same check.
+The frontend stays on port `5173`; if either development command exits, the
+combined runner stops the other one too.
+
 # React + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.

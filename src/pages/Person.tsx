@@ -1,3 +1,4 @@
+import { Panel } from "../components/primitives"
 import { useEffect, useState } from "react"
 import { Link, useParams } from "react-router-dom"
 import { api } from "../api"
@@ -36,10 +37,10 @@ export default function PersonPage() {
 
   if (!person) {
     return (
-      <section className="panel pad">
+      <Panel className="pad">
         <PageHead kicker="Kadr" title={missing ? "İşçi tapılmadı" : "İşçi"} />
         <Link to="/isciler">İşçilərə qayıt</Link>
-      </section>
+      </Panel>
     )
   }
 

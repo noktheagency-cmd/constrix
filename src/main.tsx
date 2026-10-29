@@ -2,6 +2,7 @@ import { StrictMode } from "react"
 import { createRoot } from "react-dom/client"
 import App from "./App"
 import "./index.css"
+import "./styles/system.css"
 
 try {
   if (localStorage.getItem("afez.theme") === "dark") document.documentElement.dataset.theme = "dark"

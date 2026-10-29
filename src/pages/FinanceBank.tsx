@@ -1,3 +1,4 @@
+import { Button, Disclosure, Input, Metric, Panel, SectionHeader, StatGrid, TableContainer } from "../components/primitives"
 import { useEffect, useState } from "react"
 import { ApiError, api, dec } from "../api"
 import { cashAccounts, moneyMoves } from "../domain/financeView"
@@ -26,20 +27,20 @@ export default function FinanceBank() {
   return (
     <>
       <PageHead kicker={t("page.bank.kicker")} title={t("page.bank.title")} text={t("page.bank.text")} />
-      <section className="statstrip">
+      <StatGrid>
         {banks.map((item) => (
-          <article key={item.id}>
+          <Metric key={item.id}>
             <span>{item.name}</span>
             <strong>{moneyShort(item.balance)}</strong>
             <em>{item.inflow || item.outflow ? `Daxil ${moneyShort(item.inflow)}` : "Hərəkət yoxdur"}</em>
-          </article>
+          </Metric>
         ))}
-      </section>
-      <section className="panel pad">
-        <div className="panel-head"><h2>Bank hərəkəti</h2></div>
+      </StatGrid>
+      <Disclosure title="Bank hərəkəti"><Panel className="pad">
+        <SectionHeader><h2>Bank hərəkəti</h2></SectionHeader>
         <FlowBars rows={flow} />
-      </section>
-      <div className="table-wrap" style={{ marginTop: 14 }}>
+      </Panel></Disclosure>
+      <TableContainer  style={{ marginTop: 14 }}>
         <table>
           <thead>
             <tr>
@@ -66,7 +67,7 @@ export default function FinanceBank() {
           </tbody>
         </table>
         {rows.length === 0 && <Empty title="Çıxarış boşdur" text="Bank hesabına düşən hərəkət yoxdur." />}
-      </div>
+      </TableContainer>
       <BankApplications />
     </>
   )
@@ -141,17 +142,17 @@ function BankApplications() {
   }
 
   return (
-    <section className="panel pad" style={{ marginTop: 14 }}>
+    <Panel className="pad" style={{ marginTop: 14 }}>
       <h2 className="block-title">Bank və sığorta müraciəti</h2>
       <p className="lede">Axın qaralama, təqdim, əlavə sənəd, qiymətləndirmə, təsdiq və ya imtinadan keçir. Tarixçə hər addımda qalır. Canlı bank bağlantısı yoxdur.</p>
       <div className="form-row wide">
         <label>Növ<Select value={form.kind} onValueChange={(kind) => setForm({ ...form, kind })} options={[{ value: "qarant", label: "Qarantiya" }, { value: "kredit", label: "Kredit" }, { value: "faktorinq", label: "Faktorinq" }]} /></label>
         <label>Tərəfdaş<Select value={form.partnerId} onValueChange={(partnerId) => setForm({ ...form, partnerId })} options={[{ value: "", label: "Seçilməyib" }, ...partners.map((item) => ({ value: item.id, label: item.name }))]} /></label>
-        <label>Məbləğ<input value={form.amount} onChange={(event) => setForm({ ...form, amount: event.target.value })} /></label>
-        <label>Məqsəd<input value={form.purpose} onChange={(event) => setForm({ ...form, purpose: event.target.value })} /></label>
-        <label>Əlavə sənəd<input value={form.extra} onChange={(event) => setForm({ ...form, extra: event.target.value })} /></label>
+        <label>Məbləğ<Input value={form.amount} onChange={(event) => setForm({ ...form, amount: event.target.value })} /></label>
+        <label>Məqsəd<Input value={form.purpose} onChange={(event) => setForm({ ...form, purpose: event.target.value })} /></label>
+        <label>Əlavə sənəd<Input value={form.extra} onChange={(event) => setForm({ ...form, extra: event.target.value })} /></label>
         <label>Şirkət razılığı<input type="checkbox" checked={form.consent} onChange={(event) => setForm({ ...form, consent: event.target.checked })} /></label>
-        <button type="button" className="btn" onClick={() => void apply()}>Qaralamanı yaz</button>
+        <Button type="button" onClick={() => void apply()}>Qaralamanı yaz</Button>
       </div>
       {apps.map((row) => (
         <div className="form-row" key={row.id}>
@@ -160,6 +161,6 @@ function BankApplications() {
         </div>
       ))}
       {note && <p className="lede">{note}</p>}
-    </section>
+    </Panel>
   )
 }

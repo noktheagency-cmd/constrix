@@ -1,3 +1,4 @@
+import { Button, Input, Panel } from "./components/primitives"
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { ApiError, api } from "./api"
@@ -161,36 +162,36 @@ export function CompanyOnboard({
       )}
       {step === 1 && (
         <div className="onboard-fields">
-          <label>Şirkətin adı<input value={form.name} onChange={(event) => set("name", event.target.value)} /></label>
-          <label>VÖEN<input value={form.voen} onChange={(event) => set("voen", event.target.value)} /></label>
-          <label>Telefon<input value={form.phone} onChange={(event) => set("phone", event.target.value)} /></label>
-          <label>E-poçt<input type="email" value={form.email} onChange={(event) => set("email", event.target.value)} /></label>
-          <label>Məsul şəxs<input value={form.director} onChange={(event) => set("director", event.target.value)} /></label>
+          <label>Şirkətin adı<Input value={form.name} onChange={(event) => set("name", event.target.value)} /></label>
+          <label>VÖEN<Input value={form.voen} onChange={(event) => set("voen", event.target.value)} /></label>
+          <label>Telefon<Input value={form.phone} onChange={(event) => set("phone", event.target.value)} /></label>
+          <label>E-poçt<Input type="email" value={form.email} onChange={(event) => set("email", event.target.value)} /></label>
+          <label>Məsul şəxs<Input value={form.director} onChange={(event) => set("director", event.target.value)} /></label>
         </div>
       )}
       {step === 2 && (
         <div className="onboard-fields">
-          <label>Hüquqi ünvan<input value={form.legalAddress} onChange={(event) => set("legalAddress", event.target.value)} /></label>
-          <label>Faktiki ünvan<input value={form.actualAddress} onChange={(event) => set("actualAddress", event.target.value)} /></label>
-          <label>Ərazi<input value={form.regions} onChange={(event) => set("regions", event.target.value)} placeholder="şəhər və ya region" /></label>
+          <label>Hüquqi ünvan<Input value={form.legalAddress} onChange={(event) => set("legalAddress", event.target.value)} /></label>
+          <label>Faktiki ünvan<Input value={form.actualAddress} onChange={(event) => set("actualAddress", event.target.value)} /></label>
+          <label>Ərazi<Input value={form.regions} onChange={(event) => set("regions", event.target.value)} placeholder="şəhər və ya region" /></label>
         </div>
       )}
       {step === 3 && (
         <div className="onboard-fields">
           <p className="lede">İstehsalçı, montaj və logistika üçün. Boş buraxıla bilər.</p>
-          <label>İstehsal və ya xidmət imkanı<input value={form.capacity} onChange={(event) => set("capacity", event.target.value)} /></label>
-          <label>Anbar<input value={form.warehouse} onChange={(event) => set("warehouse", event.target.value)} /></label>
-          <label>Zəmanət<input value={form.warranty} onChange={(event) => set("warranty", event.target.value)} /></label>
+          <label>İstehsal və ya xidmət imkanı<Input value={form.capacity} onChange={(event) => set("capacity", event.target.value)} /></label>
+          <label>Anbar<Input value={form.warehouse} onChange={(event) => set("warehouse", event.target.value)} /></label>
+          <label>Zəmanət<Input value={form.warranty} onChange={(event) => set("warranty", event.target.value)} /></label>
         </div>
       )}
       {error && <p className="login-error">{error}</p>}
       <div className="onboard-actions">
-        {step > 0 && <button type="button" className="btn ghost" disabled={pending} onClick={() => setStep((value) => value - 1)}>Geri</button>}
-        <button type="button" className="btn ghost" disabled={pending} onClick={onSkip}>Sonra</button>
+        {step > 0 && <Button type="button" className="ghost" disabled={pending} onClick={() => setStep((value) => value - 1)}>Geri</Button>}
+        <Button type="button" className="ghost" disabled={pending} onClick={onSkip}>Sonra</Button>
         {step < STEPS.length - 1 ? (
-          <button type="button" className="btn" disabled={pending} onClick={() => setStep((value) => value + 1)}>Davam</button>
+          <Button type="button"  disabled={pending} onClick={() => setStep((value) => value + 1)}>Davam</Button>
         ) : (
-          <button type="button" className="btn" disabled={pending} onClick={() => void finish()}>Şirkəti yaz</button>
+          <Button type="button"  disabled={pending} onClick={() => void finish()}>Şirkəti yaz</Button>
         )}
       </div>
     </div>
@@ -201,7 +202,7 @@ export function CompanyCreatePage() {
   useTitle("Başqa şirkət")
   const navigate = useNavigate()
   return (
-    <section className="panel pad firm-create">
+    <Panel className="pad firm-create">
       <div className="page-head">
         <div>
           <p className="eyebrow">Şirkət</p>
@@ -210,6 +211,6 @@ export function CompanyCreatePage() {
       </div>
       <p className="lede">Yeni şirkət bu hesaba bağlanır və platforma onun məlumatına keçir.</p>
       <CompanyOnboard persist="api" onDone={() => navigate("/sirket")} onSkip={() => navigate("/sirket")} />
-    </section>
+    </Panel>
   )
 }

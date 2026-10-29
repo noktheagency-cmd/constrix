@@ -1,8 +1,11 @@
+import { Checkbox } from "../components/Checkbox"
+import { Button, Disclosure, Input, Metric, Panel, SearchInput, SectionHeader, StatGrid, TableContainer, Textarea, Toolbar } from "../components/primitives"
+import { usePageTransition } from "../components/PageTransition"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { Link } from "react-router-dom"
 import { dateAZ, money as moneyAZ, moneyShort, num } from "../format"
 import { Icon } from "../icons"
-import { Badge, Confirm, Empty, Field, Meter, Modal, PageHead, RowMenu, Select, Tabs, useTitle } from "../ui"
+import { Confirm, Empty, Field, Meter, Modal, PageHead, RowMenu, Select, Tabs, useTitle } from "../ui"
 import {
   APPROVALS,
   CATEGORIES,
@@ -209,7 +212,7 @@ export function CabinetPage() {
             <span style={{ width: `${ratio}%` }} />
           </div>
           <small>{filled} / {PASSPORT_KEYS.length} xana · {ratio}%</small>
-          <button type="button" className="btn" disabled={saving} onClick={() => void save()}>{saving ? "Saxlanır" : "Saxla"}</button>
+          <Button type="button" disabled={saving} onClick={() => void save()}>{saving ? "Saxlanır" : "Saxla"}</Button>
         </div>
       </header>
 
@@ -228,39 +231,39 @@ export function CabinetPage() {
           <section className="cabinet-sheet">
             <h2>Hüquqi şəxs</h2>
             <div className="cabinet-fields">
-              <label>Hüquqi ad<input value={cabinet.name} onChange={(event) => setCabinet("name", event.target.value)} /></label>
-              <label>VÖEN<input value={cabinet.voen} onChange={(event) => setCabinet("voen", event.target.value)} inputMode="numeric" /></label>
-              <label className="wide">Hüquqi ünvan<input value={cabinet.legalAddress} onChange={(event) => setCabinet("legalAddress", event.target.value)} /></label>
-              <label className="wide">Faktiki ünvan<input value={cabinet.actualAddress} onChange={(event) => setCabinet("actualAddress", event.target.value)} /></label>
+              <label>Hüquqi ad<Input value={cabinet.name} onChange={(event) => setCabinet("name", event.target.value)} /></label>
+              <label>VÖEN<Input value={cabinet.voen} onChange={(event) => setCabinet("voen", event.target.value)} inputMode="numeric" /></label>
+              <label className="wide">Hüquqi ünvan<Input value={cabinet.legalAddress} onChange={(event) => setCabinet("legalAddress", event.target.value)} /></label>
+              <label className="wide">Faktiki ünvan<Input value={cabinet.actualAddress} onChange={(event) => setCabinet("actualAddress", event.target.value)} /></label>
             </div>
           </section>
           <section className="cabinet-sheet">
             <h2>Əlaqə</h2>
             <div className="cabinet-fields">
-              <label>Direktor<input value={cabinet.director} onChange={(event) => setCabinet("director", event.target.value)} /></label>
-              <label>Telefon<input value={cabinet.phone} onChange={(event) => setCabinet("phone", event.target.value)} inputMode="tel" /></label>
-              <label className="wide">E-poçt<input value={cabinet.email} onChange={(event) => setCabinet("email", event.target.value)} inputMode="email" /></label>
+              <label>Direktor<Input value={cabinet.director} onChange={(event) => setCabinet("director", event.target.value)} /></label>
+              <label>Telefon<Input value={cabinet.phone} onChange={(event) => setCabinet("phone", event.target.value)} inputMode="tel" /></label>
+              <label className="wide">E-poçt<Input value={cabinet.email} onChange={(event) => setCabinet("email", event.target.value)} inputMode="email" /></label>
             </div>
           </section>
           <section className="cabinet-sheet">
             <h2>Fəaliyyət</h2>
             <div className="cabinet-fields">
-              <label>İstiqamət<input value={cabinet.activity} onChange={(event) => setCabinet("activity", event.target.value)} /></label>
-              <label>İşçi sayı<input value={cabinet.headcount} onChange={(event) => setCabinet("headcount", event.target.value)} inputMode="numeric" /></label>
-              <label className="wide">Lisenziya və icazə<textarea value={cabinet.permits} onChange={(event) => setCabinet("permits", event.target.value)} placeholder="sənədin adı" rows={2} /></label>
-              <label className="wide">Texnika<textarea value={cabinet.fleet} onChange={(event) => setCabinet("fleet", event.target.value)} rows={2} /></label>
-              <label className="wide">Əvvəlki işlər<textarea value={cabinet.pastWork} onChange={(event) => setCabinet("pastWork", event.target.value)} rows={3} /></label>
+              <label>İstiqamət<Input value={cabinet.activity} onChange={(event) => setCabinet("activity", event.target.value)} /></label>
+              <label>İşçi sayı<Input value={cabinet.headcount} onChange={(event) => setCabinet("headcount", event.target.value)} inputMode="numeric" /></label>
+              <label className="wide">Lisenziya və icazə<Textarea value={cabinet.permits} onChange={(event) => setCabinet("permits", event.target.value)} placeholder="sənədin adı" rows={2} /></label>
+              <label className="wide">Texnika<Textarea value={cabinet.fleet} onChange={(event) => setCabinet("fleet", event.target.value)} rows={2} /></label>
+              <label className="wide">Əvvəlki işlər<Textarea value={cabinet.pastWork} onChange={(event) => setCabinet("pastWork", event.target.value)} rows={3} /></label>
             </div>
           </section>
           <section className="cabinet-sheet">
             <h2>Uçot</h2>
             <div className="cabinet-fields">
-              <label>Dövriyyə, AZN<input value={cabinet.turnover} onChange={(event) => setCabinet("turnover", event.target.value)} /></label>
-              <label className="wide">Bank hesabı<textarea value={cabinet.bankAccount} onChange={(event) => setCabinet("bankAccount", event.target.value)} rows={2} /></label>
+              <label>Dövriyyə, AZN<Input value={cabinet.turnover} onChange={(event) => setCabinet("turnover", event.target.value)} /></label>
+              <label className="wide">Bank hesabı<Textarea value={cabinet.bankAccount} onChange={(event) => setCabinet("bankAccount", event.target.value)} rows={2} /></label>
             </div>
           </section>
           <div className="cabinet-save">
-            <button type="button" className="btn" disabled={saving} onClick={() => void save()}>{saving ? "Saxlanır" : "Kabineti saxla"}</button>
+            <Button type="button" disabled={saving} onClick={() => void save()}>{saving ? "Saxlanır" : "Kabineti saxla"}</Button>
           </div>
         </div>
 
@@ -269,9 +272,9 @@ export function CabinetPage() {
             <h2>Səlahiyyət</h2>
             <p className="cabinet-seat-lead">{seats.length} nəfər · {openRoles} vəzifə doludur</p>
             <div className="seat-add">
-              <label>Əməkdaş<input value={seat.name} onChange={(event) => setSeat({ ...seat, name: event.target.value })} /></label>
+              <label>Əməkdaş<Input value={seat.name} onChange={(event) => setSeat({ ...seat, name: event.target.value })} /></label>
               <label>Vəzifə<Select value={seat.role} onValueChange={(role) => setSeat({ ...seat, role })} options={SEAT_ROLES.map((item) => ({ value: item, label: item }))} /></label>
-              <button type="button" className="btn" disabled={!seat.name.trim() || seatBusy} onClick={() => void addSeat()}>{seatBusy ? "Yazılır" : "Təyin et"}</button>
+              <Button type="button" disabled={!seat.name.trim() || seatBusy} onClick={() => void addSeat()}>{seatBusy ? "Yazılır" : "Təyin et"}</Button>
             </div>
             <ul className="seat-list">
               {SEAT_ROLES.map((role) => {
@@ -644,6 +647,12 @@ type TenderDesk = {
 export function ETenderPage() {
   useTitle("e-Tender")
   const { tender, boq, cabinet } = useWorkspace()
+  const [detail, setDetail] = useState(false)
+  const [view, setView] = useState("info")
+  const [query, setQuery] = useState("")
+  const [status, setStatus] = useState("all")
+  const pageRef = useRef<HTMLDivElement>(null)
+  usePageTransition(pageRef, detail ? "detail" : "list", true)
   const [cases, setCases] = useState(TENDER_CASES)
   const [active, setActive] = useState(TENDER_CASES[0].key)
   const [note, setNote] = useState("")
@@ -671,13 +680,13 @@ export function ETenderPage() {
   })
   const ready = live.approvals.length > 0 && live.approvals.every((item) => item.status === "tesdiq")
   const board = cases.map((item) => (item.key === active ? live : item))
-  const openRows = board.filter((item) => !item.confirmed && (hoursUntil(item.deadline) ?? -1) >= 0)
-  const upcoming = board
-    .map((item) => ({ item, hours: hoursUntil(item.deadline) }))
-    .filter((row): row is { item: TenderCase; hours: number } => row.hours != null && row.hours >= 0)
-    .sort((a, b) => a.hours - b.hours)
-  const nearest = upcoming[0]
-  const packed = board.filter((item) => item.confirmed).length
+  const shownBoard = board.filter((item) => {
+            const expired = (hoursUntil(item.deadline) ?? -1) < 0
+            if(status === "ready" && !item.confirmed) return false
+            if(status === "expired" && !expired) return false
+            if(status === "open" && (expired || item.confirmed)) return false
+            return !query.trim() || [item.number,item.subject,item.buyer].join(" ").toLocaleLowerCase("az").includes(query.trim().toLocaleLowerCase("az"))
+          })
   const stage = stageOf(live)
   const signed = live.approvals.filter((item) => item.status === "tesdiq").length
   const fitCount = live.checks.filter((item) => item.fit === "uygun").length
@@ -689,7 +698,7 @@ export function ETenderPage() {
     math.mismatch ? "Predmetlə təsnifat mətni üst-üstə düşmür" : "",
     missingPapers ? `${missingPapers} sənəd çatışır` : "",
     live.approvals.some((item) => item.status === "geri") ? "Təsdiq geri qaytarılıb" : "",
-  ].filter(Boolean)
+  ].filter(Boolean).filter((item) => item !== stage.word)
 
   useEffect(() => {
     applyCase(TENDER_CASES[0])
@@ -724,7 +733,10 @@ export function ETenderPage() {
   }
 
   function choose(key: string) {
+    setDetail(true)
+    setView("info")
     if (key === active) return
+    setDesk(null)
     const next = cases.find((item) => item.key === key)
     if (!next) return
     if (tender.subject || tender.link || tender.deadline || tender.buyer) setCases((prev) => prev.map((item) => (item.key === active ? compose(item, tender, number) : item)))
@@ -863,11 +875,13 @@ export function ETenderPage() {
   }
 
   return (
-    <div className="yoxlama etender">
-      <PageHead kicker="Dövlət satınalması" title="e-Tender" text="Açıq elan, təminat və təsdiq bir yerdədir. Kartı seç, şərti aşağıda düzəlt.">
-        <button
+    <div className="etender-workspace" ref={pageRef}>
+      {detail && <Button className="ghost tender-back" onClick={() => setDetail(false)}><Icon name="chevronLeft" />Elanlara qayıt</Button>}
+      <PageHead title="e-Tender" text={detail ? "Tender paketinin hazırlanması və yoxlanması." : "Elanları seçin və tender paketini hazırlayın."}>
+        {detail && <>
+        <Button
           type="button"
-          className="btn ghost"
+          className="ghost"
           onClick={() => {
             const lines = [
               `CONSTRIX tender paketi · ${live.number || number || "—"}`,
@@ -898,92 +912,38 @@ export function ETenderPage() {
           }}
         >
           Paket siyahısı
-        </button>
-        <button type="button" className="btn ghost" onClick={() => void refresh()}>Müddəti yoxla</button>
+        </Button>
+        <Button type="button" className="ghost" onClick={() => void refresh()}>Müddəti yoxla</Button>
         <label className="btn ghost small boq-upload">
           {reading ? "Oxunur" : "Sənədi oxu"}
           <input type="file" accept=".pdf,.docx,.txt" disabled={reading} onChange={(event) => { const file = event.target.files?.[0]; event.currentTarget.value = ""; if (file) void readPaper(file) }} />
         </label>
-        <button type="button" className="btn" onClick={() => void save({ opened: true })}>Bazaya yaz</button>
+        <Button type="button" onClick={() => void save({ opened: true })}>Bazaya yaz</Button>
+        </>}
       </PageHead>
       {error && <p className="form-error">{error}</p>}
       {note && <p className="lede">{note}</p>}
 
-      <div className="statstrip">
-        <article>
-          <span>Elan</span>
-          <strong>{board.length}</strong>
-          <em>{openRows.length} açıqdır</em>
-        </article>
-        <article>
-          <span>Ən yaxın müddət</span>
-          <strong>{nearest ? dueWord(nearest.item.deadline) : "—"}</strong>
-          <em className={nearest && nearest.hours <= 72 ? "warn" : undefined}>{nearest ? nearest.item.number : "Açıq müddət yoxdur"}</em>
-        </article>
-        <article>
-          <span>Açıq məbləğ</span>
-          <strong>{moneyShort(openRows.reduce((sum, item) => sum + (Number(item.price) || 0), 0))}</strong>
-          <em>Ehtimal qiymət</em>
-        </article>
-        <article>
-          <span>Hazır paket</span>
-          <strong>{packed}</strong>
-          <em>{board.length} elandan</em>
-        </article>
-      </div>
+      {!detail && <>
+        <Toolbar className="tender-list-toolbar"><SearchInput aria-label="Tender axtar" value={query} placeholder="Elan, alıcı və ya nömrə axtar" onChange={(event) => setQuery(event.target.value)} /><Select ariaLabel="Tender vəziyyəti" value={status} onValueChange={setStatus} options={[{value:"all",label:"Bütün elanlar"},{value:"open",label:"Açıq elanlar"},{value:"ready",label:"Hazır paket"},{value:"expired",label:"Müddət keçib"}]} /></Toolbar>
+        <TableContainer className="tender-library"><table><thead><tr><th>Elan</th><th>Alıcı</th><th>Son tarix</th><th className="num">Ehtimal qiymət</th><th>Vəziyyət</th><th>Aç</th></tr></thead><tbody>
+          {shownBoard.map((item) => { const state = stageOf(item); return <tr key={item.key} tabIndex={0} onClick={() => choose(item.key)} onKeyDown={(event) => {if(event.key === "Enter" || event.key === " "){event.preventDefault();choose(item.key)}}}>
+            <td><span className="tender-number">{item.number}</span><strong>{item.subject}</strong></td><td>{item.buyer}</td><td>{item.deadline ? clock(item.deadline) : "—"}<span className="tender-due">{dueWord(item.deadline)}</span></td><td className="num">{moneyShort(Number(item.price) || 0)}</td><td><span className={pillClass(state.tone)}>{state.word}</span></td><td><Icon name="chevron" /></td>
+          </tr>})}
+        </tbody></table></TableContainer>
+        {shownBoard.length === 0 && <Empty title="Elan tapılmadı" text="Axtarışı və ya vəziyyət filtrini dəyişin." />}
+        <p className="tender-list-note">{shownBoard.length} elan · Elanın sətrinə klikləyərək məlumatları və sənəd paketini açın.</p>
+      </>}
+      {detail && <>
+        <Panel className="tender-detail-summary"><div><span>{live.number}{live.place ? " · " + live.place : ""}</span><h2>{live.subject || "Predmet yazılmayıb"}</h2><p>{live.buyer || "Alıcı yazılmayıb"}</p></div><div><span className={pillClass(stage.tone)}>{stage.word}</span><strong>{moneyShort(Number(live.price) || 0)}</strong><span>{live.deadline ? clock(live.deadline) : "Son tarix yazılmayıb"}</span></div></Panel>
+        {alertBits.length > 0 && <p className="tender-alert" role="status">{alertBits.join(" · ")}</p>}
+        <Tabs value={view} onChange={setView} options={[{id:"info",label:"Məlumatlar"},{id:"docs",label:"Sənədlər"},{id:"checks",label:"Yoxlama və təsdiq"},{id:"assistant",label:"Köməkçi"}]} />
 
-      <section className={`yox-now ${stage.tone === "clear" ? "clear" : stage.tone === "flag" ? "flag" : ""}`}>
-        <div className="yox-now-top">
-          <div className="yox-mark" aria-hidden="true"><Icon name="stamp" /></div>
-          <div>
-            <p>{live.number}{math.id ? ` · portal ${math.id}` : ""}{live.place ? ` · ${live.place}` : ""}</p>
-            <h2>{live.subject || "Predmet yazılmayıb"}</h2>
-            <span>{live.buyer || "Alıcı yazılmayıb"} · {live.classCode} {live.classText}</span>
-          </div>
-          <div className="yox-score">
-            <strong>{moneyShort(Number(live.price) || 0)}</strong>
-            <em>ehtimal qiymət</em>
-          </div>
-        </div>
-        <div className="yox-meters">
-          <article><span>İştirak təminatı</span><strong>{money(math.bid)} AZN</strong></article>
-          <article><span>İcra təminatı</span><strong>{money(math.perform)} AZN · {math.performRate}%</strong></article>
-          <article><span>Avans təminatı</span><strong>{money(math.advance)} AZN</strong></article>
-          <article><span>Son tarix</span><strong>{live.deadline ? clock(live.deadline) : "Yazılmayıb"}</strong></article>
-        </div>
-        {live.lots.length > 0 && (
-          <div className="etender-lots">
-            {live.lots.map((lot) => (
-              <div key={lot.name}><span>{lot.name}</span><strong>{lot.qty}</strong></div>
-            ))}
-          </div>
-        )}
-        <p className={stage.tone === "clear" ? "yox-ok" : "yox-alert"}>{alertBits.join(" · ") || "Şərt yazılıb. Müddət hələ uzaqdır."}</p>
-      </section>
-
-      <section className="etender-cards" aria-label="Elanlar">
-        {board.map((item) => {
-          const itemStage = stageOf(item)
-          return (
-            <button type="button" key={item.key} className={`yox-topic ${itemStage.tone}${item.key === active ? " on" : ""}`} onClick={() => choose(item.key)} aria-pressed={item.key === active}>
-              <div className="yox-topic-top">
-                <b>{item.number}</b>
-                <span className={pillClass(itemStage.tone)}>{itemStage.word}</span>
-              </div>
-              <strong>{item.subject}</strong>
-              <span>{item.buyer}</span>
-              <em>{moneyShort(Number(item.price) || 0)} · {dueWord(item.deadline)}</em>
-            </button>
-          )
-        })}
-      </section>
-
-      <div className="yox-split">
-        <section className="panel pad">
-          <div className="panel-head">
+        {view === "docs" && (<Panel className="pad">
+          <SectionHeader>
             <h2>Sənəd qovluğu</h2>
             <span className="muted">{missingPapers ? `${missingPapers} çatışır` : "Əsas sənədlər yazılıb"}</span>
-          </div>
+          </SectionHeader>
           {([
             ["Texniki tapşırıq", live.task, "task", "akt"],
             ["Müqavilə layihəsi", live.contractDraft, "contractDraft", "müqavilə"],
@@ -994,24 +954,28 @@ export function ETenderPage() {
             return (
               <div className="step-row" key={label}>
                 <span>{label}</span>
-                {value ? <strong>{value}</strong> : hit ? <button type="button" className="btn small" onClick={() => edit({ [key]: hit.name })}>Qovluğa yaz</button> : <strong>Çatışmır</strong>}
+                {value ? <strong>{value}</strong> : hit ? <Button type="button" className="small" onClick={() => edit({ [key]: hit.name })}>Qovluğa yaz</Button> : <strong>Çatışmır</strong>}
               </div>
             )
           })}
           <div className="step-row"><span>Şirkət kartı</span><strong>{companyLine || "Kabinet boşdur"}</strong></div>
           <div className="step-row"><span>BOQ</span><strong><Link to="/boq">{boq.lines.length ? `${boq.lines.length} sətir` : boq.sheets.filter(Boolean).join(", ") || "Aç"}</Link></strong></div>
-        </section>
+        <Disclosure title="Sənəd adlarını düzəlt"><div className="form-row wide">          <label>Texniki tapşırıq<Input value={live.task} onChange={(event) => edit({ task: event.target.value })} /></label>
+          <label>Müqavilə layihəsi<Input value={live.contractDraft} onChange={(event) => edit({ contractDraft: event.target.value })} /></label>
+          <label>İxtisas sənədi<Input value={live.qualification} onChange={(event) => edit({ qualification: event.target.value })} /></label>
+          <label>Oxşar iş sübutu<Input value={live.similar} onChange={(event) => edit({ similar: event.target.value })} /></label>
+</div></Disclosure></Panel>)}
 
-        <section className="panel pad">
-          <div className="panel-head">
+        {view === "checks" && (<Panel className="pad">
+          <SectionHeader>
             <h2>Təsdiq zənciri</h2>
             <span className="muted">{signed}/{live.approvals.length || 4}</span>
-          </div>
+          </SectionHeader>
           <Meter value={live.approvals.length ? (signed / live.approvals.length) * 100 : 0} tone="pine" />
           {live.approvals.map((item) => (
             <div className="check-row" key={item.role}>
               <span>{item.role}</span>
-              <Select compact value={item.status} onValueChange={(status) => edit({ confirmed: false, approvals: live.approvals.map((row) => row.role === item.role ? { ...row, status: status as Approval } : row) })} options={TENDER_APPROVAL} />
+              <Select compact ariaLabel={item.role + " təsdiqi"} value={item.status} onValueChange={(status) => edit({ confirmed: false, approvals: live.approvals.map((row) => row.role === item.role ? { ...row, status: status as Approval } : row) })} options={TENDER_APPROVAL} />
             </div>
           ))}
           <button type="button" className="etender-pack" onClick={() => void confirm()}>
@@ -1019,35 +983,34 @@ export function ETenderPage() {
             <span>Təsdiqlə və paket hazırla</span>
           </button>
           {live.confirmed && <p className="lede">Paket təsdiqlənib. Göndəriş portal sessiyası bağlanana qədər növbədə qalır.</p>}
-        </section>
-      </div>
+        </Panel>)}
 
-      <section className="panel pad">
-        <div className="panel-head">
+      {view === "checks" && (<Panel className="pad">
+        <SectionHeader>
           <h2>Sənəd yoxlaması</h2>
           <span className="muted">{live.checks.length ? `${fitCount}/${live.checks.length} uyğundur` : "Siyahı boşdur"}</span>
-        </div>
-        {live.checks.length === 0 && <button type="button" className="btn" onClick={() => edit({ opened: true, confirmed: false, checks: CHECKS.map((name) => ({ name, fit: "catismir" as Fit })), approvals: APPROVALS.map((role) => ({ role, status: "gozleyir" as Approval })) })}>Yoxlama siyahısını aç</button>}
+        </SectionHeader>
+        {live.checks.length === 0 && <Button type="button" onClick={() => edit({ opened: true, confirmed: false, checks: CHECKS.map((name) => ({ name, fit: "catismir" as Fit })), approvals: APPROVALS.map((role) => ({ role, status: "gozleyir" as Approval })) })}>Yoxlama siyahısını aç</Button>}
         <div className="etender-checks">
           {orderedChecks.map((item) => (
             <div className="check-row" key={item.name}>
               <span>{item.name}</span>
-              <Select compact value={item.fit} onValueChange={(fit) => edit({ checks: live.checks.map((row) => row.name === item.name ? { ...row, fit: fit as Fit } : row) })} options={TENDER_FIT} />
+              <Select compact ariaLabel={item.name + " nəticəsi"} value={item.fit} onValueChange={(fit) => edit({ checks: live.checks.map((row) => row.name === item.name ? { ...row, fit: fit as Fit } : row) })} options={TENDER_FIT} />
             </div>
           ))}
         </div>
-      </section>
+      </Panel>)}
 
-      <section className="panel pad">
-        <div className="panel-head">
+      {view === "assistant" && (<Panel className="pad">
+        <SectionHeader>
           <h2>Tender köməkçisi</h2>
           <span className="muted">etender.gov.az bağlıdır. Oxuma yüklənmiş sənəddən gedir.</span>
-        </div>
+        </SectionHeader>
         <label className="wide">Tender mətni
-          <textarea value={paste} onChange={(event) => setPaste(event.target.value)} rows={4} placeholder="PDF-dən mətn çıxmasa, şərti bura yapışdırın" />
+          <Textarea value={paste} onChange={(event) => setPaste(event.target.value)} rows={4} placeholder="PDF-dən mətn çıxmasa, şərti bura yapışdırın" />
         </label>
         <div className="form-actions">
-          <button type="button" className="btn" disabled={reading || paste.trim().length < 20} onClick={() => void sendBrief(paste)}>Mətni oxu</button>
+          <Button type="button" disabled={reading || paste.trim().length < 20} onClick={() => void sendBrief(paste)}>Mətni oxu</Button>
         </div>
         {desk?.brief && (
           <>
@@ -1068,38 +1031,35 @@ export function ETenderPage() {
         {desk?.estimate && <div className="step-row"><span>Smeta təklifi</span><strong>{desk.estimate.total == null ? desk.estimate.note : `${money(desk.estimate.total)} AZN. ${desk.estimate.note}`}</strong></div>}
         {desk && [...desk.alerts, ...desk.certs].map((item) => <div className="step-row" key={item}><span>Bildiriş</span><strong>{item}</strong></div>)}
         {desk?.letter && <pre className="lede">{desk.letter}</pre>}
-      </section>
+      </Panel>)}
 
-      <section className="panel pad">
-        <div className="panel-head">
-          <h2>Şərti düzəlt</h2>
+      {view === "info" && (<Panel className="pad">
+        <SectionHeader>
+          <h2>Elan məlumatları</h2>
           <span className="muted">{live.number}</span>
-        </div>
+        </SectionHeader>
         <div className="form-row wide">
-          <label>etender.gov.az linki<input value={live.link} onChange={(event) => edit({ link: event.target.value, opened: false, confirmed: false })} placeholder="https://etender.gov.az/main/competition/detail/..." /></label>
-          <label>Elan nömrəsi<input value={live.number} onChange={(event) => setNumber(event.target.value)} /></label>
-          <label>Alıcı<input value={live.buyer} onChange={(event) => edit({ buyer: event.target.value })} /></label>
-          <label>Predmet<input value={live.subject} onChange={(event) => edit({ subject: event.target.value })} /></label>
-          <label>Təsnifat kodu<input value={live.classCode} onChange={(event) => edit({ classCode: event.target.value })} /></label>
-          <label>Təsnifat mətni<input value={live.classText} onChange={(event) => edit({ classText: event.target.value })} /></label>
+          <label>etender.gov.az linki<Input value={live.link} onChange={(event) => edit({ link: event.target.value, opened: false, confirmed: false })} placeholder="https://etender.gov.az/main/competition/detail/..." /></label>
+          <label>Elan nömrəsi<Input value={live.number} onChange={(event) => setNumber(event.target.value)} /></label>
+          <label>Alıcı<Input value={live.buyer} onChange={(event) => edit({ buyer: event.target.value })} /></label>
+          <label>Predmet<Input value={live.subject} onChange={(event) => edit({ subject: event.target.value })} /></label>
+          <label>Təsnifat kodu<Input value={live.classCode} onChange={(event) => edit({ classCode: event.target.value })} /></label>
+          <label>Təsnifat mətni<Input value={live.classText} onChange={(event) => edit({ classText: event.target.value })} /></label>
           <label>Son tarix<DateTimeField value={live.deadline} onChange={(deadline) => edit({ deadline })} ariaLabel="Son tarix" /></label>
-          <label>Ehtimal qiymət, AZN<input value={live.price} onChange={(event) => edit({ price: event.target.value })} inputMode="decimal" /></label>
+          <label>Ehtimal qiymət, AZN<Input value={live.price} onChange={(event) => edit({ price: event.target.value })} inputMode="decimal" /></label>
+        </div>
+        <Disclosure title="Təminat və müddət parametrləri"><dl className="tender-bonds"><div><dt>İştirak təminatı</dt><dd>{money(math.bid)} AZN</dd></div><div><dt>İcra təminatı · {math.performRate}%</dt><dd>{money(math.perform)} AZN</dd></div><div><dt>Avans təminatı</dt><dd>{money(math.advance)} AZN</dd></div></dl><div className="form-row wide">
           <label>İştirak təminatı<Select value={live.bidMode} onValueChange={(bidMode) => edit({ bidMode: bidMode as "fixed" | "percent" })} options={[{ value: "fixed", label: "Sabit məbləğ" }, { value: "percent", label: "Faiz" }]} /></label>
-          <label>{live.bidMode === "fixed" ? "İştirak, AZN" : "İştirak, %"}<input value={live.bidValue} onChange={(event) => edit({ bidValue: event.target.value })} /></label>
+          <label>{live.bidMode === "fixed" ? "İştirak, AZN" : "İştirak, %"}<Input value={live.bidValue} onChange={(event) => edit({ bidValue: event.target.value })} /></label>
           <label>Mikro və ya kiçik<Select value={live.sme ? "beli" : "xeyr"} onValueChange={(value) => edit({ sme: value === "beli" })} options={[{ value: "xeyr", label: "Xeyr, icra 10%" }, { value: "beli", label: "Bəli, icra 5%" }]} /></label>
-          <label>İcra faizinə güzəşt<input value={live.discount} onChange={(event) => edit({ discount: event.target.value })} placeholder="məs. 4" /></label>
-          <label>Avans təminatı, %<input value={live.advance} onChange={(event) => edit({ advance: event.target.value })} /></label>
-          <label>Texniki tapşırıq<input value={live.task} onChange={(event) => edit({ task: event.target.value })} /></label>
-          <label>Müqavilə layihəsi<input value={live.contractDraft} onChange={(event) => edit({ contractDraft: event.target.value })} /></label>
-          <label>İxtisas sənədi<input value={live.qualification} onChange={(event) => edit({ qualification: event.target.value })} /></label>
-          <label>Oxşar iş sübutu<input value={live.similar} onChange={(event) => edit({ similar: event.target.value })} /></label>
-          <label>İştirak təminatı, gün<input value={live.bondDays} onChange={(event) => edit({ bondDays: event.target.value })} /></label>
-          <label>İcra təminatı, gün<input value={live.performDays} onChange={(event) => edit({ performDays: event.target.value })} /></label>
+          <label>İcra faizinə güzəşt<Input value={live.discount} onChange={(event) => edit({ discount: event.target.value })} placeholder="məs. 4" /></label>
+          <label>Avans təminatı, %<Input value={live.advance} onChange={(event) => edit({ advance: event.target.value })} /></label>
+          <label>İştirak təminatı, gün<Input value={live.bondDays} onChange={(event) => edit({ bondDays: event.target.value })} /></label>
+          <label>İcra təminatı, gün<Input value={live.performDays} onChange={(event) => edit({ performDays: event.target.value })} /></label>
         </div>
-        <div className="form-actions">
-          <button type="button" className="btn" onClick={() => void confirm()}>Təsdiq</button>
-        </div>
-      </section>
+</Disclosure>
+      {live.lots.length > 0 && <Disclosure title="Elanın iş həcmləri"><dl className="tender-bonds">{live.lots.map((lot) => <div key={lot.name}><dt>{lot.name}</dt><dd>{lot.qty}</dd></div>)}</dl></Disclosure>}</Panel>)}
+      </>}
     </div>
   )
 }
@@ -1192,11 +1152,11 @@ function CostBlock({
 }) {
   const sum = rows.reduce((total, row) => total + (Number(row.amount) || 0), 0)
   return (
-    <section className="panel pad">
-      <div className="panel-head">
+    <Panel className="pad">
+      <SectionHeader>
         <h2>{title}</h2>
         <strong>{money(sum)} AZN</strong>
-      </div>
+      </SectionHeader>
       <p className="lede">{text}</p>
       {rows.length === 0 && <p className="lede">Sətir yoxdur.</p>}
       {rows.map((row) => (
@@ -1209,17 +1169,21 @@ function CostBlock({
         </div>
       ))}
       <div className="form-row wide">
-        <label>Ad<input value={draft.name} onChange={(event) => setDraft({ ...draft, name: event.target.value })} /></label>
-        <label>Məbləğ, AZN<input value={draft.amount} onChange={(event) => setDraft({ ...draft, amount: event.target.value })} /></label>
-        <button type="button" className="btn" onClick={onAdd}>Əlavə et</button>
+        <label>Ad<Input value={draft.name} onChange={(event) => setDraft({ ...draft, name: event.target.value })} /></label>
+        <label>Məbləğ, AZN<Input value={draft.amount} onChange={(event) => setDraft({ ...draft, amount: event.target.value })} /></label>
+        <Button type="button" onClick={onAdd}>Əlavə et</Button>
       </div>
-    </section>
+    </Panel>
   )
 }
 
 export function BoqPage() {
   useTitle("BOQ")
+  useTitle("BOQ")
   const { boq } = useWorkspace()
+  const [view, setView] = useState("lines")
+  const [addOpen, setAddOpen] = useState(false)
+  const [sheetOpen, setSheetOpen] = useState(false)
   const math = boqMath(boq)
   const [sheetName, setSheetName] = useState("")
   const [sheet, setSheet] = useState("hamisi")
@@ -1239,6 +1203,12 @@ export function BoqPage() {
     if (needle && !`${line.name} ${line.source || ""}`.toLocaleLowerCase("az").includes(needle)) return false
     return true
   })
+  const eligible = shown.filter((line) => !line.stale)
+  const confirmedCount = eligible.filter((line) => line.confirmed !== false).length
+  function confirmVisible(checked: boolean) {
+    const ids = new Set(eligible.map((line) => line.id))
+    patch((state) => ({ ...state, boq: { ...state.boq, lines: state.boq.lines.map((line) => ids.has(line.id) ? { ...line, confirmed: checked } : line) } }))
+  }
   const shownTotal = shown.reduce((sum, line) => sum + lineTotal(line), 0)
   const skipped = boq.lines.filter((line) => line.confirmed === false || line.stale).length
   const machines = boq.gear ?? []
@@ -1247,8 +1217,6 @@ export function BoqPage() {
     name,
     total: boq.lines.filter((line) => line.sheet === name).reduce((sum, line) => sum + lineTotal(line), 0),
   }))
-  const peak = Math.max(...sheetBars.map((row) => row.total), 1)
-  const scale = math.gross || 1
   const shares = [
     ["Material", math.material, "pine"],
     ["İşçilik", math.labor, ""],
@@ -1464,6 +1432,7 @@ export function BoqPage() {
     setSheet(name)
     setDraft((row) => ({ ...row, sheet: name }))
     setSheetName("")
+    setSheetOpen(false)
     setQuery("")
     setBoqNote(known
       ? `«${name}» artıq var. Cədvəl indi yalnız bu fənni göstərir.`
@@ -1487,52 +1456,29 @@ export function BoqPage() {
         }],
       },
     }))
+    setAddOpen(false)
     setDraft({ sheet: lineSheet, name: "", unit: draft.unit, qty: "", material: "", labor: "", laborOnly: false })
   }
 
   return (
-    <div className="boq-page">
+    <div className="boq-page boq-workspace">
       <PageHead
-        kicker="Smeta"
         title="İşlərin həcmi"
-        text="Material və işçilik ayrıdır. On üç xərc tender üsuluna görə açılır və bağlanır. Mənfəət vahid qiymətə qarışmır."
+        text="İş sətirlərini və xərcləri bir yerdə idarə edin."
       >
         <label className="btn ghost small boq-upload">
           Həcm yüklə
           <input type="file" accept={FILE_ACCEPT} onChange={(event) => { const file = event.target.files?.[0]; event.currentTarget.value = ""; if (file) void uploadVolume(file) }} />
         </label>
-        <button type="button" className="btn ghost small" onClick={() => void bindPrices()}>Qiyməti bağla</button>
-        <button type="button" className="btn ghost small" onClick={() => void makeOffer()}>Təklifə çevir</button>
-        <button type="button" className="btn small" onClick={() => void saveBoq()}>Bazaya yaz</button>
+        <Button type="button" className="small" onClick={() => void saveBoq()}>Bazaya yaz</Button>
       </PageHead>
       {boqNote && <p className={noteWarn ? "boq-banner warn" : "boq-banner"}>{boqNote}</p>}
-      <section className="statstrip">
-        <article>
-          <span>Sətir</span>
-          <strong>{boq.lines.length}</strong>
-          <em className={skipped ? "warn" : undefined}>{skipped ? `${skipped} sətir hesaba düşmür` : "Hamısı hesaba düşür"}</em>
-        </article>
-        <article>
-          <span>Material</span>
-          <strong>{money(math.material)}</strong>
-          <em>AZN, təsdiqli sətirlər</em>
-        </article>
-        <article>
-          <span>İşçilik</span>
-          <strong>{money(math.labor)}</strong>
-          <em>AZN, vahid qiymət × miqdar</em>
-        </article>
-        <article>
-          <span>Yekun</span>
-          <strong>{money(math.gross)}</strong>
-          <em>AZN · mənfəət {boq.profit}% · ƏDV {boq.vat}%</em>
-        </article>
-      </section>
-      <section className="panel pad">
-        <div className="panel-head">
+      <Tabs value={view} onChange={setView} options={[{id:"lines",label:"Həcm cədvəli"},{id:"costs",label:"Xərclər"},{id:"resources",label:"Resurslar"},{id:"settings",label:"Parametrlər"}]} />
+      {view === "settings" && (      <Panel className="pad">
+        <SectionHeader>
           <h2>On üç xərc</h2>
           <span className="muted">{METHODS.find((item) => item[0] === boq.method)?.[1]} · {boq.region}</span>
-        </div>
+        </SectionHeader>
         <p className="lede">Hər xərc üsula görə açılır. Material üsulu işçilik və texnikanı bağlayır. İşçilik üsulu materialı bağlayır. Podrat və tam smeta hamısını saxlayır.</p>
         <div className="form-row wide">
           <label>Üsul
@@ -1544,23 +1490,16 @@ export function BoqPage() {
           <label>Mürəkkəblik
             <Select value={boq.complexity} onValueChange={(complexity) => patch((state) => ({ ...state, boq: { ...state.boq, complexity: complexity as Complexity } }))} options={[{ value: "sade", label: "Sadə" }, { value: "orta", label: "Orta" }, { value: "murakkeb", label: "Mürəkkəb" }]} />
           </label>
-          <button type="button" className="btn ghost" onClick={applyLabor}>İşçilik tarifi</button>
-          <button type="button" className="btn ghost" onClick={applyRegion}>Rayon qiyməti</button>
+          <Button type="button" className="ghost" onClick={applyLabor}>İşçilik tarifi</Button>
+          <Button type="button" className="ghost" onClick={applyRegion}>Rayon qiyməti</Button>
         </div>
-        {math.parts.map((part) => (
+        <div className="boq-rules-grid">{math.parts.map((part) => (
           <div className="step-row" key={part.key}>
-            <label className="checkline">
-              <input
-                type="checkbox"
-                checked={part.on}
-                onChange={() => patch((state) => ({ ...state, boq: { ...state.boq, rules: state.boq.rules.map((rule) => rule.key === part.key ? { ...rule, on: !rule.on } : rule) } }))}
-              />
-              {part.name}
-            </label>
+            <Checkbox label={part.name} checked={part.on} onChange={() => patch((state) => ({...state,boq:{...state.boq,rules:state.boq.rules.map((rule)=>rule.key===part.key?{...rule,on:!rule.on}:rule)}}))} />
             <strong>{money(part.on ? part.amount : 0)} AZN</strong>
           </div>
         ))}
-        <div className="table-wrap flat">
+        </div><Disclosure title="Rayonlar üzrə qiymət müqayisəsi">        <TableContainer className="flat">
           <table className="boq-table">
             <thead>
               <tr>
@@ -1577,60 +1516,45 @@ export function BoqPage() {
               ))}
             </tbody>
           </table>
-        </div>
-      </section>
-      <div className="boq-split">
-        <section className="panel pad">
-          <div className="panel-head">
+        </TableContainer></Disclosure>
+      </Panel>)}
+      {view === "lines" && <div className="boq-split">
+        <Panel className="pad">
+          <SectionHeader>
             <h2>
-              {boq.id ? "Həcm cədvəli" : "Port Baku Residence"}
+              Həcm cədvəli
               {!boq.id && <span className="badge gold">Nümunə</span>}
             </h2>
-            <span className="muted">{shown.length} sətir · {money(shownTotal)} AZN</span>
-          </div>
+            <Button className="small" onClick={() => setAddOpen(true)}><Icon name="plus" />Yeni sətir</Button>
+          </SectionHeader>
           <div className="boq-tools">
             <form className="search" role="search" onSubmit={(event) => event.preventDefault()}>
               <Icon name="search" />
-              <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="İş və ya mənbə" aria-label="Smetada axtar" />
+              <Input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="İş və ya mənbə" aria-label="Smetada axtar" />
             </form>
-            <Tabs
-              value={boq.sheets.includes(sheet) || sheet === "hamisi" ? sheet : "hamisi"}
-              onChange={(id) => {
-                setSheet(id)
-                if (id !== "hamisi") setDraft((row) => ({ ...row, sheet: id }))
-              }}
-              options={[
-                { id: "hamisi", label: `Hamısı · ${boq.lines.length}` },
-                ...boq.sheets.map((item) => ({ id: item, label: `${item} · ${boq.lines.filter((line) => line.sheet === item).length}` })),
-              ]}
-            />
+            <Select ariaLabel="Fənn" value={active || "hamisi"} onValueChange={(id) => {setSheet(id);if(id!=="hamisi")setDraft((row)=>({...row,sheet:id}))}} options={[{value:"hamisi",label:"Bütün fənnlər"},...boq.sheets.map((name)=>({value:name,label:name}))]} />
+            <Button className="ghost small" onClick={() => setSheetOpen(true)}>Yeni fənn</Button><Button className="ghost small" onClick={() => void bindPrices()}>Qiyməti bağla</Button>
           </div>
-          <form className="boq-sheet-add" onSubmit={(event) => { event.preventDefault(); openSheet() }}>
-            <label>
-              Yeni fənn
-              <input value={sheetName} placeholder="Məsələn, Dam" onChange={(event) => setSheetName(event.target.value)} />
-            </label>
-            <button type="submit" className="btn ghost small">Vərəq aç</button>
-            <p>Adı yazın və düyməni basın. Yeni boş vərəq açılır, cədvəl ona keçir. Əvvəlki sətirlər silinmir, Hamısı bölməsində qalır.</p>
-          </form>
+          <p className="boq-confirm-hint">{confirmedCount}/{eligible.length} aktual sətir təsdiqlənib. Köhnə qiymət hesaba daxil edilmir.</p>
           {shown.length === 0 && (
             <Empty
               title={active ? `${active} boşdur` : "Uyğun sətir yoxdur"}
-              text={active ? "İlk işi aşağıdakı formadan yazın. Bu, digər fənnlərin sətirlərini silmir." : "Axtarışı təmizləyin və ya başqa fənn seçin."}
+              text={active ? "Yeni sətir düyməsindən bu fənnə iş əlavə edin." : "Axtarışı təmizləyin və ya başqa fənn seçin."}
             />
           )}
           {shown.length > 0 && (
-            <div className="table-wrap flat">
+            <TableContainer className="flat">
               <table className="boq-table">
                 <thead>
                   <tr>
+                    <th><Checkbox aria-label="Görünən aktual sətirləri təsdiqlə" checked={eligible.length > 0 && confirmedCount === eligible.length} indeterminate={confirmedCount > 0 && confirmedCount < eligible.length} disabled={!eligible.length} onChange={(event) => confirmVisible(event.target.checked)} /></th>
                     <th>İş</th>
                     <th>Vahid</th>
                     <th className="num">Miqdar</th>
                     <th className="num">Material</th>
                     <th className="num">İşçilik</th>
                     <th className="num">Cəmi</th>
-                    <th>Təsdiq</th>
+                    <th><span className="sr">Sil</span></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1638,6 +1562,13 @@ export function BoqPage() {
                     const mark = lineMark(line)
                     return (
                       <tr key={line.id} className={line.stale ? "stale" : undefined}>
+                        <td>
+                              <Checkbox
+                                checked={line.confirmed !== false && !line.stale}
+                                disabled={line.stale}
+                                aria-label={`${line.name} təsdiqi`}
+                                onChange={(event) => patch((state) => ({ ...state, boq: { ...state.boq, lines: state.boq.lines.map((item) => item.id === line.id ? { ...item, confirmed: event.target.checked } : item) } }))}
+                              /></td>
                         <td>
                           <div className="boq-name">
                             <b>{line.name}</b>
@@ -1652,16 +1583,6 @@ export function BoqPage() {
                         <td className="num">{money(lineTotal(line))}</td>
                         <td>
                           <span className="boq-row-side">
-                            <label className="boq-check">
-                              <input
-                                type="checkbox"
-                                checked={line.confirmed !== false && !line.stale}
-                                disabled={line.stale}
-                                aria-label={`${line.name} təsdiqi`}
-                                onChange={(event) => patch((state) => ({ ...state, boq: { ...state.boq, lines: state.boq.lines.map((item) => item.id === line.id ? { ...item, confirmed: event.target.checked } : item) } }))}
-                              />
-                              <span />
-                            </label>
                             <button type="button" className="icon-btn boq-del" aria-label={`${line.name} sətrini sil`} onClick={() => patch((state) => ({ ...state, boq: { ...state.boq, lines: state.boq.lines.filter((item) => item.id !== line.id) } }))}><Icon name="bin" /></button>
                           </span>
                         </td>
@@ -1671,62 +1592,30 @@ export function BoqPage() {
                 </tbody>
                 <tfoot>
                   <tr>
-                    <td colSpan={5}>{active || "Hamısı"} · {shown.length} sətir</td>
+                    <td colSpan={6}>{active || "Hamısı"} · {shown.length} sətir</td>
                     <td className="num">{money(shownTotal)}</td>
                     <td />
                   </tr>
                 </tfoot>
               </table>
-            </div>
+            </TableContainer>
           )}
-          <h2 className="block-title">Yeni sətir</h2>
-          <div className="form-row wide">
-            <label>Fənn
-              <Select value={lineSheet} onValueChange={(value) => { setDraft({ ...draft, sheet: value }); setSheet(value) }} options={boq.sheets.map((item) => ({ value: item, label: item }))} />
-            </label>
-            <label>İş<input value={draft.name} onChange={(event) => setDraft({ ...draft, name: event.target.value })} /></label>
-            <label>Vahid<input value={draft.unit} onChange={(event) => setDraft({ ...draft, unit: event.target.value })} /></label>
-            <label>Miqdar<input value={draft.qty} onChange={(event) => setDraft({ ...draft, qty: event.target.value })} /></label>
-            <label>Material, AZN<input value={draft.material} onChange={(event) => setDraft({ ...draft, material: event.target.value })} disabled={draft.laborOnly} /></label>
-            <label>İşçilik, AZN<input value={draft.labor} onChange={(event) => setDraft({ ...draft, labor: event.target.value })} /></label>
-            <label>Materialı kim verir
-              <Select value={draft.laborOnly ? "beli" : "xeyr"} onValueChange={(value) => setDraft({ ...draft, laborOnly: value === "beli", material: value === "beli" ? "" : draft.material })} options={[{ value: "xeyr", label: "Sətirə yazılır" }, { value: "beli", label: "Yalnız işçilik" }]} />
-            </label>
-            <button type="button" className="btn" onClick={addLine}>Sətir əlavə et</button>
-          </div>
-        </section>
+        </Panel>
         <aside className="panel pad boq-offer">
-          <p className="eyebrow">Təklif</p>
+          <h2>Yekun təklif</h2>
           <strong className="boq-gross">{money(math.gross)}</strong>
           <span className="muted">AZN · {boq.lines.length - skipped} sətir hesaba düşür</span>
           <div className="form-row wide">
-            <label>Mənfəət, %<input value={boq.profit} onChange={(event) => patch((state) => ({ ...state, boq: { ...state.boq, profit: event.target.value } }))} /></label>
+            <label>Mənfəət, %<Input value={boq.profit} onChange={(event) => patch((state) => ({ ...state, boq: { ...state.boq, profit: event.target.value } }))} /></label>
             <label>Vergi rejimi
               <Select value={boq.vat} onValueChange={(vat) => patch((state) => ({ ...state, boq: { ...state.boq, vat } }))} options={[{ value: "18", label: "Adi, ƏDV 18%" }, { value: "0", label: "AFEZ zonası, 0%" }]} />
             </label>
           </div>
-          <div className="hbars">
-            {shares.map(([label, value, tone]) => (
-              <div className="hbar" key={label}>
-                <span>{label}</span>
-                <div className="hbar-track"><i className={tone} style={{ width: `${Math.min(100, (value / scale) * 100)}%` }} /></div>
-                <b>{money(value)}</b>
-              </div>
-            ))}
-          </div>
-          <h2 className="block-title">Fənn üzrə</h2>
-          <div className="hbars">
-            {sheetBars.map((row) => (
-              <div className="hbar" key={row.name}>
-                <span>{row.name}</span>
-                <div className="hbar-track"><i className="pine" style={{ width: `${Math.min(100, (row.total / peak) * 100)}%` }} /></div>
-                <b>{money(row.total)}</b>
-              </div>
-            ))}
-          </div>
+          <dl className="boq-summary-lines">{shares.map(([label,value]) => <div key={label}><dt>{label}</dt><dd>{money(value)}</dd></div>)}</dl><Button onClick={() => void makeOffer()}>Təklifə çevir</Button>
+          <Disclosure title="Fənn üzrə məbləğlər"><dl className="boq-summary-lines">{sheetBars.map((row) => <div key={row.name}><dt>{row.name}</dt><dd>{money(row.total)}</dd></div>)}</dl></Disclosure>
         </aside>
-      </div>
-      <div className="boq-costs">
+      </div>}
+      {view === "costs" && <div className="boq-costs">
         <CostBlock
           title="Dolayı xərc"
           text="Sahənin öz xərcidir. Vahid qiymətə qarışmır."
@@ -1745,16 +1634,16 @@ export function BoqPage() {
           onAdd={() => { if (!overhead.name.trim()) return; patch((state) => ({ ...state, boq: { ...state.boq, overhead: [...state.boq.overhead, { ...overhead, id: uid() }] } })); setOverhead({ name: "", amount: "" }) }}
           onRemove={(id) => patch((state) => ({ ...state, boq: { ...state.boq, overhead: state.boq.overhead.filter((row) => row.id !== id) } }))}
         />
-        <section className="panel pad">
-          <div className="panel-head">
+        <Panel className="pad">
+          <SectionHeader>
             <h2>Əlavə xərc</h2>
             <strong>{money(math.extra)} AZN</strong>
-          </div>
+          </SectionHeader>
           <p className="lede">Boş xana cəmə düşmür.</p>
           {(boq.extras.length ? boq.extras : EXTRA_COSTS.map((name) => ({ id: name, name, amount: "" }))).map((row) => (
             <label className="boq-extra" key={row.id}>
               {row.name}
-              <input
+              <Input
                 value={row.amount}
                 inputMode="decimal"
                 aria-label={`${row.name}, AZN`}
@@ -1769,14 +1658,14 @@ export function BoqPage() {
               />
             </label>
           ))}
-        </section>
-      </div>
-      <div className="boq-people">
-        <section className="panel pad">
-          <div className="panel-head">
+        </Panel>
+      </div>}
+      {view === "resources" && <><div className="boq-people">
+        <Panel className="pad">
+          <SectionHeader>
             <h2>Məsuliyyət</h2>
             <span className="muted">{boq.duties.length} iş</span>
-          </div>
+          </SectionHeader>
           {boq.duties.length === 0 && <p className="lede">Məsuliyyət sətri yoxdur.</p>}
           {boq.duties.map((row) => (
             <div className="step-row" key={row.id}>
@@ -1788,18 +1677,18 @@ export function BoqPage() {
             </div>
           ))}
           <div className="form-row wide">
-            <label>İş<input value={duty.work} onChange={(event) => setDuty({ ...duty, work: event.target.value })} /></label>
+            <label>İş<Input value={duty.work} onChange={(event) => setDuty({ ...duty, work: event.target.value })} /></label>
             <label>Material
               <Select value={duty.party} onValueChange={(party) => setDuty({ ...duty, party: party as Party })} options={(Object.keys(PARTY_LABEL) as Party[]).map((key) => ({ value: key, label: PARTY_LABEL[key] }))} />
             </label>
-            <button type="button" className="btn" onClick={() => { if (!duty.work.trim()) return; patch((state) => ({ ...state, boq: { ...state.boq, duties: [...state.boq.duties, { ...duty, id: uid() }] } })); setDuty({ work: "", party: "podratci" }) }}>Əlavə et</button>
+            <Button type="button" onClick={() => { if (!duty.work.trim()) return; patch((state) => ({ ...state, boq: { ...state.boq, duties: [...state.boq.duties, { ...duty, id: uid() }] } })); setDuty({ work: "", party: "podratci" }) }}>Əlavə et</Button>
           </div>
-        </section>
-        <section className="panel pad">
-          <div className="panel-head">
+        </Panel>
+        <Panel className="pad">
+          <SectionHeader>
             <h2>Heyət</h2>
             <strong>{crew} nəfər</strong>
-          </div>
+          </SectionHeader>
           {boq.staff.length === 0 && <p className="lede">Heyət sətri yoxdur.</p>}
           {boq.staff.map((row) => {
             const daily = laborQuote(row.role, boq.region, boq.complexity, "gun")
@@ -1814,16 +1703,16 @@ export function BoqPage() {
             )
           })}
           <div className="form-row wide">
-            <label>Vəzifə<input value={staff.role} onChange={(event) => setStaff({ ...staff, role: event.target.value })} /></label>
-            <label>Say<input value={staff.count} onChange={(event) => setStaff({ ...staff, count: event.target.value })} /></label>
-            <button type="button" className="btn" onClick={() => { if (!staff.role.trim()) return; patch((state) => ({ ...state, boq: { ...state.boq, staff: [...state.boq.staff, { ...staff, id: uid() }] } })); setStaff({ role: "", count: "" }) }}>Əlavə et</button>
+            <label>Vəzifə<Input value={staff.role} onChange={(event) => setStaff({ ...staff, role: event.target.value })} /></label>
+            <label>Say<Input value={staff.count} onChange={(event) => setStaff({ ...staff, count: event.target.value })} /></label>
+            <Button type="button" onClick={() => { if (!staff.role.trim()) return; patch((state) => ({ ...state, boq: { ...state.boq, staff: [...state.boq.staff, { ...staff, id: uid() }] } })); setStaff({ role: "", count: "" }) }}>Əlavə et</Button>
           </div>
-        </section>
-        <section className="panel pad">
-          <div className="panel-head">
+        </Panel>
+        <Panel className="pad">
+          <SectionHeader>
             <h2>Texnika, növbə və yanacaq</h2>
             <strong>{money(machines.reduce((sum, row) => sum + gearCost(row).total, 0))} AZN</strong>
-          </div>
+          </SectionHeader>
           {machines.length === 0 && <p className="lede">Texnika sətri yoxdur.</p>}
           {machines.map((row) => {
             const cost = gearCost(row)
@@ -1841,29 +1730,51 @@ export function BoqPage() {
             <label>Texnika
               <Select value={gear.name} onValueChange={(name) => setGear({ ...gear, name })} options={[{ value: "", label: "Seçin" }, ...GEAR_KINDS.map((name) => ({ value: name, label: name }))]} />
             </label>
-            <label>Say<input value={gear.count} onChange={(event) => setGear({ ...gear, count: event.target.value })} /></label>
+            <label>Say<Input value={gear.count} onChange={(event) => setGear({ ...gear, count: event.target.value })} /></label>
             <label>Ölçü
               <Select value={gear.basis} onValueChange={(basis) => setGear({ ...gear, basis: basis as GearBasis })} options={[{ value: "saat", label: "Saat" }, { value: "novbe", label: "Növbə" }, { value: "gun", label: "Gün" }, { value: "ay", label: "Ay" }, { value: "hecm", label: "Həcm" }]} />
             </label>
-            <label>İcarə, AZN<input value={gear.rate} onChange={(event) => setGear({ ...gear, rate: event.target.value })} /></label>
-            <label>Müddət<input value={gear.span} onChange={(event) => setGear({ ...gear, span: event.target.value })} /></label>
-            <label>Yanacaq<input value={gear.fuel} onChange={(event) => setGear({ ...gear, fuel: event.target.value })} /></label>
-            <label>Operator<input value={gear.operator} onChange={(event) => setGear({ ...gear, operator: event.target.value })} /></label>
-            <label>Minimum<input value={gear.minSpan} onChange={(event) => setGear({ ...gear, minSpan: event.target.value })} /></label>
-            <label>Sığorta, AZN<input value={gear.insurance} onChange={(event) => setGear({ ...gear, insurance: event.target.value })} /></label>
-            <button type="button" className="btn" onClick={() => { if (!gear.name.trim()) return; patch((state) => ({ ...state, boq: { ...state.boq, gear: [...(state.boq.gear ?? []), { ...gear, id: uid() }] } })); setGear({ name: "", count: "", insurance: "", basis: gear.basis, rate: "", span: "", fuel: "", operator: "", minSpan: "" }) }}>Əlavə et</button>
+            <label>İcarə, AZN<Input value={gear.rate} onChange={(event) => setGear({ ...gear, rate: event.target.value })} /></label>
+            <label>Müddət<Input value={gear.span} onChange={(event) => setGear({ ...gear, span: event.target.value })} /></label>
+            <label>Yanacaq<Input value={gear.fuel} onChange={(event) => setGear({ ...gear, fuel: event.target.value })} /></label>
+            <label>Operator<Input value={gear.operator} onChange={(event) => setGear({ ...gear, operator: event.target.value })} /></label>
+            <label>Minimum<Input value={gear.minSpan} onChange={(event) => setGear({ ...gear, minSpan: event.target.value })} /></label>
+            <label>Sığorta, AZN<Input value={gear.insurance} onChange={(event) => setGear({ ...gear, insurance: event.target.value })} /></label>
+            <Button type="button" onClick={() => { if (!gear.name.trim()) return; patch((state) => ({ ...state, boq: { ...state.boq, gear: [...(state.boq.gear ?? []), { ...gear, id: uid() }] } })); setGear({ name: "", count: "", insurance: "", basis: gear.basis, rate: "", span: "", fuel: "", operator: "", minSpan: "" }) }}>Əlavə et</Button>
           </div>
-        </section>
+        </Panel>
       </div>
-      <section className="panel pad">
-        <div className="panel-head">
+      <Panel className="pad">
+        <SectionHeader>
           <h2>İdarəetmə</h2>
-        </div>
+        </SectionHeader>
         <label className="manage-note">Layihə necə idarə olunacaq
-          <textarea value={boq.management ?? ""} onChange={(event) => patch((state) => ({ ...state, boq: { ...state.boq, management: event.target.value } }))} placeholder="Forma, heyət və texnika tender mətninə buradan düşəcək" />
+          <Textarea value={boq.management ?? ""} onChange={(event) => patch((state) => ({ ...state, boq: { ...state.boq, management: event.target.value } }))} placeholder="Forma, heyət və texnika tender mətninə buradan düşəcək" />
         </label>
         {!(boq.management ?? "").trim() && <p className="lede">İdarəetmə mətni yazılmayıb.</p>}
-      </section>
+      </Panel></>}
+      {addOpen && <Modal className="boq-line-modal" title="Yeni iş sətri" onClose={() => setAddOpen(false)}>          <div className="form-row wide">
+            <label>Fənn
+              <Select value={lineSheet} onValueChange={(value) => { setDraft({ ...draft, sheet: value }); setSheet(value) }} options={boq.sheets.map((item) => ({ value: item, label: item }))} />
+            </label>
+            <label>İş<Input value={draft.name} onChange={(event) => setDraft({ ...draft, name: event.target.value })} /></label>
+            <label>Vahid<Input value={draft.unit} onChange={(event) => setDraft({ ...draft, unit: event.target.value })} /></label>
+            <label>Miqdar<Input value={draft.qty} onChange={(event) => setDraft({ ...draft, qty: event.target.value })} /></label>
+            <label>Material, AZN<Input value={draft.material} onChange={(event) => setDraft({ ...draft, material: event.target.value })} disabled={draft.laborOnly} /></label>
+            <label>İşçilik, AZN<Input value={draft.labor} onChange={(event) => setDraft({ ...draft, labor: event.target.value })} /></label>
+            <Checkbox label="Yalnız işçilik — material sifarişçidən" checked={draft.laborOnly} onChange={(event) => setDraft({ ...draft, laborOnly: event.target.checked, material: event.target.checked ? "" : draft.material })} />
+            <Button type="button" onClick={addLine}>Sətir əlavə et</Button>
+          </div>
+</Modal>}
+      {sheetOpen && <Modal className="boq-sheet-modal" title="Yeni fənn" onClose={() => setSheetOpen(false)}>          <form className="boq-sheet-add" onSubmit={(event) => { event.preventDefault(); openSheet() }}>
+            <label>
+              Yeni fənn
+              <Input value={sheetName} placeholder="Məsələn, Dam" onChange={(event) => setSheetName(event.target.value)} />
+            </label>
+            <Button type="submit" className="ghost small">Vərəq aç</Button>
+            <p>Adı yazın və düyməni basın. Yeni boş vərəq açılır, cədvəl ona keçir. Əvvəlki sətirlər silinmir, Hamısı bölməsində qalır.</p>
+          </form>
+</Modal>}
     </div>
   )
 }
@@ -2156,6 +2067,10 @@ export function GuaranteePage() {
   const desk = useMemo(() => deskBanks(banks), [banks])
   const bank = desk.find((item) => item.id === guarantee.bankId)
   const tone = bank ? bankTone(bank) : { color: "wait" as const, word: "Bank seçilməyib" }
+  const [detail, setDetail] = useState(false)
+  const [view, setView] = useState("info")
+  const pageRef = useRef<HTMLDivElement>(null)
+  usePageTransition(pageRef, detail ? "detail" : "list", true)
   const [caseId, setCaseId] = useState(BOND_CASES[0].id)
   const [filter, setFilter] = useState("hamisi")
   const [projectQuery, setProjectQuery] = useState("")
@@ -2167,8 +2082,6 @@ export function GuaranteePage() {
   const feeRate = Number(bank?.commission) || 0
   const fee = math.applied * feeRate / 100
   const openCases = BOND_CASES.filter((item) => item.status !== "legv")
-  const waiting = BOND_CASES.filter((item) => item.status === "gozleme").length
-  const confirmed = BOND_CASES.filter((item) => item.status === "tesdiq").length
   const exposure = openCases.reduce((sum, item) => sum + bondMath(item).applied, 0)
   const readyPapers = active.papers.filter((item) => item.ready).length
   const projectQueryText = projectQuery.trim().toLocaleLowerCase("az")
@@ -2219,6 +2132,8 @@ export function GuaranteePage() {
   }, [desk, guarantee.amount])
 
   function openCase(item: BondCase) {
+    setDetail(true)
+    setView("info")
     const match = desk.find((row) => row.name === item.bank)
     setCaseId(item.id)
     setPackNote("")
@@ -2295,102 +2210,36 @@ export function GuaranteePage() {
   }
 
   return (
-    <div className="qar">
-      <PageHead
-        kicker="Bank"
-        title="Bank qarantiyası"
-        text="Altı işin zəmanət paketi. Məbləğ şərtdən hesablanır, qərar bankındır, sənəd mübadiləsi API bağlı olanda da gedir."
-      />
-
-      <section className="statstrip">
-        <article>
-          <span>Açıq iş</span>
-          <strong>{openCases.length}</strong>
-          <em>{BOND_CASES.length} paketdən {BOND_CASES.length - openCases.length} bağlanıb</em>
-        </article>
-        <article>
-          <span>Təminat</span>
-          <strong>{money(exposure)}</strong>
-          <em>AZN, ləğv olunmayanlar</em>
-        </article>
-        <article>
-          <span>Bank gözləyir</span>
-          <strong>{waiting}</strong>
-          <em className={waiting ? "warn" : undefined}>{waiting ? "Qərar hələ yazılmayıb" : "Gözləyən iş yoxdur"}</em>
-        </article>
-        <article>
-          <span>Təsdiq</span>
-          <strong>{confirmed}</strong>
-          <em>Məktubu olan zəmanət</em>
-        </article>
-      </section>
-
-      <div className="library">
-        <div className="library-bar">
-          <div>
-            <strong>{BOND_CASES.length} layihə</strong>
-            <span>{openCases.length} açıq · {money(exposure)} AZN təminat</span>
-          </div>
-          <Select
-            ariaLabel="Layihə statusu"
-            value={filter}
-            onValueChange={setFilter}
-            options={[
-              { value: "hamisi", label: "Hamısı" },
-              { value: "gozleme", label: "Gözləyir" },
-              { value: "paket", label: "Paket" },
-              { value: "tesdiq", label: "Təsdiq" },
-              { value: "legv", label: "Ləğv" },
-            ]}
-          />
-        </div>
-        <div className="library-body">
-          <div className="file-index">
-            <label className="file-find">
-              <Icon name="search" />
-              <input value={projectQuery} onChange={(event) => setProjectQuery(event.target.value)} placeholder="Layihə axtar" aria-label="Layihə axtar" />
-            </label>
-            <div className="file-list">
-              {projectRows.map((item) => {
-                const amount = bondMath(item)
-                const status = BOND_STATUS[item.status]
-                const short = BOND_BANKS.find((row) => row.name === item.bank)?.short || item.bank
-                return (
-                  <button key={item.id} type="button" className={item.id === active.id ? "file-card on" : "file-card"} aria-pressed={item.id === active.id} onClick={() => openCase(item)}>
-                    <em>{KIND_LABEL[item.kind]}</em>
-                    <span className="file-card-copy">
-                      <strong>{item.project}</strong>
-                      <small>{money(amount.applied)} AZN · {short} · {status.word}</small>
-                    </span>
-                  </button>
-                )
-              })}
-              {filter === "hamisi" && !projectQueryText && liveRows.map((item) => (
-                <div key={item.id} className="file-card">
-                  <em>{KIND_LABEL[item.kind] || item.kind}</em>
-                  <span className="file-card-copy">
-                    <strong>{item.title || "Adsız paket"}</strong>
-                    <small>Baza · {item.partner?.name || "bank yoxdur"} · {money(Number(dec(item.amount)) || 0)} AZN</small>
-                  </span>
-                </div>
-              ))}
-              {projectRows.length === 0 && <p className="lede">Uyğun layihə yoxdur.</p>}
-            </div>
-          </div>
-          <section className="file-sheet">
-            <header>
-              <div>
-                <p>{active.id} · {KIND_LABEL[active.kind]} · {BOND_STATUS[active.status].word} · {dateAZ(active.opened)}</p>
-                <h2>{active.project}</h2>
-                <p>{active.buyer} · {bank?.name || active.bank} · {daysLeft(active.until)}</p>
-              </div>
-              <strong className="qar-sheet-sum">{money(math.applied)} AZN</strong>
-            </header>
-            <p className="lede">{active.note}</p>
-            <h3 className="qar-block">Müraciət paketi</h3>
-            <div className="step-row"><span>Şirkət</span><strong>{cabinet.name.trim() || "AFEZ İnşaat"} · {cabinet.voen.trim() || "1700123451"}</strong></div>
-            <div className="step-row"><span>Sənəd</span><strong>{readyPapers}/{active.papers.length} hazırdır</strong></div>
-            <div className="step-row"><span>Qüvvədə</span><strong>{days} gün · {dateAZ(active.until)}</strong></div>
+    <div className="qar guarantee-workspace" ref={pageRef}>
+      {detail && <Button className="ghost guarantee-back" onClick={() => setDetail(false)}>Qarantiyalara qayıt</Button>}
+      <PageHead title="Bank qarantiyası" text="Layihələrin zəmanət və sənədlərini idarə edin." />
+      {!detail ? <>
+        <Panel className="guarantee-overview" aria-label="Qarantiya xülasəsi">
+          <div className="guarantee-stat"><span className="guarantee-stat-icon"><Icon name="briefcase" /></span><div><span>Layihələr</span><strong>{BOND_CASES.length}</strong><small>Bütün qarantiya paketləri</small></div></div>
+          <div className="guarantee-stat"><span className="guarantee-stat-icon active"><Icon name="shield" /></span><div><span>Açıq qarantiyalar</span><strong>{openCases.length}</strong><small>{BOND_CASES.length - openCases.length} paket bağlanıb</small></div></div>
+          <div className="guarantee-stat guarantee-stat-total"><span className="guarantee-stat-icon"><Icon name="bank" /></span><div><span>Təminat məbləği</span><strong>{money(exposure)} <em>AZN</em></strong><small>Açıq qarantiyalar üzrə cəmi</small></div></div>
+        </Panel>
+        <Toolbar className="guarantee-toolbar">
+          <SearchInput value={projectQuery} onChange={(event) => setProjectQuery(event.target.value)} placeholder="Layihə axtar" />
+          <Select ariaLabel="Layihə statusu" value={filter} onValueChange={setFilter} options={[{value:"hamisi",label:"Hamısı"},{value:"gozleme",label:"Gözləyir"},{value:"paket",label:"Paket hazırdır"},{value:"tesdiq",label:"Təsdiq"},{value:"legv",label:"Ləğv"}]} />
+        </Toolbar>
+        <TableContainer className="guarantee-table">
+          <table><thead><tr><th>Layihə</th><th>Növ</th><th>Bank</th><th>Təminat, AZN</th><th>Bitmə tarixi</th><th>Status</th><th><span className="sr-only">Aç</span></th></tr></thead><tbody>
+            {projectRows.map((item) => <tr key={item.id} tabIndex={0} onClick={() => openCase(item)} onKeyDown={(event) => { if(event.key === "Enter" || event.key === " ") {event.preventDefault(); openCase(item)} }}>
+              <td><strong>{item.project}</strong><small>{item.id} · {item.buyer}</small></td><td>{KIND_LABEL[item.kind]}</td><td>{BOND_BANKS.find((row) => row.name === item.bank)?.short || item.bank}</td><td className="num">{money(bondMath(item).applied)}</td><td>{dateAZ(item.until)}</td><td><span className={`guarantee-status status-${item.status}`}>{BOND_STATUS[item.status].word}</span></td><td><Icon name="chevron" /></td>
+            </tr>)}
+          </tbody></table>
+          {!projectRows.length && <Empty title="Uyğun layihə yoxdur" text="Axtarış və status filtrini dəyişin." />}
+        </TableContainer>
+        {filter === "hamisi" && !projectQueryText && liveRows.length > 0 && <Disclosure title={`Bazadakı digər paketlər · ${liveRows.length}`}><TableContainer><table><thead><tr><th>Layihə</th><th>Növ</th><th>Bank</th><th>Məbləğ, AZN</th></tr></thead><tbody>{liveRows.map((item) => <tr key={item.id}><td>{item.title || "Adsız paket"}</td><td>{KIND_LABEL[item.kind] || item.kind}</td><td>{item.partner?.name || "Bank yoxdur"}</td><td>{money(Number(dec(item.amount)) || 0)}</td></tr>)}</tbody></table></TableContainer></Disclosure>}
+      </> : <>
+        <Panel className="guarantee-summary">
+          <div><span>{active.id} · {KIND_LABEL[active.kind]}</span><h2>{active.project}</h2><p>{active.buyer}</p></div>
+          <div><span className={`guarantee-status status-${active.status}`}>{BOND_STATUS[active.status].word}</span><strong>{money(math.applied)} AZN</strong><span>{dateAZ(active.until)} · {daysLeft(active.until)}</span></div>
+        </Panel>
+        <Tabs value={view} onChange={setView} options={[{id:"info",label:"Ümumi məlumat"},{id:"papers",label:"Sənədlər"},{id:"calculation",label:"Hesablama"},{id:"banks",label:"Bank seçimi"}]} />
+        {view === "info" && <Panel className="pad guarantee-info"><h2>Qarantiya məlumatları</h2><p className="lede">{active.note}</p><dl className="document-summary-fields"><div><dt>Şirkət</dt><dd>{cabinet.name.trim() || "AFEZ İnşaat"}</dd></div><div><dt>VÖEN</dt><dd>{cabinet.voen.trim() || "1700123451"}</dd></div><div><dt>Bank</dt><dd>{bank?.name || active.bank}</dd></div><div><dt>Qüvvədə olma müddəti</dt><dd>{days} gün</dd></div><div><dt>Açılma tarixi</dt><dd>{dateAZ(active.opened)}</dd></div><div><dt>Sənədlər</dt><dd>{readyPapers}/{active.papers.length} hazırdır</dd></div></dl><Button onClick={() => setView("papers")}>Sənədlərə bax</Button></Panel>}
+        {view === "papers" && <Panel className="pad guarantee-papers"><SectionHeader><h2>Müraciət sənədləri</h2><span>{readyPapers}/{active.papers.length} hazırdır</span></SectionHeader>
             <div className="qar-docs">
               {active.papers.map((item) => (
                 <article key={item.name} className={item.ready ? "ready" : "miss"}>
@@ -2405,63 +2254,32 @@ export function GuaranteePage() {
             </div>
             <Meter value={active.papers.length ? (readyPapers / active.papers.length) * 100 : 0} tone={readyPapers === active.papers.length ? "pine" : "copper"} />
             <div className="qar-actions">
-              <label className="qar-check">
-                <input type="checkbox" checked={guarantee.reviewed} onChange={(event) => patch((state) => ({ ...state, guarantee: { ...state.guarantee, reviewed: event.target.checked, packed: false } }))} />
-                Şirkət paketi yoxladı
-              </label>
-              <button type="button" className="qar-action" onClick={() => void pack()} disabled={!bank || !guarantee.reviewed}>Sənəd mübadiləsinə hazırla</button>
-              <button type="button" className="qar-action" onClick={pull} disabled={!tender.opened}>Yazılmış şərti gətir</button>
+              <Checkbox label="Şirkət paketi yoxladı" checked={guarantee.reviewed} onChange={(event) => patch((state) => ({ ...state, guarantee: { ...state.guarantee, reviewed: event.target.checked, packed: false } }))} />
+              <button type="button" className="btn" onClick={() => void pack()} disabled={!bank || !guarantee.reviewed}>Sənəd mübadiləsinə hazırla</button>
+              <button type="button" className="btn" onClick={pull} disabled={!tender.opened}>Yazılmış şərti gətir</button>
             </div>
             <p className="lede">{packNote || (guarantee.packed ? "Paket sənəd mübadiləsi üçün hazırdır. Bank API-si bağlı olsa da proses dayanmır." : "Paket bank seçiləndən və yoxlamadan sonra açılır.")}</p>
-            <h3 className="qar-block">Hesab</h3>
+
+        </Panel>}
+        {view === "calculation" && <Panel className="pad guarantee-calculation"><h2>Təminatın hesablanması</h2>
             <div className="form-row wide">
               <label>Növ<Select value={guarantee.kind} onValueChange={(kind) => patch((state) => ({ ...state, guarantee: { ...state.guarantee, kind, packed: false } }))} options={[{ value: "istirak", label: "İştirak" }, { value: "icra", label: "İcra" }, { value: "avans", label: "Avans" }]} /></label>
               <label>Hesab<Select value={guarantee.mode} onValueChange={(mode) => patch((state) => ({ ...state, guarantee: { ...state.guarantee, mode: mode as "percent" | "fixed", packed: false } }))} options={[{ value: "percent", label: "Faiz" }, { value: "fixed", label: "Sabit məbləğ" }]} /></label>
-              <label>Baza, AZN<input value={guarantee.amount} onChange={(event) => patch((state) => ({ ...state, guarantee: { ...state.guarantee, amount: event.target.value, packed: false } }))} /></label>
-              <label>Şərtdəki faiz<input value={guarantee.rate} onChange={(event) => patch((state) => ({ ...state, guarantee: { ...state.guarantee, rate: event.target.value, packed: false } }))} disabled={guarantee.mode === "fixed"} /></label>
-              <label>Bank güzəşti, %<input value={guarantee.offer} onChange={(event) => patch((state) => ({ ...state, guarantee: { ...state.guarantee, offer: event.target.value, packed: false } }))} placeholder="boşdursa şərt qalır" disabled={guarantee.mode === "fixed"} /></label>
+              <label>Baza, AZN<Input value={guarantee.amount} onChange={(event) => patch((state) => ({ ...state, guarantee: { ...state.guarantee, amount: event.target.value, packed: false } }))} /></label>
+              <label>Şərtdəki faiz<Input value={guarantee.rate} onChange={(event) => patch((state) => ({ ...state, guarantee: { ...state.guarantee, rate: event.target.value, packed: false } }))} disabled={guarantee.mode === "fixed"} /></label>
+              <label>Bank güzəşti, %<Input value={guarantee.offer} onChange={(event) => patch((state) => ({ ...state, guarantee: { ...state.guarantee, offer: event.target.value, packed: false } }))} placeholder="boşdursa şərt qalır" disabled={guarantee.mode === "fixed"} /></label>
             </div>
             {tender.opened && <p className="lede">Tender şərti: iştirak {money(suggested.bid)} AZN, icra {money(suggested.perform)} AZN, avans {money(suggested.advance)} AZN.</p>}
             <div className="step-row"><span>Şərt üzrə</span><strong>{money(math.asked)} AZN</strong></div>
             <div className="step-row"><span>Tətbiq olunan</span><strong>{money(math.applied)} AZN{guarantee.mode === "percent" ? ` · ${math.rate}%` : ""}</strong></div>
             <div className="step-row"><span>Komissiya</span><strong>{bank?.commission.trim() ? `${bank.commission}% · ${money(fee)} AZN` : "Yazılmayıb"}</strong></div>
-          </section>
-        </div>
-      </div>
 
-      <div className="library">
-        <div className="library-bar">
-          <div>
-            <strong>{desk.length} bank</strong>
-            <span>{active.project} üçün {bank?.short || active.bank}</span>
-          </div>
-          <Link to="/partnyorlar">Reyestr</Link>
-        </div>
-        <div className="library-body">
-          <div className="file-index">
-            <label className="file-find">
-              <Icon name="search" />
-              <input value={bankQuery} onChange={(event) => setBankQuery(event.target.value)} placeholder="Bank axtar" aria-label="Bank axtar" />
-            </label>
-            <div className="file-list">
-              {bankRows.map((item) => {
-                const itemTone = bankTone(item)
-                const on = item.id === guarantee.bankId
-                return (
-                  <button key={item.id} type="button" className={on ? "file-card on" : "file-card"} aria-pressed={on} onClick={() => patch((state) => ({ ...state, guarantee: { ...state.guarantee, bankId: item.id, packed: false } }))}>
-                    <em>{item.short.slice(0, 3)}</em>
-                    <span className="file-card-copy">
-                      <strong>{item.name}</strong>
-                      <small>Komissiya {item.commission.trim() ? `${item.commission}%` : "—"} · {itemTone.word}</small>
-                    </span>
-                  </button>
-                )
-              })}
-              {bankRows.length === 0 && <p className="lede">Uyğun bank yoxdur.</p>}
-            </div>
-          </div>
+        </Panel>}
+        {view === "banks" && <>
+          <Toolbar className="guarantee-toolbar"><SearchInput value={bankQuery} onChange={(event) => setBankQuery(event.target.value)} placeholder="Bank axtar" /><Link className="btn ghost" to="/partnyorlar">Bank reyestri</Link></Toolbar>
+          <TableContainer className="guarantee-bank-table"><table><thead><tr><th>Seçim</th><th>Bank</th><th>Komissiya</th><th>Müddət</th><th>Status</th></tr></thead><tbody>{bankRows.map((item) => <tr key={item.id}><td><input type="radio" name="guarantee-bank" aria-label={item.name} checked={item.id === guarantee.bankId} onChange={() => patch((state) => ({...state, guarantee:{...state.guarantee,bankId:item.id,packed:false}}))} /></td><td><strong>{item.name}</strong></td><td>{item.commission.trim() ? `${item.commission}%` : "—"}</td><td>{item.term}</td><td>{bankTone(item).word}</td></tr>)}</tbody></table>{!bankRows.length && <p className="lede">Uyğun bank yoxdur.</p>}</TableContainer>
           {bank && (
-            <section className="file-sheet">
+            <section className="panel pad guarantee-bank-detail">
               <header>
                 <div>
                   <p>{bank.short} · {tone.word}</p>
@@ -2475,12 +2293,12 @@ export function GuaranteePage() {
               <div className="step-row"><span>Təsdiq sənədi</span><strong>{bank.proof.trim() ? `${bank.proof} · ${dateAZ(bank.proofDate)}` : "Sənəd yoxdur"}</strong></div>
               {bank.contact && <div className="step-row"><span>Əlaqə</span><strong>{bank.contact}</strong></div>}
               <div className="qar-actions">
-                <button type="button" className="qar-action" disabled={!bank.discount.trim() || guarantee.mode === "fixed"} onClick={() => patch((state) => ({ ...state, guarantee: { ...state.guarantee, offer: bank.discount, packed: false } }))}>Güzəşti tətbiq et</button>
+                <button type="button" className="btn" disabled={!bank.discount.trim() || guarantee.mode === "fixed"} onClick={() => patch((state) => ({ ...state, guarantee: { ...state.guarantee, offer: bank.discount, packed: false } }))}>Güzəşti tətbiq et</button>
               </div>
             </section>
           )}
-        </div>
-      </div>
+        </>}
+      </>}
     </div>
   )
 }
@@ -2573,6 +2391,11 @@ export function SpecPage() {
   useTitle("Spesifikasiya")
   const { spec } = useWorkspace()
   const [filter, setFilter] = useState("hamisi")
+  const [query, setQuery] = useState("")
+  const [group, setGroup] = useState("all")
+  const [selected, setSelected] = useState("")
+  const [draft, setDraft] = useState<Fit>("el")
+  const [notice, setNotice] = useState("")
 
   const rows = [
     ...SPEC_SECTIONS.map((name) => ({
@@ -2599,128 +2422,50 @@ export function SpecPage() {
   const problems = rows.filter((row) => row.fit === "deyil" || row.fit === "catismir").length
   const waiting = rows.filter((row) => row.fit === "gozleyir").length
   const ok = rows.filter((row) => row.fit === "uygun").length
+  const open = rows.find((row) => row.name === selected)
+  const needle = query.trim().toLocaleLowerCase("az")
   const shown = rows.filter((row) => {
+    if (group !== "all" && row.group !== group) return false
+    if (needle && ![row.name, row.title, row.paper, row.group].join(" ").toLocaleLowerCase("az").includes(needle)) return false
     if (filter === "el") return row.fit === "el"
     if (filter === "problem") return row.fit === "deyil" || row.fit === "catismir"
     if (filter === "gozleyir") return row.fit === "gozleyir"
     if (filter === "uygun") return row.fit === "uygun"
     return true
   })
-  const groups = [...SPEC_GROUPS, "Digər"]
-    .map((group) => ({ group, items: shown.filter((row) => row.group === group) }))
-    .filter((group) => group.items.length > 0)
+  function openRow(name: string, fit: Fit) { setSelected(name); setDraft(fit) }
 
-  return (
-    <div className="spec-page">
-      <PageHead
-        kicker="Sənəd yoxlaması"
-        title="Spesifikasiya"
-        text="Hər kart bir sualdır: şirkətin sənədi bu tələbə cavab verirmi? Nömrə şablon kodudur. Qərarı siz yazırsınız, siyahı bütün layihələr üçün eynidir."
-      />
-      {decided === 0 && (
-        <section className="panel pad spec-start">
-          <div>
-            <h2>Necə yoxlanılır</h2>
-            <p className="lede">Siyahı artıq açıqdır. Heç nə seçilməyibsə, bölmə hələ yoxlanılmayıb. Nəticəni seçəndə qərar yadda qalır.</p>
-          </div>
-          <ol className="spec-steps">
-            <li>
-              <b>1</b>
-              <strong>Sualı oxuyun</strong>
-              <span>Kart bölmənin nəyi yoxladığını sadə dildə deyir.</span>
-            </li>
-            <li>
-              <b>2</b>
-              <strong>Sənədə baxın</strong>
-              <span>Hər kartda hansı kağıza baxmaq lazım olduğu yazılıb.</span>
-            </li>
-            <li>
-              <b>3</b>
-              <strong>Nəticəni seçin</strong>
-              <span>Uyğundur, uyğun deyil, sənəd çatışmır və ya təsdiq gözləyir.</span>
-            </li>
-          </ol>
-        </section>
-      )}
-      <section className="statstrip">
-        <article>
-          <span>Yoxlanılıb</span>
-          <strong>{decided}/{rows.length}</strong>
-          <em>{rows.length - decided} bölmə hələ açıqdır</em>
-        </article>
-        <article>
-          <span>Uyğundur</span>
-          <strong>{ok}</strong>
-          <em>Sənəd tələblə düşür</em>
-        </article>
-        <article>
-          <span>Problem</span>
-          <strong>{problems}</strong>
-          <em className={problems ? "warn" : undefined}>{problems ? "Uyğun deyil və ya sənəd yoxdur" : "Açıq problem yoxdur"}</em>
-        </article>
-        <article>
-          <span>Gözləyir</span>
-          <strong>{waiting}</strong>
-          <em>{waiting ? "Təsdiq cavabı gəlməyib" : "Gözləyən bölmə yoxdur"}</em>
-        </article>
-      </section>
-      <section className="spec-progress" aria-label="Yoxlama gedişi">
-        <div>
-          <strong>{decided === rows.length ? "Bütün bölmələr yoxlanılıb" : `${rows.length - decided} bölmə hələ yoxlanılmayıb`}</strong>
-          <span>{decided} qərar yazılıb, cəmi {rows.length} bölmə.</span>
-        </div>
-        <Meter value={rows.length ? (decided / rows.length) * 100 : 0} tone="pine" />
-      </section>
-      <section className="spec-legend" aria-label="Nəticələrin mənası">
-        {(Object.keys(FIT_HINT) as Fit[]).map((key) => (
-          <article key={key}>
-            <span className={`badge ${fitTone(key)}`}>{FIT_LABEL[key]}</span>
-            <p>{FIT_HINT[key]}</p>
-          </article>
-        ))}
-      </section>
-      <div className="toolbar">
-        <Tabs
-          value={filter}
-          onChange={setFilter}
-          options={[
-            { id: "hamisi", label: "Hamısı" },
-            { id: "el", label: "Yoxlanılmayıb" },
-            { id: "problem", label: "Problem" },
-            { id: "gozleyir", label: "Gözləyir" },
-            { id: "uygun", label: "Uyğundur" },
-          ]}
-        />
-      </div>
-      {shown.length === 0 && <Empty title="Bu süzgəcə düşən bölmə yoxdur" text="Başqa süzgəc seçin. Bölmələr siyahıda qalır, silinmir." />}
-      {groups.map(({ group, items }) => (
-        <section className="spec-group" key={group}>
-          <h2>{group}</h2>
-          <div className="spec-grid">
-            {items.map((row) => (
-              <article className={`spec-card ${fitTone(row.fit)}`} key={row.name}>
-                <header>
-                  <div>
-                    {row.code ? <p className="spec-code">Şablon {row.code}</p> : <p className="spec-code">Əlavə bölmə</p>}
-                    <h3>{row.title}</h3>
-                  </div>
-                  <span className={`badge ${fitTone(row.fit)}`}>{FIT_LABEL[row.fit]}</span>
-                </header>
-                <p>{row.question}</p>
-                <p className="paper">Baxılacaq sənəd: {row.paper}</p>
-                <label>
-                  Nəticə
-                  <Select ariaLabel={`${row.title} nəticəsi`} value={row.fit} onValueChange={(fit) => writeFit(row.name, fit as Fit)} options={FIT_OPTIONS} />
-                </label>
-                <p className="hint">{FIT_HINT[row.fit]}</p>
-                {row.name === "Sınaq və sertifikat" && <Link className="btn ghost small" to="/anbar?tab=pasport">Material pasportuna keç</Link>}
-              </article>
-            ))}
-          </div>
-        </section>
-      ))}
-    </div>
-  )
+  return <div className="spec-page spec-workspace">
+    <PageHead title="Spesifikasiya" text="Tələbləri yoxlayın və nəticələri qeyd edin." />
+    <Panel className="spec-summary">
+      <div className="spec-summary-progress"><strong>Yoxlanılıb <b>{decided}/{rows.length}</b></strong><Meter value={rows.length ? decided / rows.length * 100 : 0} tone="pine" /></div>
+      <div><b className="spec-ok">{ok}</b><span>Uyğundur</span></div><div><b className="spec-problem">{problems}</b><span>Problem</span></div><div><b className="spec-wait">{waiting}</b><span>Gözləyir</span></div>
+    </Panel>
+    <div className="spec-status-key" aria-label="Nəticə rəngləri">{FIT_OPTIONS.map((item) => <span key={item.value} className={"badge spec-fit fit-" + item.value}>{item.value === "el" ? "Yoxlanılmayıb" : item.label}</span>)}</div>
+    <Toolbar className="spec-toolbar">
+      <SearchInput aria-label="Spesifikasiya axtar" value={query} placeholder="Bölmə və ya sənəd axtar" onChange={(event) => setQuery(event.target.value)} />
+      <Select ariaLabel="Bölmə filtri" value={group} onValueChange={setGroup} options={[{ value: "all", label: "Bütün bölmələr" }, ...[...SPEC_GROUPS, "Digər"].map((name) => ({ value: name, label: name }))]} />
+      <Select ariaLabel="Nəticə filtri" value={filter} onValueChange={setFilter} options={[{value:"hamisi",label:"Bütün nəticələr"},{value:"el",label:"Yoxlanılmayıb"},{value:"problem",label:"Problem"},{value:"gozleyir",label:"Gözləyir"},{value:"uygun",label:"Uyğundur"}]} />
+    </Toolbar>
+    {notice && <p className="spec-notice" role="status">{notice}</p>}
+    {shown.length === 0 ? <Empty title="Uyğun bölmə tapılmadı" text="Axtarışı və ya filtrləri dəyişin." /> : <TableContainer className="spec-library"><table>
+      <thead><tr><th>Kod</th><th>Bölmə</th><th>Sənəd</th><th>Nəticə</th><th>Aç</th></tr></thead>
+      <tbody>{shown.map((row) => <tr key={row.name} tabIndex={0} onClick={() => openRow(row.name, row.fit)} onKeyDown={(event) => {if(event.key === "Enter" || event.key === " "){event.preventDefault();openRow(row.name,row.fit)}}}>
+        <td className="mono">{row.code || "—"}</td><td><strong>{row.title}</strong><span className="spec-row-group">{row.group}</span></td><td>{row.paper}</td><td><span className={"badge spec-fit fit-" + row.fit}>{row.fit === "el" ? "Yoxlanılmayıb" : FIT_LABEL[row.fit]}</span></td><td><Icon name="chevron" /></td>
+      </tr>)}</tbody>
+    </table></TableContainer>}
+    <p className="spec-list-count">{shown.length} / {rows.length} bölmə</p>
+    <Disclosure title="Yoxlama qaydası" className="spec-help"><p>Bölməni seçin, göstərilən sənədi tələblə tutuşdurun və nəticəni saxlayın. Kodlar şablona aiddir; yoxlama siyahısı bütün layihələr üçün eynidir.</p><div className="spec-help-results">{(Object.keys(FIT_HINT) as Fit[]).map((key) => <div key={key}><span className={"badge " + fitTone(key)}>{FIT_LABEL[key]}</span><p>{FIT_HINT[key]}</p></div>)}</div></Disclosure>
+    {open && <Modal title={open.title} onClose={() => setSelected("")} className="spec-result-modal">
+      <p className="spec-modal-meta">{open.code ? open.code + " · " : ""}{open.group}</p>
+      <div className="spec-question"><span>Yoxlama sualı</span><p>{open.question}</p></div>
+      <div className="spec-paper"><Icon name="files" /><div><span>Baxılacaq sənəd</span><strong>{open.paper}</strong></div></div>
+      <Field label="Nəticə"><Select ariaLabel={open.title + " nəticəsi"} value={draft} onValueChange={(value) => setDraft(value as Fit)} options={FIT_OPTIONS.map((item) => item.value === "el" ? { ...item, label: "Yoxlanılmayıb" } : item)} /></Field>
+      <p className="spec-result-hint">{FIT_HINT[draft]}</p>
+      {open.name === "Sınaq və sertifikat" && <Link className="btn ghost small" to="/anbar?tab=pasport">Material pasportuna keç</Link>}
+      <div className="form-actions"><Button className="ghost" onClick={() => setSelected("")}>Ləğv et</Button><Button disabled={draft === open.fit} onClick={() => {writeFit(open.name,draft);setNotice(open.title + ": " + FIT_LABEL[draft]);setSelected("")}}>Nəticəni saxla</Button></div>
+    </Modal>}
+  </div>
 }
 
 type ScheduleBook = {
@@ -2781,7 +2526,7 @@ export function SchedulePage() {
   return (
     <>
       <PageHead kicker="Layihə" title="İş qrafiki" text="Gün nömrəsi ilə yazılır. Hava dayanması bitmə gününü ehtiyat qədər sürüşdürür." />
-      <section className="panel pad">
+      <Panel className="pad">
         <h2 className="block-title">İcra qarantiyası</h2>
         {books.length > 0 && (
           <div className="form-row">
@@ -2799,17 +2544,17 @@ export function SchedulePage() {
           </div>
         )}
         <div className="form-row wide">
-          <label>Təqdim günü<input value={bondDay} onChange={(event) => patch((state) => ({ ...state, schedule: { ...state.schedule, bondDay: event.target.value } }))} placeholder="gün nömrəsi" /></label>
+          <label>Təqdim günü<Input value={bondDay} onChange={(event) => patch((state) => ({ ...state, schedule: { ...state.schedule, bondDay: event.target.value } }))} placeholder="gün nömrəsi" /></label>
         </div>
         <div className="step-row"><span>İcra qarantiyası təqdim olunmalıdır</span><strong>{bondDay.trim() ? `${bondDay} gün` : "Gün yazılmayıb"}</strong></div>
         <div className="form-row wide">
-          <label>İş<input value={name} onChange={(event) => setName(event.target.value)} /></label>
-          <label>Başlanğıc gün<input value={start} onChange={(event) => setStart(event.target.value)} /></label>
-          <label>Bitmə gün<input value={end} onChange={(event) => setEnd(event.target.value)} /></label>
-          <button type="button" className="btn" onClick={() => { if (!name.trim()) return; patch((state) => ({ ...state, schedule: { ...state.schedule, rows: [...state.schedule.rows, { id: uid(), name, start, end }] } })); setName(""); setStart(""); setEnd("") }}>Əlavə et</button>
+          <label>İş<Input value={name} onChange={(event) => setName(event.target.value)} /></label>
+          <label>Başlanğıc gün<Input value={start} onChange={(event) => setStart(event.target.value)} /></label>
+          <label>Bitmə gün<Input value={end} onChange={(event) => setEnd(event.target.value)} /></label>
+          <Button type="button" onClick={() => { if (!name.trim()) return; patch((state) => ({ ...state, schedule: { ...state.schedule, rows: [...state.schedule.rows, { id: uid(), name, start, end }] } })); setName(""); setStart(""); setEnd("") }}>Əlavə et</Button>
         </div>
         <div className="step-row"><span>Hava ehtiyatı</span><strong>{reserve} gün</strong></div>
-        <div className="table-wrap" style={{ marginTop: 14 }}>
+        <TableContainer  style={{ marginTop: 14 }}>
           <table>
             <thead><tr><th>İş</th><th>Başlanğıc</th><th>Bitmə</th><th>Hava ilə bitmə</th></tr></thead>
             <tbody>
@@ -2820,8 +2565,8 @@ export function SchedulePage() {
               })}
             </tbody>
           </table>
-        </div>
-      </section>
+        </TableContainer>
+      </Panel>
     </>
   )
 }
@@ -2876,6 +2621,7 @@ function infoRows(item: { name: string; category: string; price: string; vat: st
 export function MarketPage() {
   useTitle("Bazar")
   const { market } = useWorkspace()
+  const { purchaseOrders } = useStore()
   const [ready, setReady] = useState(false)
   const [form, setForm] = useState(emptyOffer)
   const [find, setFind] = useState("")
@@ -2917,6 +2663,30 @@ export function MarketPage() {
       .catch(() => undefined)
       .finally(() => setReady(true))
   }, [])
+
+  useEffect(() => {
+    api<{id:string;title:string;status:string;note:string;createdAt:string; supplier:{name:string}|null;lines:{id:string;name:string;unit:string;qty:string}[];bids:{id:string;unitPrice:string|null;qty:string|null;delivery:string|null;leadDays:number|null;quality:string;status:string;organization:{name:string}}[]}[]>("/api/platform/market/rfqs")
+      .then((rows) => setRfqs(rows.map((row) => ({
+        id:row.id,number:row.title,status:row.bids.some((bid) => bid.status === "secildi") ? "secilib" : row.bids.length ? "teklifler" : "gonderilib",
+        address:row.note || "Ünvan göstərilməyib",needBy:"",createdAt:row.createdAt.slice(0,10),
+        lines:row.lines.map((line) => ({productId:line.id,name:line.name,unit:line.unit,qty:Number(line.qty),supplier:row.supplier?.name || ""})),
+        quotes:row.bids.filter((bid) => bid.unitPrice !== null).map((bid) => ({id:bid.id,supplier:bid.organization.name,unitPrice:Number(bid.unitPrice),deliveryDays:bid.leadDays || 0,vat:"unknown",qty:bid.qty == null ? undefined : Number(bid.qty),delivery:Number(bid.delivery || 0),note:bid.quality})),
+        chosenQuoteId:row.bids.find((bid) => bid.status === "secildi")?.id,
+      }))))
+      .catch((reason) => setRfqError(reason instanceof ApiError ? reason.message : "RFQ məlumatları oxunmadı"))
+  }, [])
+
+  useEffect(() => {
+    setOrders((current) => {
+      const ids = new Set(purchaseOrders.map((item) => item.id))
+      return [...current.filter((item) => !ids.has(item.id)), ...purchaseOrders.map((item): MarketOrder => ({
+        id:item.id,number:item.id,rfqId:item.requestId || "",supplier:item.supplier,
+        status:item.status === "qebul" ? "baglanib" : item.status === "yoldadir" ? "hazirlanir" : "tesdiq",
+        lines:[{productId:item.materialId || item.id,name:item.item,unit:item.unit,qty:item.qty,supplier:item.supplier}],
+        unitPrice:item.qty ? item.amount / item.qty : 0,deliveredQty:item.status === "qebul" ? item.qty : item.receivedQty || 0,receivedQty:item.receivedQty || 0,disputeQty:0,createdAt:item.eta,
+      }))]
+    })
+  }, [purchaseOrders])
 
   const categories = useMemo(() => {
     const known = new Set<string>(CATEGORIES)
@@ -3020,9 +2790,9 @@ export function MarketPage() {
   return (
     <div className="market-page">
       <PageHead kicker="Təchizat" title="Material bazarı" text="Kataloq → RFQ → təklif müqayisəsi → sifariş → qəbul. Məhsul ödənişi tərəflər arasındadır; platforma komissiya tarifi AÇIQ-dır, burada hesablanmır.">
-        {desk === "katalog" && <button type="button" className="btn" onClick={openNew}><Icon name="plus" /> Yeni</button>}
+        {desk === "katalog" && <Button type="button" onClick={openNew}><Icon name="plus" /> Yeni</Button>}
       </PageHead>
-      <div className="toolbar">
+      <Toolbar>
         <Tabs
           value={desk}
           onChange={(next) => setDesk(next as typeof desk)}
@@ -3032,24 +2802,25 @@ export function MarketPage() {
             { id: "sifaris", label: `Sifariş${orders.length ? ` · ${orders.length}` : ""}` },
           ]}
         />
-      </div>
+      </Toolbar>
       {desk === "rfq" && (
-        <section className="panel pad">
-          <h2>RFQ səbəti</h2>
+        <Panel className="pad">
+          <h2>Qiymət sorğuları</h2>
+          {rfqError && <p className="form-error" role="alert">{rfqError}</p>}
           <p className="muted">İctimai sabit qiymət və ani checkout yoxdur — yalnız qiymət sorğusu.</p>
           {cart.length === 0 && !rfqs.length && <Empty title="Səbət boşdur" text="Kataloqdan «RFQ-yə əlavə et» seçin." />}
           {cart.map((line) => (
             <p key={line.productId}>
               <b>{line.name}</b> · {num(line.qty, 0)} {line.unit}
-              <button type="button" className="btn ghost small" onClick={() => setCart((prev) => prev.filter((row) => row.productId !== line.productId))}>Sil</button>
+              <Button type="button" className="ghost small" onClick={() => setCart((prev) => prev.filter((row) => row.productId !== line.productId))}>Sil</Button>
             </p>
           ))}
           {cart.length > 0 && (
             <>
-              <Field label="Ünvan"><input value={rfqForm.address} onChange={(event) => setRfqForm({ ...rfqForm, address: event.target.value })} /></Field>
+              <Field label="Ünvan"><Input value={rfqForm.address} onChange={(event) => setRfqForm({ ...rfqForm, address: event.target.value })} /></Field>
               <Field label="Tələb tarixi"><DateField value={rfqForm.needBy} onChange={(value) => setRfqForm({ ...rfqForm, needBy: value })} /></Field>
               {rfqError && <p className="form-error">{rfqError}</p>}
-              <button type="button" className="btn" onClick={submitRfq}>RFQ göndər</button>
+              <Button type="button" onClick={submitRfq}>RFQ göndər</Button>
             </>
           )}
           {rfqs.length > 0 && (
@@ -3058,18 +2829,20 @@ export function MarketPage() {
               <Select
                 value={currentRfq?.id || ""}
                 onValueChange={setActiveRfq}
-                options={rfqs.map((item) => ({ value: item.id, label: `${item.number} · ${item.status}` }))}
+                options={rfqs.map((item) => ({ value: item.id, label: `${item.number} · ${{layihe:"Qaralama",gonderilib:"Göndərilib",teklifler:"Təkliflər var",secilib:"Təklif seçilib",baglanib:"Bağlanıb",legv:"Ləğv"}[item.status]}` }))}
               />
               {currentRfq && (
                 <>
-                  <p className="muted">{currentRfq.address} · {currentRfq.needBy} · {currentRfq.lines.length} sətir</p>
+                  <p className="muted">{currentRfq.address}{currentRfq.needBy ? ` · ${currentRfq.needBy}` : ""} · {currentRfq.lines.length} sətir</p>
+                  <TableContainer className="flat"><table><thead><tr><th>Məhsul</th><th>Miqdar</th><th>Vahid</th></tr></thead><tbody>{currentRfq.lines.map((line) => <tr key={line.productId}><td>{line.name}</td><td>{num(line.qty, 0)}</td><td>{line.unit}</td></tr>)}</tbody></table></TableContainer>
+                  {!currentRfq.quotes.length && <p className="muted">Təchizatçı təklifləri gözlənilir.</p>}
                   {quoteCompareRows(currentRfq).map((quote) => (
                     <p key={quote.id}>
-                      <b>{quote.supplier}</b> · {moneyAZ(quote.total)} · {quote.deliveryDays} gün · ƏDV {quote.vat}
+                      <b>{quote.supplier}</b> · {moneyAZ(quote.total)} · {quote.deliveryDays} gün · {quote.qty ?? currentRfq.lines.reduce((sum, line) => sum + line.qty, 0)} {currentRfq.lines[0]?.unit} · {quote.vat === "unknown" ? "ƏDV göstərilməyib" : `ƏDV ${quote.vat}`}
                       {quote.chosen ? " · seçilib" : (
-                        <button
+                        <Button
                           type="button"
-                          className="btn ghost small"
+                          className="ghost small"
                           onClick={() => {
                             const next = chooseQuote(currentRfq, quote.id)
                             if (typeof next === "string") { setRfqError(next); return }
@@ -3077,14 +2850,14 @@ export function MarketPage() {
                           }}
                         >
                           Seç
-                        </button>
+                        </Button>
                       )}
                     </p>
                   ))}
                   {currentRfq.status === "secilib" && (
-                    <button
+                    <Button
                       type="button"
-                      className="btn"
+
                       onClick={() => {
                         const order = orderFromRfq(currentRfq, orders)
                         if (typeof order === "string") { setRfqError(order); return }
@@ -3094,29 +2867,30 @@ export function MarketPage() {
                       }}
                     >
                       Sifariş yarat
-                    </button>
+                    </Button>
                   )}
                 </>
               )}
             </>
           )}
-        </section>
+        </Panel>
       )}
       {desk === "sifaris" && (
-        <section className="panel pad">
+        <Panel className="pad">
           <h2>Sifariş və qəbul</h2>
           {orders.length === 0 && <Empty title="Sifariş yoxdur" text="RFQ-dən təklif seçib sifariş açın." />}
           {orders.map((order) => {
             const total = order.lines.reduce((sum, line) => sum + line.qty, 0)
             return (
-              <div key={order.id} className="panel pad">
-                <p><b>{order.number}</b> · {order.supplier} · <Badge status={order.status} /></p>
+              <Panel as="div" key={order.id} className="pad">
+                <p><b>{order.number}</b> · {order.supplier} · <span className={`market-order-status market-order-${order.status}`}>{{yaradilib:"Yeni",tesdiq:"Təsdiqlənib",hazirlanir:"Çatdırılma gözlənilir",catdirilib:"Çatdırılıb",qebul:"Qəbulda",baglanib:"Qəbul tamamlanıb"}[order.status]}</span></p>
+                <p>{order.lines.map((line) => `${line.name} · ${num(line.qty, 0)} ${line.unit}`).join(", ")}</p>
                 <p className="muted">Çatdırılıb {num(order.deliveredQty, 0)} / {num(total, 0)} · qəbul {num(order.receivedQty, 0)} · mübahisə {num(order.disputeQty, 0)}</p>
                 <div className="form-actions">
                   {order.status !== "baglanib" && order.deliveredQty < total && (
-                    <button
+                    <Button
                       type="button"
-                      className="btn ghost"
+                      className="ghost"
                       onClick={() => {
                         const next = deliverOrder(order, Math.max(1, total - order.deliveredQty))
                         if (typeof next === "string") return
@@ -3124,12 +2898,12 @@ export function MarketPage() {
                       }}
                     >
                       Çatdırılma yaz
-                    </button>
+                    </Button>
                   )}
                   {order.deliveredQty > order.receivedQty + order.disputeQty && (
-                    <button
+                    <Button
                       type="button"
-                      className="btn"
+
                       onClick={() => {
                         const left = order.deliveredQty - order.receivedQty - order.disputeQty
                         const accept = Math.max(0, left - (left > 5 ? 5 : 0))
@@ -3140,43 +2914,40 @@ export function MarketPage() {
                       }}
                     >
                       Qəbul et
-                    </button>
+                    </Button>
                   )}
                 </div>
-              </div>
+              </Panel>
             )
           })}
-        </section>
+        </Panel>
       )}
       {desk === "katalog" && (
       <>
-      <section className="statstrip">
-        <article>
+      <StatGrid>
+        <Metric>
           <span>Məhsul</span>
           <strong>{market.length}</strong>
           <em>Kataloq sətri</em>
-        </article>
-        <article>
+        </Metric>
+        <Metric>
           <span>Təchizatçı</span>
           <strong>{suppliers}</strong>
           <em>Şirkət sayı</em>
-        </article>
-        <article>
+        </Metric>
+        <Metric>
           <span>Canlı qiymət</span>
           <strong>{live}</strong>
           <em>Qüvvədə olan</em>
-        </article>
-        <article>
+        </Metric>
+        <Metric>
           <span>Diqqət</span>
           <strong>{attention}</strong>
           <em className={attention ? "warn" : undefined}>{attention ? "Bitib və ya 30 günə bitir" : "Yaxın bitmə yoxdur"}</em>
-        </article>
-      </section>
-      <div className="toolbar market-toolbar">
-        <form className="search" role="search" onSubmit={(event) => event.preventDefault()}>
-          <Icon name="search" />
-          <input value={find} onChange={(event) => setFind(event.target.value)} placeholder="Məhsul, təchizatçı, region" aria-label="Bazarda axtar" />
-        </form>
+        </Metric>
+      </StatGrid>
+      <Toolbar className="market-toolbar">
+        <SearchInput value={find} onChange={(event) => setFind(event.target.value)} placeholder="Məhsul, təchizatçı, region" aria-label="Bazarda axtar" />
         <div className="market-filters">
           <Select
             value={category}
@@ -3184,24 +2955,16 @@ export function MarketPage() {
             ariaLabel="Kateqoriya"
             options={[{ value: "hamisi", label: "Bütün kateqoriyalar" }, ...categories.map((item) => ({ value: item, label: item }))]}
           />
-          <Tabs
-            value={vat}
-            onChange={setVat}
-            options={[
-              { id: "hamisi", label: "Hamısı" },
-              { id: "xaric", label: "ƏDV xaric" },
-              { id: "daxil", label: "ƏDV daxil" },
-            ]}
-          />
+          <Select ariaLabel="ƏDV filtri" value={vat} onValueChange={setVat} options={[{value:"hamisi",label:"ƏDV: hamısı"},{value:"xaric",label:"ƏDV xaric"},{value:"daxil",label:"ƏDV daxil"}]} />
         </div>
-      </div>
+      </Toolbar>
       {!ready && <p className="lede">Kataloq oxunur.</p>}
       {ready && market.length === 0 && <Empty title="Kataloq boşdur" text="Yeni düyməsi ilə məhsul yazın. Sətir cədvələ düşəcək." />}
       {ready && market.length > 0 && shown.length === 0 && <Empty title="Bu süzgəcə düşən məhsul yoxdur" text="Axtarışı, kateqoriyanı və ya ƏDV süzgəcini dəyişin." />}
       {shown.length > 0 && (
         <>
           <p className="market-count">{shown.length} məhsul{shown.length !== market.length ? ` · ${market.length} içindən` : ""}</p>
-          <div className="pricebook">
+          <TableContainer className="pricebook">
             <table>
               <thead>
                 <tr>
@@ -3257,7 +3020,7 @@ export function MarketPage() {
                 })}
               </tbody>
             </table>
-          </div>
+          </TableContainer>
         </>
       )}
       </>
@@ -3265,20 +3028,20 @@ export function MarketPage() {
       {compose && (
         <Modal wide className="market-modal" title={editing ? "Sətri düzəlt" : "Yeni sətir"} onClose={() => { setCompose(false); setEditing(null) }}>
           <div className="market-fields">
-            <label className="span-2">Məhsul<input value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} placeholder="məsələn, Portland sement CEM II" /></label>
+            <label className="span-2">Məhsul<Input value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} placeholder="məsələn, Portland sement CEM II" /></label>
             <label>Kateqoriya<Select value={form.category} onValueChange={(next) => setForm({ ...form, category: next })} options={formCategories.map((item) => ({ value: item, label: item }))} /></label>
-            <label>Vahid<input value={form.unit} onChange={(event) => setForm({ ...form, unit: event.target.value })} placeholder="ton, m³, ədəd" /></label>
-            <label>Alış qiyməti<input value={form.price} onChange={(event) => setForm({ ...form, price: event.target.value })} inputMode="decimal" placeholder="0,00" /></label>
+            <label>Vahid<Input value={form.unit} onChange={(event) => setForm({ ...form, unit: event.target.value })} placeholder="ton, m³, ədəd" /></label>
+            <label>Alış qiyməti<Input value={form.price} onChange={(event) => setForm({ ...form, price: event.target.value })} inputMode="decimal" placeholder="0,00" /></label>
             <label>ƏDV<Select value={form.vat} onValueChange={(next) => setForm({ ...form, vat: next })} options={[{ value: "xaric", label: "Xaric" }, { value: "daxil", label: "Daxil" }]} /></label>
-            <label>Təchizatçı<input value={form.source} onChange={(event) => setForm({ ...form, source: event.target.value })} /></label>
-            <label>Region<input value={form.region} onChange={(event) => setForm({ ...form, region: event.target.value })} /></label>
-            <label>Çatdırılma<input value={form.delivery} onChange={(event) => setForm({ ...form, delivery: event.target.value })} placeholder="anbar və ya ünvan" /></label>
-            <label>Tarix<input type="date" value={form.updated} onChange={(event) => setForm({ ...form, updated: event.target.value })} /></label>
-            <label>Qüvvədədir<input type="date" value={form.validUntil} onChange={(event) => setForm({ ...form, validUntil: event.target.value })} /></label>
+            <label>Təchizatçı<Input value={form.source} onChange={(event) => setForm({ ...form, source: event.target.value })} /></label>
+            <label>Region<Input value={form.region} onChange={(event) => setForm({ ...form, region: event.target.value })} /></label>
+            <label>Çatdırılma<Input value={form.delivery} onChange={(event) => setForm({ ...form, delivery: event.target.value })} placeholder="anbar və ya ünvan" /></label>
+            <label>Tarix<Input type="date" value={form.updated} onChange={(event) => setForm({ ...form, updated: event.target.value })} /></label>
+            <label>Qüvvədədir<Input type="date" value={form.validUntil} onChange={(event) => setForm({ ...form, validUntil: event.target.value })} /></label>
           </div>
           <div className="form-actions">
-            <button type="button" className="btn ghost" onClick={() => { setCompose(false); setEditing(null) }}>Ləğv et</button>
-            <button type="button" className="btn" disabled={!form.name.trim()} onClick={save}>{editing ? "Saxla" : "Əlavə et"}</button>
+            <Button type="button" className="ghost" onClick={() => { setCompose(false); setEditing(null) }}>Ləğv et</Button>
+            <Button type="button" disabled={!form.name.trim()} onClick={save}>{editing ? "Saxla" : "Əlavə et"}</Button>
           </div>
         </Modal>
       )}
@@ -3293,9 +3056,9 @@ export function MarketPage() {
             ))}
           </dl>
           <div className="form-actions">
-            <button type="button" className="btn ghost" onClick={() => setViewId(null)}>Bağla</button>
-            <button type="button" className="btn ghost" onClick={() => { addToCart(viewed); setViewId(null) }}>RFQ-yə əlavə et</button>
-            <button type="button" className="btn" onClick={() => { setViewId(null); openEdit(viewed) }}>Düzəlt</button>
+            <Button type="button" className="ghost" onClick={() => setViewId(null)}>Bağla</Button>
+            <Button type="button" className="ghost" onClick={() => { addToCart(viewed); setViewId(null) }}>RFQ-yə əlavə et</Button>
+            <Button type="button" onClick={() => { setViewId(null); openEdit(viewed) }}>Düzəlt</Button>
           </div>
         </Modal>
       )}
@@ -3317,20 +3080,20 @@ export function WindowsPage() {
   return (
     <>
       <PageHead kicker="İstehsal" title="Qapı və pəncərə" text="Kəsim qaydasını istehsalçı təsdiqləyənə qədər kiloqram hesabı çıxmır. Şüşə sahəsi ölçüdən gəlir." />
-      <section className="panel pad">
+      <Panel className="pad">
         <div className="form-row wide">
-          <label>En, mm<input value={form.width} onChange={(event) => setForm({ ...form, width: event.target.value })} /></label>
-          <label>Hündürlük, mm<input value={form.height} onChange={(event) => setForm({ ...form, height: event.target.value })} /></label>
-          <label>Say<input value={form.count} onChange={(event) => setForm({ ...form, count: event.target.value })} /></label>
-          <label>Alış, AZN/kq<input value={form.price} onChange={(event) => setForm({ ...form, price: event.target.value })} /></label>
+          <label>En, mm<Input value={form.width} onChange={(event) => setForm({ ...form, width: event.target.value })} /></label>
+          <label>Hündürlük, mm<Input value={form.height} onChange={(event) => setForm({ ...form, height: event.target.value })} /></label>
+          <label>Say<Input value={form.count} onChange={(event) => setForm({ ...form, count: event.target.value })} /></label>
+          <label>Alış, AZN/kq<Input value={form.price} onChange={(event) => setForm({ ...form, price: event.target.value })} /></label>
           <label>ƏDV<Select value={form.vat} onValueChange={(vat) => setForm({ ...form, vat })} options={[{ value: "xaric", label: "Xaric" }, { value: "daxil", label: "Daxil" }]} /></label>
-          <label>İtki, %<input value={form.waste} onChange={(event) => setForm({ ...form, waste: event.target.value })} /></label>
+          <label>İtki, %<Input value={form.waste} onChange={(event) => setForm({ ...form, waste: event.target.value })} /></label>
         </div>
         <div className="step-row"><span>Şüşə sahəsi</span><strong>{glass ? `${glass.toFixed(2)} m²` : "Ölçü yoxdur"}</strong></div>
         <div className="step-row"><span>İtki ilə sahə</span><strong>{glass ? `${glassWithWaste.toFixed(2)} m²${wasteOn ? ` · itki ${form.waste}%` : " · itki yazılmayıb"}` : "Ölçü yoxdur"}</strong></div>
         <div className="step-row"><span>Profil kilosu</span><strong>İstehsalçı təsdiqi yoxdur</strong></div>
         <div className="step-row"><span>Alış qiyməti</span><strong>{form.price || "—"} AZN/kq · ƏDV {form.vat}</strong></div>
-      </section>
+      </Panel>
     </>
   )
 }
@@ -3361,25 +3124,19 @@ export function CashflowPage() {
     patch((state) => ({ ...state, cash: { ...(state.cash ?? sources), [key]: value } }))
   }
 
+  const [view, setView] = useState("overview")
   return (
-    <>
-      <PageHead kicker="Maliyyə" title="Pul axını" text="Bir uçotdur. Mənbə xanaları boşdur, rəqəm yazılanda cəmə düşür. Çıxış smeta və bank qərarından gəlir." />
-      <section className="panel pad">
-        <div className="form-row wide">
-          <label>Daxilolma, AZN<input value={sources.inflow} onChange={(event) => setCash("inflow", event.target.value)} placeholder="boş" /></label>
-          <label>Avans, AZN<input value={sources.advance} onChange={(event) => setCash("advance", event.target.value)} placeholder="boş" /></label>
-          <label>Öz vəsait, AZN<input value={sources.equity} onChange={(event) => setCash("equity", event.target.value)} placeholder="boş" /></label>
-          <label>Kredit, AZN<input value={sources.loan} onChange={(event) => setCash("loan", event.target.value)} placeholder="boş" /></label>
-          <label>30 gün, AZN<input value={sources.days30} onChange={(event) => setCash("days30", event.target.value)} placeholder="boş" /></label>
-          <label>60 gün, AZN<input value={sources.days60} onChange={(event) => setCash("days60", event.target.value)} placeholder="boş" /></label>
-          <label>90 gün, AZN<input value={sources.days90} onChange={(event) => setCash("days90", event.target.value)} placeholder="boş" /></label>
-        </div>
-        <div className="step-row"><span>30 gün</span><strong>{sources.days30.trim() ? `${money(Number(sources.days30) || 0)} AZN` : "Yazılmayıb"}</strong></div>
-        <div className="step-row"><span>60 gün</span><strong>{sources.days60.trim() ? `${money(Number(sources.days60) || 0)} AZN` : "Yazılmayıb"}</strong></div>
-        <div className="step-row"><span>90 gün</span><strong>{sources.days90.trim() ? `${money(Number(sources.days90) || 0)} AZN` : "Yazılmayıb"}</strong></div>
-        {rows.map(([name, value]) => <div className="step-row" key={name}><span>{name}</span><strong>{money(value)} AZN</strong></div>)}
-      </section>
-    </>
+    <div className="finance-simple cashflow-workspace">
+      <PageHead title="Pul axını" text="Mənbələri, smeta xərclərini və planlaşdırılan qalığı izləyin." />
+      <StatGrid><Metric><span>Mənbələr</span><strong>{moneyShort(inflow)}</strong><em>Daxilolma, avans, öz vəsait və kredit</em></Metric><Metric><span>Çıxış</span><strong>{moneyShort(outflow)}</strong><em>Smeta və təsdiqli zəmanət</em></Metric><Metric><span>Qalıq</span><strong className={inflow-outflow < 0 ? "out" : "in"}>{moneyShort(inflow-outflow)}</strong><em>Mənbələrdən çıxış çıxıldıqdan sonra</em></Metric></StatGrid>
+      <Tabs value={view} onChange={setView} options={[{id:"overview",label:"İcmal"},{id:"sources",label:"Mənbələr"},{id:"plan",label:"30 / 60 / 90 gün"}]} />
+      {view === "overview" && <div className="cashflow-columns">
+        <Panel className="pad"><SectionHeader><h2>Mənbələrin bölgüsü</h2><Button className="ghost small" onClick={() => setView("sources")}>Redaktə et</Button></SectionHeader><dl className="finance-breakdown">{[["Daxilolma",sources.inflow],["Avans",sources.advance],["Öz vəsait",sources.equity],["Kredit",sources.loan]].map(([name,value]) => <div key={name}><dt>{name}</dt><dd>{money(Number(value)||0)} AZN</dd></div>)}</dl></Panel>
+        <Panel className="pad"><SectionHeader><h2>Xərclərin bölgüsü</h2><Link to="/boq">BOQ</Link></SectionHeader><dl className="finance-breakdown">{rows.filter(([name]) => ["Ölçülmüş iş","Dolayı xərc","Üstəlik","Əlavə xərc","Təsdiqli zəmanət"].includes(name)).map(([name,value]) => <div key={name}><dt>{name}</dt><dd>{money(value)} AZN</dd></div>)}</dl><Disclosure title="Mənfəət və vergi"><dl className="finance-breakdown">{rows.filter(([name]) => name === "Mənfəət" || name === "Vergi").map(([name,value]) => <div key={name}><dt>{name}</dt><dd>{money(value)} AZN</dd></div>)}</dl><p className="muted">Bu göstəricilər çıxış cəminə daxil deyil.</p></Disclosure></Panel>
+      </div>}
+      {view === "sources" && <Panel className="pad"><h2 className="block-title">Maliyyə mənbələri</h2><p className="lede">Məbləğ dəyişdikcə yuxarıdakı yekunlar yenilənir.</p><div className="finance-form-grid">{[{key:"inflow" as const,label:"Daxilolma"},{key:"advance" as const,label:"Avans"},{key:"equity" as const,label:"Öz vəsait"},{key:"loan" as const,label:"Kredit"}].map((item) => <label key={item.key}>{item.label}, AZN<Input inputMode="decimal" value={sources[item.key]} onChange={(event) => setCash(item.key,event.target.value)} placeholder="0" /></label>)}</div></Panel>}
+      {view === "plan" && <Panel className="pad"><h2 className="block-title">Planlaşdırılan məbləğlər</h2><p className="lede">Dövr üzrə plan ayrıca saxlanılır və mənbələr cəminə əlavə edilmir.</p><div className="finance-form-grid">{[{key:"days30" as const,label:"30 gün"},{key:"days60" as const,label:"60 gün"},{key:"days90" as const,label:"90 gün"}].map((item) => <label key={item.key}>{item.label}, AZN<Input inputMode="decimal" value={sources[item.key]} onChange={(event) => setCash(item.key,event.target.value)} placeholder="Yazılmayıb" /></label>)}</div></Panel>}
+    </div>
   )
 }
 
@@ -3422,6 +3179,7 @@ export function CoopPage() {
   const [busy, setBusy] = useState(false)
   const [find, setFind] = useState("")
   const [filter, setFilter] = useState("hamisi")
+  const [compose, setCompose] = useState(false)
 
   function load() {
     return api<CoopRequest[]>("/api/platform/coop").then(setRows)
@@ -3460,6 +3218,7 @@ export function CoopPage() {
       await api("/api/platform/coop", { method: "POST", body: JSON.stringify(form) })
       setForm({ company: "", note: "", module: form.module, owner: "" })
       await load()
+      setCompose(false)
       setMessage("Sorğu qəbul olundu və modula bağlandı.")
     } catch (reason) {
       setError(reason instanceof ApiError ? reason.message : "Sorğu yazılmadı")
@@ -3495,137 +3254,15 @@ export function CoopPage() {
     }
   }
 
-  return (
-    <div className="coop-page">
-      <PageHead kicker="Klub" title="Əməkdaşlıq" text="Hər kart bir tərəfin sorğusudur. Modul, məsul şəxs, tapıntı və nəticə həmin kartda qalır." />
-      <section className="statstrip">
-        <article>
-          <span>Sorğu</span>
-          <strong>{rows.length}</strong>
-          <em>Bazadakı kart</em>
-        </article>
-        <article>
-          <span>Təhlildə</span>
-          <strong>{open}</strong>
-          <em>Nəticə hələ bağlanmayıb</em>
-        </article>
-        <article>
-          <span>Razılaşıb</span>
-          <strong>{agreed}</strong>
-          <em>Nəticə bağlanıb</em>
-        </article>
-        <article>
-          <span>Dayanıb</span>
-          <strong>{held}</strong>
-          <em className={held ? "warn" : undefined}>Qəbul dayanıb</em>
-        </article>
-      </section>
-      <div className="toolbar">
-        <form className="search" role="search" onSubmit={(event) => event.preventDefault()}>
-          <Icon name="search" />
-          <input value={find} onChange={(event) => setFind(event.target.value)} placeholder="Şirkət, məsul, tapıntı" aria-label="Əməkdaşlıqda axtar" />
-        </form>
-        <Tabs
-          value={filter}
-          onChange={setFilter}
-          options={[
-            { id: "hamisi", label: "Hamısı" },
-            { id: "tehlil", label: "Təhlil" },
-            { id: "netice", label: "Nəticə" },
-            { id: "razi", label: "Razılaşıb" },
-            { id: "dayanib", label: "Dayanıb" },
-          ]}
-        />
-      </div>
-      {error && <p className="form-error">{error}</p>}
-      {message && <p className="lede">{message}</p>}
-      {!ready && <p className="lede">Sorğular oxunur.</p>}
-      {ready && !error && rows.length === 0 && <Empty title="Bu şirkətdə sorğu yoxdur" text="Aşağıdakı forma boş kartdır. Şirkəti yazıb qəbul edəndə o, bazada kart kimi görünər." />}
-      {ready && rows.length > 0 && shown.length === 0 && <Empty title="Bu süzgəcə düşən sorğu yoxdur" text="Axtarışı və ya süzgəci dəyişin. Kartlar bazada qalır." />}
-      {shown.length > 0 && (
-        <div className="coop-grid">
-          {shown.map((row) => {
-            const when = coopWhen(row.createdAt)
-            const on = finding.id === row.id
-            return (
-              <article
-                key={row.id}
-                className={on ? "coop-card on" : "coop-card"}
-                role="button"
-                tabIndex={0}
-                onClick={() => setFinding({ ...finding, id: row.id })}
-                onKeyDown={(event) => {
-                  if (event.key === "Enter" || event.key === " ") {
-                    event.preventDefault()
-                    setFinding({ ...finding, id: row.id })
-                  }
-                }}
-              >
-                <header>
-                  <div>
-                    <p>{row.module.trim() || "Modul yazılmayıb"}{when ? ` · ${when}` : ""}</p>
-                    <h2>{row.company}</h2>
-                  </div>
-                  <span className={`badge ${coopTone(row.status)}`}>{row.status || "Təhlil olunur"}</span>
-                </header>
-                <p className={row.note.trim() ? undefined : "miss"}>{row.note.trim() || "Sorğu mətni yazılmayıb"}</p>
-                <dl>
-                  <div>
-                    <dt>Məsul</dt>
-                    <dd className={row.owner.trim() ? undefined : "miss"}>{row.owner.trim() || "yazılmayıb"}</dd>
-                  </div>
-                  <div>
-                    <dt>Tapıntı</dt>
-                    <dd>{row.findings.length}</dd>
-                  </div>
-                </dl>
-                {row.findings.length > 0 && (
-                  <ul>
-                    {row.findings.map((item) => (
-                      <li key={item.id}>
-                        <b>{item.topic}</b>
-                        <span>{item.finding}</span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-                {row.result.trim() && (
-                  <p className={row.status === "Dayanıb" ? "coop-result hold" : "coop-result"}>
-                    <span>Nəticə</span>
-                    {row.result}
-                  </p>
-                )}
-              </article>
-            )
-          })}
-        </div>
-      )}
-      <div className="coop-forms">
-        <section className="panel pad">
-          <h2>Yeni sorğu</h2>
-          <p className="lede">Bu forma hələ məlumat deyil. Qəbul edəndə kart yuxarıdakı siyahıya düşür.</p>
-          <div className="form-row wide">
-            <label>Şirkət<input value={form.company} onChange={(event) => setForm({ ...form, company: event.target.value })} placeholder="məsələn, Abşeron Şüşə" /></label>
-            <label>Sorğu<input value={form.note} onChange={(event) => setForm({ ...form, note: event.target.value })} placeholder="nə soruşulur" /></label>
-            <label>Modul<Select value={form.module} onValueChange={(module) => setForm({ ...form, module })} options={COOP_MODULES.map((item) => ({ value: item, label: item }))} /></label>
-            <label>Məsul<input value={form.owner} onChange={(event) => setForm({ ...form, owner: event.target.value })} placeholder="adı" /></label>
-            <button type="button" className="btn" disabled={busy || !form.company.trim()} onClick={() => void accept()}>{busy ? "Yazılır" : "Qəbul et"}</button>
-          </div>
-        </section>
-        <section className="panel pad">
-          <h2>Tapıntı</h2>
-          <p className="lede">{selected ? `${selected.company} kartına yazılır.` : "Kartı seçin, tapıntı həmin sorğuya düşsün."}</p>
-          <div className="form-row wide">
-            <label>Sorğu<Select value={finding.id} onValueChange={(id) => setFinding({ ...finding, id })} options={[{ value: "", label: "Seçin" }, ...rows.map((row) => ({ value: row.id, label: row.company }))]} /></label>
-            <label>Mövzu<input value={finding.topic} onChange={(event) => setFinding({ ...finding, topic: event.target.value })} placeholder="məsələn, Qiymət" /></label>
-            <label>Nəticə<input value={finding.text} onChange={(event) => setFinding({ ...finding, text: event.target.value })} placeholder="nə məlum oldu" /></label>
-            <label>Vəziyyət<Select value={finding.status} onValueChange={(status) => setFinding({ ...finding, status })} options={COOP_STATUSES.map((item) => ({ value: item, label: item }))} /></label>
-            <button type="button" className="btn" disabled={busy || !finding.id || !finding.text.trim()} onClick={() => void writeFinding()}>{busy ? "Yazılır" : "Yaz"}</button>
-          </div>
-        </section>
-      </div>
-    </div>
-  )
+  return <div className="finance-simple cooperation-workspace">
+    <PageHead title="Əməkdaşlıq" text="Sorğuları və nəticələri bir yerdə izləyin."><Button onClick={() => {setError("");setCompose(true)}}><Icon name="plus" />Yeni sorğu</Button></PageHead>
+    <Panel className="employment-summary">{[{icon:"files" as const,label:"Bütün sorğular",value:rows.length},{icon:"clock" as const,label:"Təhlildə",value:open},{icon:"check" as const,label:"Razılaşıb",value:agreed},{icon:"close" as const,label:"Dayanıb",value:held}].map((item) => <div key={item.label}><Icon name={item.icon} /><div><strong>{item.value}</strong><span>{item.label}</span></div></div>)}</Panel>
+    <Toolbar className="finance-list-toolbar"><SearchInput value={find} onChange={(event) => setFind(event.target.value)} placeholder="Şirkət, məsul və ya nəticə axtar" /><Select ariaLabel="Əməkdaşlıq statusu" value={filter} onValueChange={setFilter} options={[{value:"hamisi",label:"Bütün statuslar"},{value:"tehlil",label:"Təhlil olunur"},{value:"netice",label:"Nəticə yazılıb"},{value:"razi",label:"Razılaşıb"},{value:"dayanib",label:"Dayanıb"}]} /></Toolbar>
+    {error && !compose && !selected && <p className="form-error" role="alert">{error}</p>}{message && <p className="lede" role="status">{message}</p>}
+    <TableContainer className="finance-records-table"><table><thead><tr><th>Şirkət</th><th>Modul</th><th>Məsul</th><th>Status</th><th>Tarix</th><th><span className="sr-only">Sorğunu aç</span></th></tr></thead><tbody>{shown.map((row) => <tr key={row.id} tabIndex={0} onClick={() => {setError("");setFinding({...finding,id:row.id})}} onKeyDown={(event) => {if(event.key === "Enter" || event.key === " "){event.preventDefault();setFinding({...finding,id:row.id})}}}><td><strong>{row.company}</strong><small>{row.note || "Sorğu mətni yazılmayıb"}</small></td><td>{row.module || "—"}</td><td>{row.owner || "—"}</td><td><span className={`badge ${coopTone(row.status)}`}>{row.status || "Təhlil olunur"}</span></td><td>{coopWhen(row.createdAt) || "—"}</td><td><Icon name="chevron" /></td></tr>)}</tbody></table>{!shown.length && <Empty title={ready ? "Sorğu tapılmadı" : "Sorğular oxunur"} text="Axtarışı dəyişin və ya yeni sorğu əlavə edin." />}</TableContainer>
+    {compose && <Modal title="Yeni əməkdaşlıq sorğusu" className="finance-record-modal" onClose={() => {if(!busy)setCompose(false)}}><form onSubmit={(event) => {event.preventDefault();void accept()}}><div className="finance-form-grid"><label className="full">Şirkət<Input required value={form.company} onChange={(event) => setForm({...form,company:event.target.value})} /></label><label>Modul<Select value={form.module} onValueChange={(module) => setForm({...form,module})} options={COOP_MODULES.map((item) => ({value:item,label:item}))} /></label><label>Məsul<Input value={form.owner} onChange={(event) => setForm({...form,owner:event.target.value})} /></label><label className="full">Sorğu<Textarea value={form.note} onChange={(event) => setForm({...form,note:event.target.value})} rows={4} /></label></div>{error && <p className="form-error" role="alert">{error}</p>}<div className="form-actions"><Button className="ghost" disabled={busy} onClick={() => setCompose(false)}>Ləğv et</Button><Button type="submit" disabled={busy || !form.company.trim()}>{busy ? "Saxlanılır…" : "Sorğunu saxla"}</Button></div></form></Modal>}
+    {selected && <Modal title={selected.company} className="coop-detail-modal" onClose={() => {if(!busy)setFinding({...finding,id:""})}}><div className="coop-detail-meta"><span className={`badge ${coopTone(selected.status)}`}>{selected.status}</span><span>{selected.module || "Modul yazılmayıb"}</span><span>{selected.owner || "Məsul yazılmayıb"}</span></div><p className="coop-request-text">{selected.note || "Sorğu mətni yazılmayıb"}</p>{selected.result && <p className="coop-result-text">{selected.result}</p>}<h3>Tapıntılar · {selected.findings.length}</h3><div className="coop-findings">{selected.findings.map((item) => <article key={item.id}><strong>{item.topic}</strong><p>{item.finding}</p><small>{coopWhen(item.createdAt)}</small></article>)}{!selected.findings.length && <p className="muted">Hələ tapıntı əlavə edilməyib.</p>}</div><Disclosure title="Tapıntı əlavə et"><form onSubmit={(event) => {event.preventDefault();void writeFinding()}}><div className="finance-form-grid"><label>Mövzu<Input value={finding.topic} onChange={(event) => setFinding({...finding,topic:event.target.value})} /></label><label>Status<Select value={finding.status} onValueChange={(status) => setFinding({...finding,status})} options={COOP_STATUSES.map((item) => ({value:item,label:item}))} /></label><label className="full">Nəticə<Textarea required value={finding.text} onChange={(event) => setFinding({...finding,text:event.target.value})} rows={3} /></label></div>{error && <p className="form-error" role="alert">{error}</p>}<div className="form-actions"><Button type="submit" disabled={busy || !finding.text.trim()}>{busy ? "Saxlanılır…" : "Tapıntını saxla"}</Button></div></form></Disclosure></Modal>}
+  </div>
 }
 
 type Pack = { id: string; name: string; features: string; amount: unknown; userLimit: number | null; smetaLimit: number | null }
@@ -3638,6 +3275,9 @@ export function SubscribePage() {
   const [months, setMonths] = useState("1")
   const [invoice, setInvoice] = useState("")
   const [note, setNote] = useState("")
+  const [view, setView] = useState("packages")
+  const [selectedId, setSelectedId] = useState("")
+  const [busy, setBusy] = useState(false)
 
   function load() {
     return Promise.all([
@@ -3654,21 +3294,26 @@ export function SubscribePage() {
   }, [])
 
   async function choose(id: string) {
+    if(busy) return
+    setBusy(true)
     try {
       await api("/api/platform/subscription", { method: "POST", body: JSON.stringify({ packageId: id, months }) })
       await load()
+      setSelectedId("")
       setNote("Paket seçildi və müddət başladı. Ödəniş sənədi qeyd olunmayana qədər bağlı modul açılmır. Kartla pul tutulmur.")
     } catch (reason) {
       setNote(reason instanceof ApiError ? reason.message : "Paket seçilmədi")
-    }
+    } finally {setBusy(false)}
   }
 
   async function pay() {
+    if(busy) return
     const pack = state?.package
     if (!pack) {
       setNote("Əvvəlcə paket seçilməlidir.")
       return
     }
+    setBusy(true)
     try {
       await api("/api/platform/subscription/payment", {
         method: "POST",
@@ -3678,34 +3323,23 @@ export function SubscribePage() {
       setNote("Ödəniş sənəd kimi qeyd olundu. Müddət başladı.")
     } catch (reason) {
       setNote(reason instanceof ApiError ? reason.message : "Ödəniş qeyd olunmadı")
-    }
+    } finally {setBusy(false)}
   }
 
-  return (
-    <>
-      <PageHead kicker="Platforma" title="Abunə" text="Məbləğ idarə panelindən dəyişir. Ödəniş sənəd kimi qeyd olunur. Kartla pul tutulmur. Ödənilməyəndə bağlı modul açılmır." />
-      <section className="panel pad">
-        {state?.warn && <p className="form-error">Abunə {state.daysLeft} günə bitir.</p>}
-        {state && <p className="lede">Vəziyyət: {state.status}{state.endsOn ? ` · bitmə ${String(state.endsOn).slice(0, 10)}` : ""}. {state.locked.length ? `Bağlı: ${state.locked.join(", ")}` : "Bütün modullar açıqdır."}</p>}
-        <div className="work-grid">
-          {packs.map((pack) => (
-            <article key={pack.id} className="panel pad">
-              <strong>{pack.name}</strong>
-              <p>{pack.features}</p>
-              <p>{pack.amount == null ? "Məbləğ yazılmayıb" : `${pack.amount} AZN`} · istifadəçi {pack.userLimit ?? "limitsiz"} · layihə {pack.smetaLimit ?? "limitsiz"}</p>
-              <button type="button" className="btn" onClick={() => void choose(pack.id)}>Seç</button>
-            </article>
-          ))}
-        </div>
-        <div className="form-row wide">
-          <label>Ay<input value={months} onChange={(event) => setMonths(event.target.value)} /></label>
-          <label>Ödəniş sənədi<input value={invoice} onChange={(event) => setInvoice(event.target.value)} placeholder="qaimə və ya qəbz nömrəsi" /></label>
-          <button type="button" className="btn" onClick={() => void pay()}>Ödənişi qeyd et</button>
-        </div>
-        {note && <p className="lede">{note}</p>}
-      </section>
-    </>
-  )
+  const selected = packs.find((item) => item.id === selectedId)
+  const expired = state?.daysLeft != null && state.daysLeft < 0
+  const statusText = expired || state?.status === "bitib" ? "Müddəti bitib" : state?.status === "aktiv" ? "Aktiv" : "Ödəniş gözləyir"
+  const monthOptions = [{value:"1",label:"1 ay"},{value:"3",label:"3 ay"},{value:"6",label:"6 ay"},{value:"12",label:"12 ay"}]
+  return <div className="finance-simple subscription-workspace">
+    <PageHead title="Abunə" text="Paket və istifadə müddətini idarə edin." />
+    <Panel className="subscription-current"><div className="subscription-plan"><span className="subscription-symbol"><Icon name="layers" /></span><div><span>Cari paket</span><h2>{state?.package?.name || "Paket seçilməyib"}</h2><span className={`badge ${expired ? "rose" : state?.status === "aktiv" ? "pine" : "gold"}`}>{statusText}</span></div></div><div><span>Bitmə tarixi</span><strong>{state?.endsOn ? dateAZ(state.endsOn.slice(0,10)) : "—"}</strong></div><div><span>Qalan müddət</span><strong>{state?.daysLeft == null ? "—" : `${Math.max(0,state.daysLeft)} gün`}</strong></div></Panel>
+    {state?.warn && <p className="form-error">Abunə {state.daysLeft} günə bitir.</p>}
+    {state && state.locked.length > 0 && <Disclosure title={`Bağlı modullar · ${state.locked.length}`}><p className="muted">{state.locked.join(", ")}</p></Disclosure>}
+    {note && !selected && <p className="lede" role="status">{note}</p>}
+    <Tabs value={view} onChange={setView} options={[{id:"packages",label:"Paketlər"},{id:"payment",label:"Ödəniş sənədi"}]} />
+    {view === "packages" ? <TableContainer className="finance-records-table subscription-packages"><table><thead><tr><th>Paket</th><th>Məbləğ</th><th>İstifadəçi</th><th>Layihə</th><th><span className="sr-only">Paketə bax</span></th></tr></thead><tbody>{packs.map((pack) => <tr key={pack.id} tabIndex={0} onClick={() => {setNote("");setSelectedId(pack.id)}} onKeyDown={(event) => {if(event.key === "Enter" || event.key === " "){event.preventDefault();setSelectedId(pack.id)}}}><td><strong>{pack.name}</strong>{state?.package?.id === pack.id && <small><span className="badge pine">Cari paket</span></small>}</td><td>{pack.amount == null ? "Məbləğ göstərilməyib" : `${money(Number(pack.amount)||0)} AZN`}</td><td>{pack.userLimit ?? "Limitsiz"}</td><td>{pack.smetaLimit ?? "Limitsiz"}</td><td><Button className="ghost small" onClick={(event) => {event.stopPropagation();setNote("");setSelectedId(pack.id)}}>Ətraflı</Button></td></tr>)}</tbody></table>{!packs.length && <Empty title="Paketlər oxunur" text="Mövcud paketlər burada göstəriləcək." />}</TableContainer> : <Panel className="pad subscription-payment"><h2>Ödəniş sənədi</h2><p className="lede">Ödəniş sənəd kimi qeydə alınır. Kartdan pul tutulmur.</p><form onSubmit={(event) => {event.preventDefault();void pay()}}><div className="finance-form-grid"><label>Cari paket<Input readOnly value={state?.package?.name || "Paket seçilməyib"} /></label><label>Müddət<Select ariaLabel="Ödəniş müddəti" value={months} onValueChange={setMonths} options={monthOptions} /></label><label className="full">Sənəd və ya qəbz nömrəsi<Input value={invoice} onChange={(event) => setInvoice(event.target.value)} placeholder="Qaimə və ya qəbz nömrəsi" /></label></div><div className="form-actions"><Button type="submit" disabled={busy || !state?.package}>{busy ? "Saxlanılır…" : "Ödənişi qeyd et"}</Button></div></form></Panel>}
+    {selected && <Modal title={selected.name} className="subscription-package-modal" onClose={() => {if(!busy)setSelectedId("")}}><div className="subscription-package-price"><strong>{selected.amount == null ? "Məbləğ göstərilməyib" : `${money(Number(selected.amount)||0)} AZN`}</strong><span>Paket məbləği</span></div><h3>Paketə daxildir</h3><p className="subscription-features">{selected.features}</p><dl className="finance-breakdown"><div><dt>İstifadəçi limiti</dt><dd>{selected.userLimit ?? "Limitsiz"}</dd></div><div><dt>Layihə limiti</dt><dd>{selected.smetaLimit ?? "Limitsiz"}</dd></div></dl><label className="finance-status-edit">Abunəlik müddəti<Select value={months} onValueChange={setMonths} options={monthOptions} /></label><p className="tax-form-hint">Paket seçimi ödəniş sənədi qeyd olunana qədər gözləmə vəziyyətində qalır.</p>{note && <p className="form-error" role="alert">{note}</p>}<div className="form-actions"><Button className="ghost" disabled={busy} onClick={() => setSelectedId("")}>Bağla</Button><Button disabled={busy} onClick={() => void choose(selected.id)}>{busy ? "Saxlanılır…" : "Seçimi təsdiqlə"}</Button></div></Modal>}
+  </div>
 }
 
 const emptyPassport = { material: "", section: SPEC_SECTIONS[0], fit: "el" as Fit, maker: "", standard: "", certificate: "", issuer: "", validUntil: "", batch: "", origin: "", protocol: "" }
@@ -3857,32 +3491,32 @@ export function PassportPage({ embedded = false, materialFilter = "" }: { embedd
       {embedded && (
         <p className="lede">Material pasportu və sertifikatlar anbar kartındadır. Boş sahə «yazılmayıb» sayılır.</p>
       )}
-      <section className="statstrip">
-        <article>
+      <StatGrid>
+        <Metric>
           <span>Pasport</span>
           <strong>{passports.length}</strong>
           <em>Bazadakı kart</em>
-        </article>
-        <article>
+        </Metric>
+        <Metric>
           <span>Tam kart</span>
           <strong>{complete}</strong>
           <em>8 sahənin hamısı yazılıb</em>
-        </article>
-        <article>
+        </Metric>
+        <Metric>
           <span>Çatışmayan</span>
           <strong>{passports.length - complete}</strong>
           <em className={passports.length - complete ? "warn" : undefined}>Sertifikat və ya sınaq boşdur</em>
-        </article>
-        <article>
+        </Metric>
+        <Metric>
           <span>30 günə bitən</span>
           <strong>{expiring}</strong>
           <em className={expiring ? "warn" : undefined}>Müddəti yaxınlaşan</em>
-        </article>
-      </section>
-      <div className="toolbar">
+        </Metric>
+      </StatGrid>
+      <Toolbar>
         <form className="search" role="search" onSubmit={(event) => event.preventDefault()}>
           <Icon name="search" />
-          <input value={find} onChange={(event) => setFind(event.target.value)} placeholder="Material, partiya, sertifikat" aria-label="Pasportda axtar" />
+          <Input value={find} onChange={(event) => setFind(event.target.value)} placeholder="Material, partiya, sertifikat" aria-label="Pasportda axtar" />
         </form>
         <Tabs
           value={filter}
@@ -3894,7 +3528,7 @@ export function PassportPage({ embedded = false, materialFilter = "" }: { embedd
             { id: "bitme", label: "Bitməyə yaxın" },
           ]}
         />
-      </div>
+      </Toolbar>
       {error && <p className="form-error">{error}</p>}
       {note && <p className="lede">{note}</p>}
       {!ready && <p className="lede">Pasportlar oxunur.</p>}
@@ -3941,7 +3575,7 @@ export function PassportPage({ embedded = false, materialFilter = "" }: { embedd
           })}
         </div>
       )}
-      <section className="panel pad passport-form">
+      <Panel className="pad passport-form">
         <h2>Yeni pasport</h2>
         <p className="lede">Bu forma hələ məlumat deyil. Saxlayanda kart yuxarıdakı siyahıya düşür.</p>
         <div className="form-row wide">
@@ -3958,20 +3592,20 @@ export function PassportPage({ embedded = false, materialFilter = "" }: { embedd
               />
             </label>
           )}
-          <label>Material<input value={form.material} onChange={(event) => { setMaterialId(""); setForm({ ...form, material: event.target.value }) }} placeholder="məsələn, Armatur A500 Ø16" /></label>
-          <label>İstehsalçı<input value={form.maker} onChange={(event) => setForm({ ...form, maker: event.target.value })} /></label>
-          <label>Standart<input value={form.standard} onChange={(event) => setForm({ ...form, standard: event.target.value })} /></label>
-          <label>Sertifikat nömrəsi<input value={form.certificate} onChange={(event) => setForm({ ...form, certificate: event.target.value })} /></label>
-          <label>Verən<input value={form.issuer} onChange={(event) => setForm({ ...form, issuer: event.target.value })} /></label>
-          <label>Qüvvədədir<input type="date" value={form.validUntil} onChange={(event) => setForm({ ...form, validUntil: event.target.value })} /></label>
-          <label>Partiya<input value={form.batch} onChange={(event) => setForm({ ...form, batch: event.target.value })} /></label>
-          <label>Mənşə<input value={form.origin} onChange={(event) => setForm({ ...form, origin: event.target.value })} /></label>
-          <label>Sınaq protokolu<input value={form.protocol} onChange={(event) => setForm({ ...form, protocol: event.target.value })} /></label>
+          <label>Material<Input value={form.material} onChange={(event) => { setMaterialId(""); setForm({ ...form, material: event.target.value }) }} placeholder="məsələn, Armatur A500 Ø16" /></label>
+          <label>İstehsalçı<Input value={form.maker} onChange={(event) => setForm({ ...form, maker: event.target.value })} /></label>
+          <label>Standart<Input value={form.standard} onChange={(event) => setForm({ ...form, standard: event.target.value })} /></label>
+          <label>Sertifikat nömrəsi<Input value={form.certificate} onChange={(event) => setForm({ ...form, certificate: event.target.value })} /></label>
+          <label>Verən<Input value={form.issuer} onChange={(event) => setForm({ ...form, issuer: event.target.value })} /></label>
+          <label>Qüvvədədir<Input type="date" value={form.validUntil} onChange={(event) => setForm({ ...form, validUntil: event.target.value })} /></label>
+          <label>Partiya<Input value={form.batch} onChange={(event) => setForm({ ...form, batch: event.target.value })} /></label>
+          <label>Mənşə<Input value={form.origin} onChange={(event) => setForm({ ...form, origin: event.target.value })} /></label>
+          <label>Sınaq protokolu<Input value={form.protocol} onChange={(event) => setForm({ ...form, protocol: event.target.value })} /></label>
           <label>Bölmə<Select value={form.section} onValueChange={(section) => setForm({ ...form, section })} options={SPEC_SECTIONS.map((item) => ({ value: item, label: item }))} /></label>
           <label>Nəticə<Select value={form.fit} onValueChange={(fit) => setForm({ ...form, fit: fit as Fit })} options={(Object.keys(FIT_LABEL) as Fit[]).map((key) => ({ value: key, label: FIT_LABEL[key] }))} /></label>
-          <button type="button" className="btn" disabled={busy || !form.material.trim()} onClick={() => void add()}>{busy ? "Saxlanır" : "Bazaya yaz"}</button>
+          <Button type="button" disabled={busy || !form.material.trim()} onClick={() => void add()}>{busy ? "Saxlanır" : "Bazaya yaz"}</Button>
         </div>
-      </section>
+      </Panel>
     </div>
   )
 }
@@ -4018,108 +3652,33 @@ export function RegistryPage() {
   const { partners } = useWorkspace()
   const [form, setForm] = useState(emptyPartner)
   const [note, setNote] = useState("")
-
-  useEffect(() => {
-    loadPartners().catch((reason) => setNote(reason instanceof ApiError ? reason.message : "Reyestr oxunmadı"))
-  }, [])
-
-  async function addPartner() {
-    if (!form.name.trim()) return
+  const [query, setQuery] = useState("")
+  const [kind, setKind] = useState("all")
+  const [compose, setCompose] = useState(false)
+  const [editing, setEditing] = useState<string | null>(null)
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState("")
+  useEffect(() => {loadPartners().catch((reason) => setNote(reason instanceof ApiError ? reason.message : "Reyestr oxunmadı"))}, [])
+  const shown = partners.map(filledPartner).filter((row) => (kind === "all" || row.kind === kind) && `${row.name} ${row.note} ${row.kind}`.toLocaleLowerCase("az").includes(query.trim().toLocaleLowerCase("az")))
+  function openPartner(row?: Partner) {setForm(row ? {...emptyPartner,...filledPartner(row)} : emptyPartner);setEditing(row?.id || null);setError("");setCompose(true)}
+  async function savePartner() {
+    if(busy || !form.name.trim()) return
+    setBusy(true)
     try {
-      await api("/api/platform/finance/partners", {
-        method: "POST",
-        body: JSON.stringify({
-          kind: PARTNER_CODE[form.kind] || "bank",
-          name: form.name,
-          note: form.note,
-          logo: form.logo,
-          commission: form.commission,
-          discount: form.discount,
-          light: "gozleme",
-        }),
-      })
-      await loadPartners()
-      setForm(emptyPartner)
-      setNote("Tərəfdaş bazada saxlandı. Canlı bank bağlantısı bağlıdır.")
-    } catch (reason) {
-      setNote(reason instanceof ApiError ? reason.message : "Tərəfdaş saxlanmadı")
-    }
+      await api(editing ? `/api/platform/finance/partners/${editing}` : "/api/platform/finance/partners", {method:editing ? "PATCH" : "POST",body:JSON.stringify({...form,kind:PARTNER_CODE[form.kind] || "bank"})})
+      await loadPartners();setCompose(false);setNote("Tərəfdaş kartı saxlanıldı.")
+    } catch(reason) {setError(reason instanceof ApiError ? reason.message : "Kart saxlanmadı")} finally {setBusy(false)}
   }
-
-  async function saveBank(row: Partner) {
-    try {
-      await api(`/api/platform/finance/partners/${row.id}`, {
-        method: "PATCH",
-        body: JSON.stringify({
-          name: row.name,
-          note: row.note,
-          logo: row.logo,
-          commission: row.commission,
-          discount: row.discount,
-          light: row.light,
-          proof: row.proof,
-          proofDate: row.proofDate,
-        }),
-      })
-      await loadPartners()
-      setNote("Bank kartı bazada saxlandı. Yaşıl yalnız təsdiq sənədi və tarix ilə yanır.")
-    } catch (reason) {
-      setNote(reason instanceof ApiError ? reason.message : "Bank kartı saxlanmadı")
-    }
-  }
-
-  function setBank(id: string, row: Partial<Partner>) {
-    patch((state) => ({
-      ...state,
-      partners: state.partners.map((item) => item.id === id ? { ...filledPartner(item), ...row } : item),
-      guarantee: state.guarantee.bankId === id ? { ...state.guarantee, packed: false } : state.guarantee,
-    }))
-  }
-
-  return (
-    <>
-      <PageHead kicker="Maliyyə" title="Bank və tərəfdaş reyestri" text="Bank kartında loqo, komissiya, güzəşt və üç rəng var. Yaşıl yalnız təsdiq sənədi və tarix yazılanda yanır. API mərhələli açılır." />
-      <section className="panel pad">
-        <div className="form-row wide">
-          <label>Növ<Select value={form.kind} onValueChange={(kind) => setForm({ ...form, kind })} options={PARTNER_KINDS.map((item) => ({ value: item, label: item }))} /></label>
-          <label>Ad<input value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} /></label>
-          <label>Qeyd<input value={form.note} onChange={(event) => setForm({ ...form, note: event.target.value })} /></label>
-          {form.kind === "Bank" && (
-            <>
-              <label>Loqo<input value={form.logo} onChange={(event) => setForm({ ...form, logo: event.target.value })} placeholder="boş" /></label>
-              <label>Komissiya, %<input value={form.commission} onChange={(event) => setForm({ ...form, commission: event.target.value })} placeholder="boş" /></label>
-              <label>Güzəşt, %<input value={form.discount} onChange={(event) => setForm({ ...form, discount: event.target.value })} placeholder="boş" /></label>
-            </>
-          )}
-          <button type="button" className="btn" onClick={() => void addPartner()}>Əlavə et</button>
-        </div>
-        {note && <p className="lede">{note}</p>}
-        {partners.length === 0 && <p className="lede">Reyestr boşdur.</p>}
-        {partners.map((raw) => {
-          const row = filledPartner(raw)
-          const tone = bankTone(row)
-          return (
-            <article key={row.id} style={{ marginTop: 16 }}>
-              <div className="step-row"><span>{row.kind} · {row.name}</span><strong>{row.kind === "Bank" ? <span className={`badge bank ${tone.color}`}>{tone.word}</span> : row.note || "Qeyd yoxdur"}</strong></div>
-              {row.kind === "Bank" && (
-                <div className="form-row wide">
-                  <label>Loqo<input value={row.logo} onChange={(event) => setBank(row.id, { logo: event.target.value })} placeholder="boş" /></label>
-                  <label>Komissiya, %<input value={row.commission} onChange={(event) => setBank(row.id, { commission: event.target.value })} placeholder="boş" /></label>
-                  <label>Güzəşt, %<input value={row.discount} onChange={(event) => setBank(row.id, { discount: event.target.value })} placeholder="boş" /></label>
-                  <label>Rəng<Select value={row.light} onValueChange={(light) => setBank(row.id, { light: light as Partner["light"] })} options={[{ value: "gozleme", label: "Gözləmə" }, { value: "tesdiq", label: "Təsdiq" }, { value: "legv", label: "Ləğv" }]} /></label>
-                  <label>Təsdiq sənədi<input value={row.proof} onChange={(event) => setBank(row.id, { proof: event.target.value })} placeholder="boş" /></label>
-                  <label>Sənəd tarixi<input value={row.proofDate} onChange={(event) => setBank(row.id, { proofDate: event.target.value })} placeholder="boş" /></label>
-                  <label>API<Select value={row.api} onValueChange={(apiMode) => setBank(row.id, { api: apiMode as Partner["api"] })} options={[{ value: "bagli", label: "Bağlıdır" }, { value: "novbe", label: "Növbədədir" }]} /></label>
-                  <button type="button" className="btn" onClick={() => void saveBank(row)}>Kartı saxla</button>
-                </div>
-              )}
-            </article>
-          )
-        })}
-        <p className="lede">Yaşıl status bankın rəsmi təsdiqi olan yerdə görünür. Canlı API yoxdursa təsdiq sənədi və tarix yazılır. Kanal bağlı olanda sənəd mübadiləsi davam edir.</p>
-      </section>
-    </>
-  )
+  return <div className="finance-simple registry-workspace">
+    <PageHead title="Tərəfdaşlar" text="Bank, sığorta və digər maliyyə tərəfdaşlarının vahid reyestri."><Button onClick={() => openPartner()}><Icon name="plus" />Yeni tərəfdaş</Button></PageHead>
+    <p className="finance-list-count">{partners.length} tərəfdaş · {partners.filter((row) => row.kind === "Bank").length} bank · {partners.filter((row) => row.kind === "Sığorta").length} sığortaçı</p>
+    <Toolbar className="finance-list-toolbar"><SearchInput value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Tərəfdaş axtar" /><Select ariaLabel="Tərəfdaş növü" value={kind} onValueChange={setKind} options={[{value:"all",label:"Bütün növlər"},...PARTNER_KINDS.map((item) => ({value:item,label:item}))]} /></Toolbar>
+    {note && <p className="lede" role="status">{note}</p>}
+    <TableContainer className="finance-records-table"><table><thead><tr><th>Tərəfdaş</th><th>Növ</th><th>Komissiya</th><th>Güzəşt</th><th>Status</th><th><span className="sr-only">Kartı aç</span></th></tr></thead><tbody>{shown.map((row) => {const tone=bankTone(row);return <tr key={row.id} tabIndex={0} onClick={() => openPartner(row)} onKeyDown={(event) => {if(event.key === "Enter" || event.key === " "){event.preventDefault();openPartner(row)}}}><td><strong>{row.name}</strong><small>{row.note || "Qeyd yoxdur"}</small></td><td><span className="badge stone">{row.kind}</span></td><td>{row.commission ? `${row.commission}%` : "—"}</td><td>{row.discount ? `${row.discount}%` : "—"}</td><td><span className={`badge bank ${tone.color}`}>{tone.word}</span></td><td><Icon name="chevron" /></td></tr>})}</tbody></table>{!shown.length && <Empty title="Tərəfdaş tapılmadı" text="Axtarışı dəyişin və ya yeni tərəfdaş əlavə edin." />}</TableContainer>
+    {compose && <Modal title={editing ? form.name : "Yeni tərəfdaş"} className="finance-record-modal" onClose={() => {if(!busy)setCompose(false)}}><form onSubmit={(event) => {event.preventDefault();void savePartner()}}><div className="finance-form-grid">
+      <label>Növ<Select value={form.kind} onValueChange={(kind) => setForm({...form,kind})} options={PARTNER_KINDS.map((item) => ({value:item,label:item}))} disabled={!!editing} /></label><label>Ad<Input required value={form.name} onChange={(event) => setForm({...form,name:event.target.value})} /></label><label className="full">Qeyd<Textarea value={form.note} onChange={(event) => setForm({...form,note:event.target.value})} rows={3} /></label>
+    </div><Disclosure title="Təsdiq və bank şərtləri"><div className="finance-form-grid"><label>Komissiya, %<Input value={form.commission} onChange={(event) => setForm({...form,commission:event.target.value})} /></label><label>Güzəşt, %<Input value={form.discount} onChange={(event) => setForm({...form,discount:event.target.value})} /></label><label>Status<Select value={form.light} onValueChange={(light) => setForm({...form,light:light as Partner["light"]})} options={[{value:"gozleme",label:"Gözləmə"},{value:"tesdiq",label:"Təsdiq"},{value:"legv",label:"Ləğv"}]} /></label><label>Sənəd tarixi<Input type="date" value={form.proofDate} onChange={(event) => setForm({...form,proofDate:event.target.value})} /></label><label className="full">Təsdiq sənədi<Input value={form.proof} onChange={(event) => setForm({...form,proof:event.target.value})} /></label><label className="full">Loqo ünvanı<Input value={form.logo} onChange={(event) => setForm({...form,logo:event.target.value})} /></label></div><p className="muted">Təsdiq statusu üçün sənəd və tarix tələb olunur. Bank kanalı sənəd mübadiləsi ilə işləyir.</p></Disclosure>{error && <p className="form-error" role="alert">{error}</p>}<div className="form-actions"><Button className="ghost" disabled={busy} onClick={() => setCompose(false)}>Bağla</Button><Button type="submit" disabled={busy}>{busy ? "Saxlanılır…" : "Kartı saxla"}</Button></div></form></Modal>}
+  </div>
 }
 
 const TEMPLATE_KINDS = ["Müqavilə", "Akt", "Zəmanət", "Sifariş"] as const
@@ -4255,7 +3814,7 @@ function TemplateBodyField({ value, onChange }: { value: string; onChange: (valu
           {value ? highlightBody(value) : <span className="tpl-placeholder">Müqavilə mətnini yazın. Sahə əlavə etmək üçün yuxarıdakı düyməyə basın.</span>}
           {"\n"}
         </pre>
-        <textarea
+        <Textarea
           ref={areaRef}
           value={value}
           aria-label="Mətn"
@@ -4280,7 +3839,11 @@ export function TemplatesPage() {
   const [rendered, setRendered] = useState("")
   const [meta, setMeta] = useState({ version: "", legal: "" })
   const [note, setNote] = useState("")
-  const picked = useRef(false)
+  const [detail, setDetail] = useState(false)
+  const [studioTab, setStudioTab] = useState("edit")
+  const [busy, setBusy] = useState(false)
+  const pageRef = useRef<HTMLDivElement>(null)
+  usePageTransition(pageRef, detail ? "detail" : "list", true)
 
   const library = useMemo(() => {
     const apiIds = new Set(rows.map((row) => row.id))
@@ -4301,9 +3864,12 @@ export function TemplatesPage() {
   const returned = library.filter((row) => legalLabel(row.legal) === "Geri qaytarıldı").length
 
   function openRow(row: TemplateRow) {
-    picked.current = true
+    setDetail(true)
+    setStudioTab("edit")
+    setNote("")
     setEditingId(row.id)
     setOwned(Boolean(row.organizationId))
+    setMeta({version:row.version || "1.0",legal:legalLabel(row.legal)})
     setRendered("")
     setForm({
       name: row.name,
@@ -4316,11 +3882,14 @@ export function TemplatesPage() {
   }
 
   function startNew() {
-    picked.current = true
+    setDetail(true)
+    setStudioTab("edit")
+    setNote("")
     setEditingId("")
     setOwned(false)
     setRendered("")
     setForm(emptyTemplate)
+    setMeta({version:emptyTemplate.version,legal:emptyTemplate.legal})
   }
 
   useEffect(() => {
@@ -4329,10 +3898,6 @@ export function TemplatesPage() {
       .catch((reason) => setNote(reason instanceof ApiError ? reason.message : "Şablonlar oxunmadı"))
   }, [])
 
-  useEffect(() => {
-    if (picked.current || library.length === 0) return
-    openRow(library[0])
-  }, [library])
 
   const liveFields: Record<string, string> = {
     sirket: cabinet.name,
@@ -4344,7 +3909,8 @@ export function TemplatesPage() {
   const paper = rendered || liveText
 
   async function save() {
-    if (!form.name.trim()) return
+    if (busy || !form.name.trim()) return
+    setBusy(true)
     try {
       if (editingId && owned) {
         const updated = await api<TemplateRow>(`/api/platform/templates/${editingId}`, { method: "PATCH", body: JSON.stringify(form) })
@@ -4359,7 +3925,7 @@ export function TemplatesPage() {
       setNote(editingId ? "Şirkət nüsxəsi saxlandı." : "Şablon bazada saxlandı.")
     } catch (reason) {
       setNote(reason instanceof ApiError ? reason.message : "Şablon saxlanmadı")
-    }
+    } finally {setBusy(false)}
   }
 
   async function renderText() {
@@ -4407,82 +3973,45 @@ export function TemplatesPage() {
     URL.revokeObjectURL(url)
   }
 
-  return (
-    <div className="tpl-page">
-      <PageHead kicker="Sənəd" title="Hüquqi şablonlar" text="Müqavilə, akt, zəmanət və sifariş mətnləri burada saxlanır. Şirkət adı və VÖEN kabinetdən gəlir. Rəsmi imza sisteminə ötürülmür.">
-        <button type="button" className="btn" onClick={startNew}>Yeni şablon</button>
-      </PageHead>
-      <section className="statstrip">
-        <article><span>Şablon</span><strong>{library.length}</strong><em>kitabxanada</em></article>
-        <article><span>Baxılıb</span><strong>{reviewed}</strong><em>hüquq yoxlaması keçib</em></article>
-        <article><span>Gözləyir</span><strong>{waiting}</strong><em>hələ baxılmayıb</em></article>
-        <article><span>Geri qaytarılıb</span><strong>{returned}</strong><em className={returned ? "warn" : undefined}>düzəliş istəyir</em></article>
-      </section>
-      <div className="tpl-layout">
-        <section className="panel pad tpl-library">
-          <div className="panel-head">
-            <h2>Kitabxana</h2>
-            <span className="muted">{filtered.length} sənəd</span>
-          </div>
-          <label className="search tpl-search">
-            <Icon name="search" />
-            <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Ad, tərəf və ya mətn" />
-          </label>
-          <Tabs
-            value={kindFilter}
-            onChange={setKindFilter}
-            options={[{ id: "hamisi", label: "Hamısı" }, ...TEMPLATE_KINDS.map((item) => ({ id: item, label: item }))]}
-          />
-          <div className="tpl-cards">
-            {filtered.length === 0 && <Empty title="Şablon tapılmadı" text="Filtri və axtarışı təmizləyin, ya da yeni şablon yazın." />}
-            {filtered.map((row) => (
-              <button key={row.id} type="button" className={`tpl-card${row.id === editingId ? " on" : ""}`} onClick={() => openRow(row)}>
-                <span className="tpl-card-top">
-                  <span className={`badge ${kindTone(row.kind)}`}>{kindLabel(row.kind)}</span>
-                  <span className={`badge ${legalTone(row.legal)}`}>{legalLabel(row.legal)}</span>
-                </span>
-                <strong>{row.name}</strong>
-                <p>{templateExcerpt(row.body)}</p>
-                <span className="tpl-card-meta">
-                  <span>v.{row.version || "—"}</span>
-                  <span>{row.party || "Tərəf yoxdur"}</span>
-                  <span>{row.updatedOn ? dateAZ(String(row.updatedOn).slice(0, 10)) : "tarix yoxdur"}</span>
-                </span>
-              </button>
-            ))}
-          </div>
-        </section>
-        <section className="panel pad tpl-studio">
-          <div className="tpl-studio-head">
-            <div>
-              <p className="eyebrow">{owned ? "Şirkət şablonu" : editingId ? "Ümumi kitabxana" : "Yeni şablon"}</p>
-              <h2>{form.name.trim() || "Adsız şablon"}</h2>
-            </div>
-            <div className="tpl-studio-actions">
-              <button type="button" className="btn ghost small" onClick={() => void renderText()}>Mətni yığ</button>
-              <button type="button" className="btn" onClick={() => void save()}>{owned ? "Yenilə" : editingId ? "Nüsxə saxla" : "Saxla"}</button>
-            </div>
-          </div>
+  return <div className="finance-simple templates-workspace" ref={pageRef}>
+    {detail && <Button className="ghost template-back" onClick={() => setDetail(false)}>Şablonlara qayıt</Button>}
+    <PageHead title={detail ? form.name || "Yeni şablon" : "Hüquqi şablonlar"} text={detail ? "Mətni redaktə edin, məlumatları doldurun və sənədi hazırlayın." : "Müqavilə, akt, zəmanət və sifariş mətnlərini idarə edin."}>{detail ? <Button disabled={busy || !form.name.trim()} onClick={() => void save()}>{busy ? "Saxlanılır…" : owned ? "Dəyişiklikləri saxla" : editingId ? "Nüsxə saxla" : "Şablonu saxla"}</Button> : <Button onClick={startNew}><Icon name="plus" />Yeni şablon</Button>}</PageHead>
+    {note && <p className="lede" role="status">{note}</p>}
+    {!detail ? <>
+      <Panel className="employment-summary">{[{icon:"files" as const,label:"Bütün şablonlar",value:library.length},{icon:"check" as const,label:"Baxılıb",value:reviewed},{icon:"clock" as const,label:"Gözləyir",value:waiting},{icon:"close" as const,label:"Geri qaytarılıb",value:returned}].map((item) => <div key={item.label}><Icon name={item.icon} /><div><strong>{item.value}</strong><span>{item.label}</span></div></div>)}</Panel>
+      <Toolbar className="finance-list-toolbar"><SearchInput value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Ad, tərəf və ya mətn axtar" /><Select ariaLabel="Şablon növü" value={kindFilter} onValueChange={setKindFilter} options={[{value:"hamisi",label:"Bütün növlər"},...TEMPLATE_KINDS.map((item) => ({value:item,label:item}))]} /></Toolbar>
+      <TableContainer className="finance-records-table template-library-table"><table><thead><tr><th>Şablon</th><th>Növ</th><th>Versiya</th><th>Hüquq yoxlaması</th><th>Tarix</th><th><span className="sr-only">Şablonu aç</span></th></tr></thead><tbody>{filtered.map((row) => <tr key={row.id} tabIndex={0} onClick={() => openRow(row)} onKeyDown={(event) => {if(event.key === "Enter" || event.key === " "){event.preventDefault();openRow(row)}}}><td><strong>{row.name}</strong><small>{templateExcerpt(row.body)}</small></td><td><span className={`badge ${kindTone(row.kind)}`}>{kindLabel(row.kind)}</span></td><td>v.{row.version || "—"}</td><td><span className={`badge ${legalTone(row.legal)}`}>{legalLabel(row.legal)}</span></td><td>{row.updatedOn ? dateAZ(row.updatedOn.slice(0,10)) : "—"}</td><td><Icon name="chevron" /></td></tr>)}</tbody></table>{!filtered.length && <Empty title="Şablon tapılmadı" text="Axtarışı və ya növ filtrini dəyişin." />}</TableContainer>
+    </> : <>
+      <div className="template-context"><span className={`badge ${kindTone(form.kind)}`}>{form.kind}</span><span className={`badge ${legalTone(form.legal)}`}>{form.legal}</span><span>{owned ? "Şirkət şablonu" : editingId ? "Ümumi kitabxana · dəyişikliklər nüsxə kimi saxlanır" : "Yeni şablon"}</span></div>
+      <Tabs value={studioTab} onChange={setStudioTab} options={[{id:"edit",label:"Mətn"},{id:"fill",label:"Sənədi doldur"},{id:"preview",label:"Önizləmə"}]} />
+      <Panel className="pad template-editor" hidden={studioTab !== "edit"}>
           <div className="tpl-fields">
-            <label>Şablon adı<input value={form.name} onChange={(event) => { setRendered(""); setForm({ ...form, name: event.target.value }) }} /></label>
+            <label>Şablon adı<Input value={form.name} onChange={(event) => { setRendered(""); setForm({ ...form, name: event.target.value }) }} /></label>
             <label>Növ<Select value={form.kind} onValueChange={(kind) => { setRendered(""); setForm({ ...form, kind }) }} options={TEMPLATE_KINDS.map((item) => ({ value: item, label: item }))} /></label>
-            <label>Versiya<input value={form.version} onChange={(event) => setForm({ ...form, version: event.target.value })} /></label>
+            <label>Versiya<Input value={form.version} onChange={(event) => setForm({ ...form, version: event.target.value })} /></label>
             <label>Hüquq yoxlaması<Select value={form.legal} onValueChange={(legal) => setForm({ ...form, legal })} options={TEMPLATE_LEGAL.map((item) => ({ value: item, label: item }))} /></label>
-            <label className="span-2">Tərəf<input value={form.party} onChange={(event) => setForm({ ...form, party: event.target.value })} placeholder="Sifarişçi, bank, anbar" /></label>
+            <label className="span-2">Tərəf<Input value={form.party} onChange={(event) => setForm({ ...form, party: event.target.value })} placeholder="Sifarişçi, bank, anbar" /></label>
           </div>
           <TemplateBodyField value={form.body} onChange={(body) => { setRendered(""); setForm({ ...form, body }) }} />
+
+      </Panel>
+      <Panel className="pad template-fill" hidden={studioTab !== "fill"}>
+        <Disclosure title="Şirkət məlumatları"><dl className="finance-breakdown"><div><dt>Şirkət</dt><dd>{cabinet.name || "—"}</dd></div><div><dt>VÖEN</dt><dd>{cabinet.voen || "—"}</dd></div><div><dt>Ünvan</dt><dd>{cabinet.legalAddress || "—"}</dd></div></dl></Disclosure>
           <div className="tpl-fill">
             <div className="tpl-body-top"><span>Yığım</span><em>boş sahə mətndə işarə ilə qalır</em></div>
             <div className="tpl-fields">
-              <label>Tərəf<input value={fields.teref} onChange={(event) => { setRendered(""); setFields({ ...fields, teref: event.target.value }) }} /></label>
-              <label>Məbləğ<input value={fields.mebleg} onChange={(event) => { setRendered(""); setFields({ ...fields, mebleg: event.target.value }) }} /></label>
+              <label>Tərəf<Input value={fields.teref} onChange={(event) => { setRendered(""); setFields({ ...fields, teref: event.target.value }) }} /></label>
+              <label>Məbləğ<Input value={fields.mebleg} onChange={(event) => { setRendered(""); setFields({ ...fields, mebleg: event.target.value }) }} /></label>
               <label>Tarix<DateField value={fields.tarix} onChange={(tarix) => { setRendered(""); setFields({ ...fields, tarix }) }} ariaLabel="Tarix" /></label>
-              <label>Layihə<input value={fields.layihe} onChange={(event) => { setRendered(""); setFields({ ...fields, layihe: event.target.value }) }} /></label>
-              <label>Müddət<input value={fields.muddet} onChange={(event) => { setRendered(""); setFields({ ...fields, muddet: event.target.value }) }} /></label>
-              <label>Dövr<input value={fields.dovr} onChange={(event) => { setRendered(""); setFields({ ...fields, dovr: event.target.value }) }} /></label>
+              <label>Layihə<Input value={fields.layihe} onChange={(event) => { setRendered(""); setFields({ ...fields, layihe: event.target.value }) }} /></label>
+              <label>Müddət<Input value={fields.muddet} onChange={(event) => { setRendered(""); setFields({ ...fields, muddet: event.target.value }) }} /></label>
+              <label>Dövr<Input value={fields.dovr} onChange={(event) => { setRendered(""); setFields({ ...fields, dovr: event.target.value }) }} /></label>
             </div>
           </div>
-          {note && <p className="tpl-note">{note}</p>}
+
+        <div className="form-actions"><Button onClick={() => {void renderText();setStudioTab("preview")}}>Mətni hazırla</Button></div>
+      </Panel>
+      <div hidden={studioTab !== "preview"}>
           <article className="tpl-paper">
             <header>
               <span>Yığılmış mətn</span>
@@ -4492,15 +4021,14 @@ export function TemplatesPage() {
             <footer>
               <span>Hüquqi rəy əvəzi deyil.</span>
               <span>
-                <button type="button" className="btn ghost small" onClick={() => download("doc")} disabled={!paper.trim()}>Word</button>
-                <button type="button" className="btn ghost small" onClick={() => download("pdf")} disabled={!paper.trim()}>PDF</button>
+                <Button type="button" className="ghost small" onClick={() => download("doc")} disabled={!paper.trim()}>Word</Button>
+                <Button type="button" className="ghost small" onClick={() => download("pdf")} disabled={!paper.trim()}>PDF</Button>
               </span>
             </footer>
           </article>
-        </section>
       </div>
-    </div>
-  )
+    </>}
+  </div>
 }
 
 export function AdminPage() {
@@ -4509,6 +4037,9 @@ export function AdminPage() {
   const [packs, setPacks] = useState<Pack[]>([])
   const [draft, setDraft] = useState<Record<string, { amount: string; userLimit: string; smetaLimit: string }>>({})
   const [note, setNote] = useState("")
+  const [view, setView] = useState("packages")
+  const [editing, setEditing] = useState("")
+  const [busy, setBusy] = useState(false)
 
   useEffect(() => {
     api<Pack[]>("/api/platform/packages").then((rows) => {
@@ -4523,33 +4054,27 @@ export function AdminPage() {
 
   async function save(id: string) {
     const row = draft[id]
-    if (!row) return
+    if (!row || busy) return
+    setBusy(true)
     try {
-      await api(`/api/platform/packages/${id}`, { method: "PATCH", body: JSON.stringify(row) })
+      const updated = await api<Pack>(`/api/platform/packages/${id}`, { method: "PATCH", body: JSON.stringify(row) })
+      setPacks((current) => current.map((pack) => pack.id === id ? updated : pack))
+      setEditing("")
       setNote("Paket məbləği və hədləri yazıldı. Kartla tutulma yoxdur.")
     } catch (reason) {
       setNote(reason instanceof ApiError ? reason.message : "Paket yazılmadı")
-    }
+    } finally {setBusy(false)}
   }
 
-  return (
-    <>
-      <PageHead kicker="Platforma" title="İdarə paneli" text="Abunə məbləği, istifadəçi və layihə həddi buradan dəyişir. Şirkətin smeta və anbar rəqəmi bu paneldə açılmır." />
-      <section className="panel pad">
-        <div className="step-row"><span>Açıq kabinet</span><strong>{cabinet.code ? 1 : 0}</strong></div>
-        <div className="step-row"><span>Əməkdaşlıq sorğusu</span><strong>{coop.length}</strong></div>
-        <div className="step-row"><span>Növbədəki tender paketi</span><strong>{tender.confirmed ? 1 : 0}</strong></div>
-        {packs.map((pack) => (
-          <div className="form-row wide" key={pack.id}>
-            <strong>{pack.name}</strong>
-            <label>Məbləğ, AZN<input value={draft[pack.id]?.amount ?? ""} onChange={(event) => setDraft({ ...draft, [pack.id]: { ...draft[pack.id], amount: event.target.value } })} placeholder="boşdursa limitsiz qiymət yoxdur" /></label>
-            <label>İstifadəçi həddi<input value={draft[pack.id]?.userLimit ?? ""} onChange={(event) => setDraft({ ...draft, [pack.id]: { ...draft[pack.id], userLimit: event.target.value } })} placeholder="boşdursa limitsiz" /></label>
-            <label>Layihə həddi<input value={draft[pack.id]?.smetaLimit ?? ""} onChange={(event) => setDraft({ ...draft, [pack.id]: { ...draft[pack.id], smetaLimit: event.target.value } })} placeholder="boşdursa limitsiz" /></label>
-            <button type="button" className="btn" onClick={() => void save(pack.id)}>Yaz</button>
-          </div>
-        ))}
-        {note && <p className="lede">{note}</p>}
-      </section>
-    </>
-  )
+  const selected = packs.find((pack) => pack.id === editing)
+  function openPackage(pack:Pack) {setDraft((current) => ({...current,[pack.id]:{amount:pack.amount == null ? "" : String(pack.amount),userLimit:pack.userLimit == null ? "" : String(pack.userLimit),smetaLimit:pack.smetaLimit == null ? "" : String(pack.smetaLimit)}}));setNote("");setEditing(pack.id)}
+  return <div className="finance-simple admin-workspace">
+    <PageHead title="Platforma idarəsi" text="Abunə paketlərinin qiymət və limitlərini idarə edin." />
+    <Tabs value={view} onChange={setView} options={[{id:"packages",label:"Paketlər"},{id:"general",label:"Ümumi məlumat"}]} />
+    {note && !selected && <p className="lede" role="status">{note}</p>}
+    {view === "packages" ? <TableContainer className="finance-records-table"><table><thead><tr><th>Paket</th><th>Məbləğ, AZN</th><th>İstifadəçi limiti</th><th>Layihə limiti</th><th><span className="sr-only">Redaktə et</span></th></tr></thead><tbody>{packs.map((pack) => <tr key={pack.id} tabIndex={0} onClick={() => openPackage(pack)} onKeyDown={(event) => {if(event.key === "Enter" || event.key === " "){event.preventDefault();openPackage(pack)}}}><td><strong>{pack.name}</strong><small>{pack.features}</small></td><td>{pack.amount == null ? "Göstərilməyib" : money(Number(pack.amount)||0)}</td><td>{pack.userLimit ?? "Limitsiz"}</td><td>{pack.smetaLimit ?? "Limitsiz"}</td><td><Button className="ghost small" onClick={(event) => {event.stopPropagation();openPackage(pack)}}><Icon name="edit" />Redaktə et</Button></td></tr>)}</tbody></table>{!packs.length && <Empty title="Paket yoxdur" text="Paket məlumatları burada görünəcək." />}</TableContainer> : <>
+      <Panel className="employment-summary admin-summary">{[{icon:"office" as const,label:"Açıq kabinet",value:cabinet.code ? 1 : 0},{icon:"users" as const,label:"Əməkdaşlıq sorğusu",value:coop.length},{icon:"files" as const,label:"Növbədəki tender paketi",value:tender.confirmed ? 1 : 0}].map((item) => <div key={item.label}><Icon name={item.icon} /><div><strong>{item.value}</strong><span>{item.label}</span></div></div>)}</Panel><Panel className="pad"><h2 className="block-title">Kabinet</h2><dl className="finance-breakdown"><div><dt>Şirkət</dt><dd>{cabinet.name || "—"}</dd></div><div><dt>Kod</dt><dd>{cabinet.code || "—"}</dd></div></dl></Panel>
+    </>}
+    {selected && <Modal title={`${selected.name} paketi`} className="finance-record-modal" onClose={() => {if(!busy)setEditing("")}}><form onSubmit={(event) => {event.preventDefault();void save(selected.id)}}><div className="finance-form-grid"><label className="full">Məbləğ, AZN<Input inputMode="decimal" value={draft[selected.id]?.amount || ""} onChange={(event) => setDraft({...draft,[selected.id]:{...draft[selected.id],amount:event.target.value}})} placeholder="Məbləğ göstərilməyib" /></label><label>İstifadəçi limiti<Input type="number" min="1" value={draft[selected.id]?.userLimit || ""} onChange={(event) => setDraft({...draft,[selected.id]:{...draft[selected.id],userLimit:event.target.value}})} placeholder="Limitsiz" /></label><label>Layihə limiti<Input type="number" min="1" value={draft[selected.id]?.smetaLimit || ""} onChange={(event) => setDraft({...draft,[selected.id]:{...draft[selected.id],smetaLimit:event.target.value}})} placeholder="Limitsiz" /></label></div><p className="tax-form-hint">Limit boş saxlanıldıqda məhdudiyyət tətbiq edilmir.</p>{note && <p className="form-error" role="alert">{note}</p>}<div className="form-actions"><Button className="ghost" disabled={busy} onClick={() => setEditing("")}>Ləğv et</Button><Button type="submit" disabled={busy}>{busy ? "Saxlanılır…" : "Dəyişiklikləri saxla"}</Button></div></form></Modal>}
+  </div>
 }

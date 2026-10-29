@@ -1,3 +1,4 @@
+import { Button, Input, TableContainer, Textarea, Toolbar } from "../components/primitives"
 import { useState, type FormEvent } from "react"
 import { FILE_KINDS, FILE_STATUSES, parties, stepOf } from "../domain/crm"
 import { ownerOptions } from "../domain/hrm"
@@ -43,18 +44,18 @@ export default function CrmFiles() {
   return (
     <>
       <PageHead kicker={t("page.files.kicker")} title={t("page.files.title")} text={t("page.files.text")}>
-        <button type="button" className="btn" onClick={() => openForm()}><Icon name="plus" /> Sənəd</button>
+        <Button type="button" onClick={() => openForm()}><Icon name="plus" /> Sənəd</Button>
       </PageHead>
-      <div className="toolbar">
+      <Toolbar>
         <Tabs
           value={tab}
           onChange={setTab}
           options={[{ id: "hamisi", label: "Hamısı" }, ...FILE_STATUSES.map((item) => ({ id: item, label: t(`status.${item}`) }))]}
         />
         <span className="muted">{rows.length} sənəd</span>
-      </div>
+      </Toolbar>
       {error && !modal && !selected && <p className="form-error">{error}</p>}
-      <div className="table-wrap">
+      <TableContainer>
         <table>
           <thead>
             <tr>
@@ -99,7 +100,7 @@ export default function CrmFiles() {
           </tbody>
         </table>
         {rows.length === 0 && <Empty title="Sənəd tapılmadı" text="Filtri dəyişin və ya yeni qaralama açın." />}
-      </div>
+      </TableContainer>
 
       {selected && (
         <Drawer title={selected.title} onClose={() => setOpenId("")}>
@@ -118,10 +119,10 @@ export default function CrmFiles() {
           {error && <p className="form-error">{error}</p>}
           <div className="form-actions">
             {(selected.status === "qaralama" || selected.status === "gozleyir") && (
-              <button type="button" className="btn ghost" onClick={() => openForm(selected)}><Icon name="edit" /> Redaktə</button>
+              <Button type="button" className="ghost" onClick={() => openForm(selected)}><Icon name="edit" /> Redaktə</Button>
             )}
             {stepOf(FILE_STATUSES, selected.status, 1) && (
-              <button type="button" className="btn" onClick={() => setError(store.moveCrmFile(selected.id, stepOf(FILE_STATUSES, selected.status, 1) as typeof selected.status))}>İrəli</button>
+              <Button type="button" onClick={() => setError(store.moveCrmFile(selected.id, stepOf(FILE_STATUSES, selected.status, 1) as typeof selected.status))}>İrəli</Button>
             )}
           </div>
         </Drawer>
@@ -131,10 +132,10 @@ export default function CrmFiles() {
         <Modal wide title={editing ? "Sənədi yaz" : "Yeni sənəd"} onClose={() => setModal(false)}>
           <form className="form cols" onSubmit={submit}>
             <Field label="Ad">
-              <input value={form.title} onChange={(event) => setForm({ ...form, title: event.target.value })} />
+              <Input value={form.title} onChange={(event) => setForm({ ...form, title: event.target.value })} />
             </Field>
             <Field label="Nömrə">
-              <input value={form.number} onChange={(event) => setForm({ ...form, number: event.target.value })} />
+              <Input value={form.number} onChange={(event) => setForm({ ...form, number: event.target.value })} />
             </Field>
             <Field label="Növ">
               <Select value={form.kind} onValueChange={(kind) => setForm({ ...form, kind: kind as FileKind })} options={FILE_KINDS.map((item) => ({ value: item, label: t(`status.${item}`) }))} />
@@ -158,12 +159,12 @@ export default function CrmFiles() {
               <Select value={form.projectId} onValueChange={(projectId) => setForm({ ...form, projectId })} options={[{ value: "", label: "—" }, ...store.projects.map((item) => ({ value: item.id, label: item.name }))]} />
             </Field>
             <Field label="Qeyd">
-              <textarea value={form.note} onChange={(event) => setForm({ ...form, note: event.target.value })} />
+              <Textarea value={form.note} onChange={(event) => setForm({ ...form, note: event.target.value })} />
             </Field>
             {error && <p className="form-error">{error}</p>}
             <div className="form-actions">
-              <button type="button" className="btn ghost" onClick={() => setModal(false)}>Ləğv et</button>
-              <button className="btn" type="submit">Saxla</button>
+              <Button type="button" className="ghost" onClick={() => setModal(false)}>Ləğv et</Button>
+              <Button  type="submit">Saxla</Button>
             </div>
           </form>
         </Modal>

@@ -1,3 +1,4 @@
+import { Button, Input, TableContainer } from "../components/primitives"
 import { useState, type FormEvent } from "react"
 import { placeGroups } from "../domain/places"
 import type { Department, DepartmentForm } from "../domain/types"
@@ -41,26 +42,10 @@ export default function HrmDepartments() {
   return (
     <>
       <PageHead kicker={t("page.departments.kicker")} title={t("page.departments.title")} text={t("page.departments.text")}>
-        <button type="button" className="btn" onClick={() => openForm()}><Icon name="plus" /> Şöbə</button>
+        <Button type="button" onClick={() => openForm()}><Icon name="plus" /> Şöbə</Button>
       </PageHead>
       {error && !modal && <p className="form-error">{error}</p>}
-      <div className="crew-grid">
-        {rows.map((row) => {
-          const lead = store.people.find((item) => item.id === row.leadId)
-          const size = store.people.filter((item) => item.departmentId === row.id).length
-          return (
-            <article key={row.id} className="crew-card">
-              <div className="card-top">
-                <b>{row.name}</b>
-                <span className="mono">{row.code}</span>
-              </div>
-              <p className="muted">{row.site}</p>
-              <p>Rəhbər {lead?.name || "—"} · {size} nəfər</p>
-            </article>
-          )
-        })}
-      </div>
-      <div className="table-wrap">
+      <TableContainer>
         <table>
           <thead>
             <tr>
@@ -93,16 +78,16 @@ export default function HrmDepartments() {
           </tbody>
         </table>
         {rows.length === 0 && <Empty title="Şöbə yoxdur" text="İdarəetmə, sahə və ya istehsal şöbəsi açın." />}
-      </div>
+      </TableContainer>
 
       {modal && (
         <Modal wide title={editing ? "Şöbəni yaz" : "Yeni şöbə"} onClose={() => setModal(false)}>
           <form className="form cols" onSubmit={submit}>
             <Field label="Ad">
-              <input value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} />
+              <Input value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} />
             </Field>
             <Field label="Kod">
-              <input value={form.code} onChange={(event) => setForm({ ...form, code: event.target.value })} />
+              <Input value={form.code} onChange={(event) => setForm({ ...form, code: event.target.value })} />
             </Field>
             <Field label="Rəhbər">
               <Select value={form.leadId} onValueChange={(leadId) => setForm({ ...form, leadId })} options={[{ value: "", label: "—" }, ...store.people.map((item) => ({ value: item.id, label: item.name }))]} />
@@ -112,8 +97,8 @@ export default function HrmDepartments() {
             </Field>
             {error && <p className="form-error">{error}</p>}
             <div className="form-actions">
-              <button type="button" className="btn ghost" onClick={() => setModal(false)}>Ləğv et</button>
-              <button className="btn" type="submit">Saxla</button>
+              <Button type="button" className="ghost" onClick={() => setModal(false)}>Ləğv et</Button>
+              <Button  type="submit">Saxla</Button>
             </div>
           </form>
         </Modal>

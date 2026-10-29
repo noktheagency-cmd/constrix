@@ -1,3 +1,4 @@
+import { Button, Panel, Toolbar } from "../components/primitives"
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { company } from "../data"
@@ -27,7 +28,7 @@ export default function Settings() {
   return (
     <>
       <PageHead kicker={t("settings.kicker")} title={t("settings.title")} text={t("settings.text")} />
-      <div className="toolbar">
+      <Toolbar>
         <Tabs
           value={tab}
           onChange={setTab}
@@ -38,11 +39,11 @@ export default function Settings() {
             { id: "is", label: t("settings.workspace") },
           ]}
         />
-      </div>
+      </Toolbar>
 
       {tab === "profil" && (
         <div className="settings-grid">
-          <section className="panel pad">
+          <Panel className="pad">
             <h2>{t("settings.account")}</h2>
             <div className="settings-row start">
               <div>
@@ -61,10 +62,10 @@ export default function Settings() {
             <p className="muted">{t("settings.roleNote")}</p>
             <div className="settings-row">
               <span>{t("settings.session")}</span>
-              <button type="button" className="btn small ghost" onClick={signOut}>{t("shell.logout")}</button>
+              <Button type="button" className="small ghost" onClick={signOut}>{t("shell.logout")}</Button>
             </div>
-          </section>
-          <section className="panel pad">
+          </Panel>
+          <Panel className="pad">
             <h2>{t("settings.access")}</h2>
             {MODULES.map((item) => {
               const open = openModules.some((module) => module.id === item.id)
@@ -78,12 +79,12 @@ export default function Settings() {
                 </div>
               )
             })}
-          </section>
+          </Panel>
         </div>
       )}
 
       {tab === "gorunus" && (
-        <section className="panel pad settings-card">
+        <Panel className="pad settings-card">
           <h2>{t("settings.appearance")}</h2>
           <div className="settings-row">
             <span>{t("shell.themeLight")}</span>
@@ -109,11 +110,11 @@ export default function Settings() {
               <button type="button" className={!navOpen ? "on" : ""} onClick={() => setNavOpen(false)}>{t("settings.navClosed")}</button>
             </div>
           </div>
-        </section>
+        </Panel>
       )}
 
       {tab === "bildiris" && (
-        <section className="panel pad settings-card">
+        <Panel className="pad settings-card">
           <h2>{t("settings.notices")}</h2>
           <p className="muted">{t("settings.noticesText")}</p>
           {NOTICES.map((key) => (
@@ -124,11 +125,11 @@ export default function Settings() {
               </button>
             </div>
           ))}
-        </section>
+        </Panel>
       )}
 
       {tab === "is" && (
-        <section className="panel pad settings-card">
+        <Panel className="pad settings-card">
           <h2>{t("settings.start")}</h2>
           <p className="muted">{t("settings.startText")}</p>
           <div className="module-picks">
@@ -139,7 +140,7 @@ export default function Settings() {
               </button>
             ))}
           </div>
-        </section>
+        </Panel>
       )}
     </>
   )

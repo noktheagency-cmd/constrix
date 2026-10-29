@@ -1,3 +1,4 @@
+import { TableContainer } from "../components/primitives"
 import { hit } from "../format"
 import { ROLES } from "../domain/access"
 import type { Role } from "../domain/types"
@@ -13,7 +14,7 @@ export default function Audit() {
   return (
     <>
       <PageHead kicker={t("page.audit.kicker")} title={t("page.audit.title")} text={t("page.audit.text")} />
-      <div className="table-wrap">
+      <TableContainer>
         <table>
           <thead>
             <tr>
@@ -38,7 +39,7 @@ export default function Audit() {
           </tbody>
         </table>
         {rows.length === 0 && <Empty title="Qeyd yoxdur" text="Axtarışa uyğun əməliyyat tapılmadı." />}
-      </div>
+      </TableContainer>
     </>
   )
 }

@@ -4,12 +4,13 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "concurrently -n web,api -c blue,green \"npm run dev:web\" \"npm run dev:api\"",
+    "predev": "node backend/scripts/check-dev-port.mjs",
+    "dev": "concurrently --kill-others -n web,api -c blue,green \"npm run dev:web\" \"npm run dev:api\"",
     "dev:web": "vite",
     "dev:api": "npm run start:dev --prefix backend",
     "build": "tsc --noEmit && vite build",
     "typecheck": "tsc --noEmit",
-    "test": "tsx --test src/domain/ops.test.ts src/domain/smetaIo.test.ts src/domain/marketRfq.test.ts src/domain/financeView.test.ts src/domain/crm.test.ts src/domain/hrm.test.ts src/procure/engine.test.ts src/procure/files.test.ts src/procure/smeta.test.ts src/procure/read.test.ts",
+    "test": "tsx --test src/domain/ops.test.ts src/domain/smetaIo.test.ts src/domain/marketRfq.test.ts src/domain/financeView.test.ts src/domain/crm.test.ts src/domain/hrm.test.ts src/procure/engine.test.ts src/procure/files.test.ts src/procure/smeta.test.ts src/procure/read.test.ts src/procure/demo.test.ts",
     "lint": "oxlint",
     "preview": "vite preview"
   },

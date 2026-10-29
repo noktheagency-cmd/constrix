@@ -1,6 +1,6 @@
 import assert from "node:assert/strict"
 import test from "node:test"
-import { chooseQuote, deliverOrder, openRfq, orderFromRfq, receiveOrder, seedQuotes } from "./marketRfq"
+import { chooseQuote, deliverOrder, openRfq, orderFromRfq, receiveOrder, seedQuotes, quoteCompareRows } from "./marketRfq"
 
 test("RFQ → təklif → sifariş → qəbul axını", () => {
   const opened = openRfq(
@@ -39,4 +39,14 @@ test("təklifsiz sifariş açılmır", () => {
   assert.equal(typeof opened, "object")
   if (typeof opened === "string") return
   assert.match(String(orderFromRfq(opened, [])), /təklif/)
+})
+
+test("bazadan gələn qismən təklif öz miqdarı və çatdırılma xərci ilə hesablanır", () => {
+  const opened = openRfq([{productId:"arm",name:"Armatur",unit:"ton",supplier:"A",qty:300}],"Bakı","2026-11-01",[])
+  assert.notEqual(typeof opened,"string")
+  if(typeof opened === "string") return
+  const quote = {id:"bid",supplier:"A",unitPrice:1040,qty:120,delivery:1800,deliveryDays:6,vat:"unknown" as const,note:""}
+  const rfq = {...opened,quotes:[quote],status:"secilib" as const,chosenQuoteId:quote.id}
+  assert.equal(quoteCompareRows(rfq)[0].total,126600)
+  assert.match(String(orderFromRfq(rfq,[])), /miqdarını ödəmir/)
 })

@@ -1,3 +1,4 @@
+import { Button, Disclosure, Input, TableContainer, Toolbar } from "../components/primitives"
 import { useEffect, useState, type FormEvent } from "react"
 import { useSearchParams } from "react-router-dom"
 import { ApiError, api } from "../api"
@@ -7,11 +8,11 @@ import { dateAZ, hit, money, num } from "../format"
 import { Icon } from "../icons"
 import { usePrefs } from "../i18n"
 import { useStore } from "../store"
-import { Badge, Drawer, Empty, Field, PageHead, Select, StockBar, Tabs, useTitle } from "../ui"
+import { Badge, Drawer, Empty, Field, Modal, PageHead, Select, StockBar, Tabs, useTitle } from "../ui"
 import { patch, uid, useWorkspace } from "../workspace"
 import { PassportPage } from "./platform"
 
-type Tab = "qaliq" | "kritik" | "pasport" | "transfer" | "hereket" | "anbarlar"
+type Tab = "qaliq" | "kritik" | "pasport" | "transfer" | "hereket" | "anbarlar" | "partiyalar"
 type Read =
   | { kind: "material"; id: string }
   | { kind: "move"; id: string }
@@ -25,7 +26,7 @@ const KIND: Record<string, string> = { merkez: "Mərkəz", zavod: "Zavod", sex: 
 const KINDS = Object.keys(KIND) as LocationKind[]
 const emptyMove = { materialId: "", type: "mexaric", qty: "", project: "", locationId: "LOC-MERKEZ", smetaLineId: "", note: "" }
 
-const WAREHOUSE_TABS: Tab[] = ["qaliq", "kritik", "pasport", "transfer", "hereket", "anbarlar"]
+const WAREHOUSE_TABS: Tab[] = ["qaliq", "kritik", "pasport", "transfer", "hereket", "anbarlar", "partiyalar"]
 
 export default function Warehouse() {
   const { t } = usePrefs()
@@ -62,6 +63,8 @@ export default function Warehouse() {
   const [method, setMethod] = useState("orta")
   const [act, setAct] = useState({ kind: "qebul", code: "", qty: "", unitCost: "", batch: "", place: "", toPlace: "", projectId: "", qr: "" })
   const [lotNote, setLotNote] = useState("")
+  const [lotOpen, setLotOpen] = useState(false)
+  const [lotBusy, setLotBusy] = useState(false)
   const [serverLots, setServerLots] = useState<{ id: string; code: string; qty: unknown; unitCost: unknown; qr: string; batch: string; locationId: string | null }[]>([])
   const [platformProjects, setPlatformProjects] = useState<{ id: string; name: string }[]>([])
 
@@ -87,6 +90,8 @@ export default function Warehouse() {
   }
 
   async function runAct() {
+    if (lotBusy) return
+    setLotBusy(true)
     try {
       let code = act.code
       if (act.qr && act.kind !== "qebul") {
@@ -107,10 +112,11 @@ export default function Warehouse() {
         }),
       })
       await reloadLots()
+      setLotOpen(false)
       setLotNote(act.kind === "buraxilis" ? `Layihə xərcinə ${result.projectCost ?? 0} düşdü.` : act.kind === "qebul" ? `Qəbul olundu. QR: ${result.qr || "verildi"}` : "Hərəkət yazıldı. Qalıq sıfırdan aşağı düşmür.")
     } catch (reason) {
       setLotNote(reason instanceof ApiError ? reason.message : "Anbar hərəkəti yazılmadı")
-    }
+    } finally { setLotBusy(false) }
   }
 
   const value = materials.reduce((sum, item) => sum + item.qty * item.price, 0)
@@ -184,6 +190,7 @@ export default function Warehouse() {
   const routeCard = reading?.kind === "shipment" ? shipments.find((item) => item.id === reading.id) : undefined
   const placeCard = reading?.kind === "place" ? houses.find((item) => item.id === reading.id) : undefined
   const hint =
+    tab === "partiyalar" ? `${serverLots.filter((item) => Number(item.qty) > 0).length} partiya` :
     tab === "transfer" ? `${routes.filter((item) => item.step < item.stops.length - 1).length} sənəd yoldadır` :
     tab === "anbarlar" ? `${houses.length} anbar` :
     tab === "hereket" ? `${moves.length} hərəkət` :
@@ -193,20 +200,23 @@ export default function Warehouse() {
     <>
       <PageHead kicker={t("page.warehouse.kicker")} title={t("page.warehouse.title")} text={t("page.warehouse.text", { value: money(value) })}>
         {tab === "transfer" ? (
-          <button type="button" className="btn" onClick={openRoute}><Icon name="plus" /> Transfer</button>
+          <Button type="button" onClick={openRoute}><Icon name="plus" /> Transfer</Button>
         ) : tab === "anbarlar" ? (
-          <button type="button" className="btn" onClick={() => openHouse()}><Icon name="plus" /> Anbar</button>
+          <Button type="button" onClick={() => openHouse()}><Icon name="plus" /> Anbar</Button>
+        ) : tab === "partiyalar" ? (
+          <Button onClick={() => {setLotNote(""); setLotOpen(true)}}><Icon name="plus" />Partiya hərəkəti</Button>
         ) : tab === "pasport" ? null : (
-          <button type="button" className="btn" onClick={() => openIntake()}><Icon name="plus" /> Hərəkət</button>
+          <Button type="button" onClick={() => openIntake()}><Icon name="plus" /> Hərəkət</Button>
         )}
       </PageHead>
-      <div className="toolbar">
+      <Toolbar>
         <Tabs
           value={tab}
           onChange={openTab}
           options={[
             { id: "qaliq", label: "Qalıq" },
             { id: "kritik", label: "Kritik" },
+            { id: "partiyalar", label: "Partiyalar" },
             { id: "pasport", label: "Pasport" },
             { id: "transfer", label: "Transfer" },
             { id: "hereket", label: "Hərəkət" },
@@ -214,33 +224,34 @@ export default function Warehouse() {
           ]}
         />
         <span className="muted">{hint}</span>
-      </div>
+      </Toolbar>
       {tab === "pasport" && <PassportPage embedded materialFilter={materialCard?.name || ""} />}
       {tab !== "pasport" && (
       <>
-      <section className="panel pad">
-        <h2 className="block-title">QR və maya</h2>
-        <div className="form-row wide">
-          <label>Maya<Select value={method} onValueChange={(value) => void saveMethod(value)} options={[{ value: "orta", label: "Orta çəkili" }, { value: "fifo", label: "FIFO" }]} /></label>
-          <label>Hərəkət<Select value={act.kind} onValueChange={(kind) => setAct({ ...act, kind })} options={[{ value: "qebul", label: "Qəbul" }, { value: "kocurme", label: "Köçürmə" }, { value: "buraxilis", label: "Layihəyə buraxılış" }, { value: "qaytarma", label: "Geri qaytarma" }, { value: "itki", label: "İtki" }]} /></label>
-          <label>Material kodu<input value={act.code} onChange={(event) => setAct({ ...act, code: event.target.value })} /></label>
-          <label>QR<input value={act.qr} onChange={(event) => setAct({ ...act, qr: event.target.value })} placeholder="çıxışda oxu" /></label>
-          <label>Miqdar<input value={act.qty} onChange={(event) => setAct({ ...act, qty: event.target.value })} /></label>
-          <label>Vahid maya<input value={act.unitCost} onChange={(event) => setAct({ ...act, unitCost: event.target.value })} /></label>
-          <label>Partiya<input value={act.batch} onChange={(event) => setAct({ ...act, batch: event.target.value })} /></label>
-          <label>Anbar<input value={act.place} onChange={(event) => setAct({ ...act, place: event.target.value })} /></label>
-          <label>Hədəf anbar<input value={act.toPlace} onChange={(event) => setAct({ ...act, toPlace: event.target.value })} /></label>
-          <label>Layihə<Select value={act.projectId} onValueChange={(projectId) => setAct({ ...act, projectId })} options={[{ value: "", label: "Seçilməyib" }, ...(platformProjects.length ? platformProjects : projects).map((item) => ({ value: item.id, label: item.name }))]} /></label>
-          <button type="button" className="btn" onClick={() => void runAct()}>Yaz</button>
-        </div>
-        {lotNote && <p className="lede">{lotNote}</p>}
-        {serverLots.filter((item) => Number(item.qty) > 0).map((item) => (
-          <div className="step-row" key={item.id}><span>{item.code} · {item.batch || "partiyasız"} · {item.locationId || "anbar"} · {item.qr}</span><strong>{String(item.qty)} × {String(item.unitCost)}</strong></div>
-        ))}
-      </section>
+      {tab === "partiyalar" && <>
+        <Toolbar className="warehouse-lot-toolbar"><div><strong>Material partiyaları</strong><p className="muted">QR kodlar, qalıqlar və vahid maya dəyəri.</p></div><label>Maya üsulu<Select ariaLabel="Maya üsulu" value={method} onValueChange={(value) => void saveMethod(value)} options={[{value:"orta",label:"Orta çəkili"},{value:"fifo",label:"FIFO"}]} /></label></Toolbar>
+        {lotNote && !lotOpen && <p className="lede" role="status">{lotNote}</p>}
+        <TableContainer className="warehouse-lots"><table><thead><tr><th>Material kodu</th><th>Partiya</th><th>Anbar</th><th>Qalıq</th><th>Vahid maya</th><th>QR kod</th></tr></thead><tbody>{serverLots.filter((item) => Number(item.qty) > 0).map((item) => <tr key={item.id}><td><strong>{item.code}</strong></td><td>{item.batch || "—"}</td><td>{nameOf(item.locationId || "") || item.locationId || "—"}</td><td>{num(Number(item.qty))}</td><td>{num(Number(item.unitCost), 2)} AZN</td><td><code>{item.qr || "—"}</code></td></tr>)}</tbody></table>{!serverLots.some((item) => Number(item.qty) > 0) && <Empty title="Partiya yoxdur" text="Partiya hərəkəti düyməsi ilə ilk qəbulu daxil edin." />}</TableContainer>
+      </>}
+      {lotOpen && <Modal title="Partiya hərəkəti" className="warehouse-lot-modal" onClose={() => {if(!lotBusy) setLotOpen(false)}}>
+        <form onSubmit={(event) => {event.preventDefault(); void runAct()}}>
+          <div className="warehouse-lot-fields">
+            <label className="full">Əməliyyat<Select value={act.kind} onValueChange={(kind) => setAct({...act,kind})} options={[{value:"qebul",label:"Qəbul"},{value:"kocurme",label:"Köçürmə"},{value:"buraxilis",label:"Layihəyə buraxılış"},{value:"qaytarma",label:"Geri qaytarma"},{value:"itki",label:"İtki"}]} /></label>
+            <label>Material kodu<Input value={act.code} onChange={(event) => setAct({...act,code:event.target.value})} placeholder="Məs. MAT-ARMATUR" /></label>
+            <label>Miqdar<Input required inputMode="decimal" value={act.qty} onChange={(event) => setAct({...act,qty:event.target.value})} /></label>
+            {act.kind !== "qebul" && <label className="full">QR kod<Input value={act.qr} onChange={(event) => setAct({...act,qr:event.target.value})} placeholder="QR kodu oxudun və ya daxil edin" /></label>}
+            {(act.kind === "qebul" || act.kind === "qaytarma") && <><label>Vahid maya, AZN<Input inputMode="decimal" value={act.unitCost} onChange={(event) => setAct({...act,unitCost:event.target.value})} /></label><label>Partiya<Input value={act.batch} onChange={(event) => setAct({...act,batch:event.target.value})} /></label></>}
+            <label className="full">Anbar<Select value={act.place} onValueChange={(place) => setAct({...act,place})} options={[{value:"",label:"Anbar seçin"},...locations.map((item) => ({value:item.id,label:item.name}))]} /></label>
+            {act.kind === "kocurme" && <label className="full">Hədəf anbar<Select value={act.toPlace} onValueChange={(toPlace) => setAct({...act,toPlace})} options={[{value:"",label:"Anbar seçin"},...locations.map((item) => ({value:item.id,label:item.name}))]} /></label>}
+            {act.kind === "buraxilis" && <label className="full">Layihə<Select value={act.projectId} onValueChange={(projectId) => setAct({...act,projectId})} options={[{value:"",label:"Layihə seçin"},...(platformProjects.length ? platformProjects : projects).map((item) => ({value:item.id,label:item.name}))]} /></label>}
+          </div>
+          {lotNote && <p className="form-error" role="alert">{lotNote}</p>}
+          <div className="form-actions"><Button className="ghost" disabled={lotBusy} onClick={() => setLotOpen(false)}>Ləğv et</Button><Button type="submit" disabled={lotBusy}>{lotBusy ? "Saxlanılır…" : "Hərəkəti saxla"}</Button></div>
+        </form>
+      </Modal>}
 
       {(tab === "qaliq" || tab === "kritik") && (
-        <div className="table-wrap">
+        <TableContainer>
           <table>
             <thead>
               <tr>
@@ -280,27 +291,26 @@ export default function Warehouse() {
             </tbody>
           </table>
           {stockRows.length === 0 && <Empty title="Material tapılmadı" text="Kritik filtrdə və ya axtarışda nəticə yoxdur." />}
-        </div>
+        </TableContainer>
       )}
 
       {tab === "transfer" && (
-        <section className="panel pad" style={{ marginBottom: 16 }}>
-          <h2 className="block-title">Partiya</h2>
+        <Disclosure title="Əlavə partiya qeydləri">
           <p className="lede">Partiya, son istifadə və yer boşdur. Köçürmə aşağıdakı cədvəldə qalır.</p>
           <div className="form-row wide">
-            <label>Material<input value={lot.material} onChange={(event) => setLot({ ...lot, material: event.target.value })} /></label>
-            <label>Partiya<input value={lot.batch} onChange={(event) => setLot({ ...lot, batch: event.target.value })} placeholder="boş" /></label>
-            <label>Son istifadə<input value={lot.expires} onChange={(event) => setLot({ ...lot, expires: event.target.value })} placeholder="boş" /></label>
-            <label>Yer<input value={lot.place} onChange={(event) => setLot({ ...lot, place: event.target.value })} placeholder="boş" /></label>
-            <button type="button" className="btn" onClick={() => { if (!lot.material.trim()) return; patch((state) => ({ ...state, lots: [...state.lots, { ...lot, id: uid() }] })); setLot({ material: "", batch: "", expires: "", place: "" }) }}>Yaz</button>
+            <label>Material<Input value={lot.material} onChange={(event) => setLot({ ...lot, material: event.target.value })} /></label>
+            <label>Partiya<Input value={lot.batch} onChange={(event) => setLot({ ...lot, batch: event.target.value })} placeholder="boş" /></label>
+            <label>Son istifadə<Input value={lot.expires} onChange={(event) => setLot({ ...lot, expires: event.target.value })} placeholder="boş" /></label>
+            <label>Yer<Input value={lot.place} onChange={(event) => setLot({ ...lot, place: event.target.value })} placeholder="boş" /></label>
+            <Button type="button" onClick={() => { if (!lot.material.trim()) return; patch((state) => ({ ...state, lots: [...state.lots, { ...lot, id: uid() }] })); setLot({ material: "", batch: "", expires: "", place: "" }) }}>Yaz</Button>
           </div>
           {lots.length === 0 && <p className="lede">Partiya yoxdur.</p>}
           {lots.map((row) => <div className="step-row" key={row.id}><span>{row.material} · {row.batch.trim() || "partiya yoxdur"} · {row.place.trim() || "yer yoxdur"}</span><strong>{row.expires.trim() || "tarix yoxdur"}</strong></div>)}
-        </section>
+        </Disclosure>
       )}
 
       {tab === "transfer" && (
-        <div className="table-wrap wide">
+        <TableContainer className="wide">
           <table>
             <thead>
               <tr>
@@ -336,11 +346,11 @@ export default function Warehouse() {
             </tbody>
           </table>
           {routes.length === 0 && <Empty title="Transfer yoxdur" text="Marşrut yazılanda sənəd burada durur." />}
-        </div>
+        </TableContainer>
       )}
 
       {tab === "hereket" && (
-        <div className="table-wrap">
+        <TableContainer>
           <table>
             <thead>
               <tr>
@@ -373,11 +383,11 @@ export default function Warehouse() {
             </tbody>
           </table>
           {moves.length === 0 && <Empty title="Hərəkət yoxdur" text="Axtarışa uyğun anbar hərəkəti tapılmadı." />}
-        </div>
+        </TableContainer>
       )}
 
       {tab === "anbarlar" && (
-        <div className="table-wrap">
+        <TableContainer>
           <table>
             <thead>
               <tr>
@@ -401,7 +411,7 @@ export default function Warehouse() {
             </tbody>
           </table>
           {houses.length === 0 && <Empty title="Anbar tapılmadı" text="Axtarışa uyğun anbar yoxdur." />}
-        </div>
+        </TableContainer>
       )}
       </>
       )}
@@ -418,9 +428,9 @@ export default function Warehouse() {
               <p key={item.id} className="muted">{item.id} · {story(item, nameOf)}</p>
             ))}
             <div className="form-actions">
-              <button type="button" className="btn ghost" onClick={() => { setReading(null); openTab("pasport") }}>Pasportlar</button>
-              <button type="button" className="btn ghost" onClick={() => openIntake(materialCard.id, placesOf(materialCard.id)[0]?.locationId || "LOC-MERKEZ", "medaxil")}>Mədaxil</button>
-              <button type="button" className="btn" onClick={() => openIntake(materialCard.id, placesOf(materialCard.id)[0]?.locationId || "LOC-MERKEZ", "mexaric")}>Məxaric</button>
+              <Button type="button" className="ghost" onClick={() => { setReading(null); openTab("pasport") }}>Pasportlar</Button>
+              <Button type="button" className="ghost" onClick={() => openIntake(materialCard.id, placesOf(materialCard.id)[0]?.locationId || "LOC-MERKEZ", "medaxil")}>Mədaxil</Button>
+              <Button type="button" onClick={() => openIntake(materialCard.id, placesOf(materialCard.id)[0]?.locationId || "LOC-MERKEZ", "mexaric")}>Məxaric</Button>
             </div>
           </div>
         </Drawer>
@@ -453,7 +463,7 @@ export default function Warehouse() {
             {error && <p className="form-error">{error}</p>}
             {routeCard.step < routeCard.stops.length - 1 && (
               <div className="form-actions">
-                <button type="button" className="btn" onClick={() => setError(advanceShipment(routeCard.id))}>Növbəti dayanacağa</button>
+                <Button type="button" onClick={() => setError(advanceShipment(routeCard.id))}>Növbəti dayanacağa</Button>
               </div>
             )}
           </div>
@@ -471,9 +481,9 @@ export default function Warehouse() {
             })}
             {error && <p className="form-error">{error}</p>}
             <div className="form-actions">
-              <button type="button" className="btn ghost" onClick={() => openHouse(placeCard.id)}><Icon name="edit" /> Redaktə</button>
-              <button type="button" className="btn ghost" onClick={() => { const message = removeLocation(placeCard.id); setError(message); if (!message) setReading(null) }}><Icon name="trash" /> Sil</button>
-              <button type="button" className="btn" onClick={() => openIntake(materials[0]?.id || "", placeCard.id)}>Hərəkət</button>
+              <Button type="button" className="ghost" onClick={() => openHouse(placeCard.id)}><Icon name="edit" /> Redaktə</Button>
+              <Button type="button" className="ghost" onClick={() => { const message = removeLocation(placeCard.id); setError(message); if (!message) setReading(null) }}><Icon name="trash" /> Sil</Button>
+              <Button type="button" onClick={() => openIntake(materials[0]?.id || "", placeCard.id)}>Hərəkət</Button>
             </div>
           </div>
         </Drawer>
@@ -491,15 +501,15 @@ export default function Warehouse() {
             }}
           >
             <Field label="Ad">
-              <input value={house.name} onChange={(event) => setHouse({ ...house, name: event.target.value })} />
+              <Input value={house.name} onChange={(event) => setHouse({ ...house, name: event.target.value })} />
             </Field>
             <Field label="Növ">
               <Select value={house.kind} onValueChange={(kind) => setHouse({ ...house, kind: kind as LocationKind })} options={KINDS.map((kind) => ({ value: kind, label: KIND[kind] }))} />
             </Field>
             {error && <p className="form-error">{error}</p>}
             <div className="form-actions">
-              <button type="button" className="btn ghost" onClick={() => setReading(null)}>Ləğv et</button>
-              <button className="btn" type="submit">Yaz</button>
+              <Button type="button" className="ghost" onClick={() => setReading(null)}>Ləğv et</Button>
+              <Button  type="submit">Yaz</Button>
             </div>
           </form>
         </Drawer>
@@ -522,7 +532,7 @@ export default function Warehouse() {
               />
             </Field>
             <Field label={selected ? `Miqdar, ${selected.unit}` : "Miqdar"}>
-              <input type="number" min="0" step="0.1" value={form.qty} onChange={(event) => setForm({ ...form, qty: event.target.value })} />
+              <Input type="number" min="0" step="0.1" value={form.qty} onChange={(event) => setForm({ ...form, qty: event.target.value })} />
             </Field>
             {selected && <p className="muted">Bu anbarda {num(onHand(stocks, selected.id, form.locationId), selected.qty % 1 ? 1 : 0)} {selected.unit}</p>}
             <Field label="Anbar">
@@ -541,12 +551,12 @@ export default function Warehouse() {
               </Field>
             )}
             <Field label="Mahiyyət">
-              <input value={form.note} onChange={(event) => setForm({ ...form, note: event.target.value })} placeholder="Nə üçün çıxdı və ya qəbul olundu" />
+              <Input value={form.note} onChange={(event) => setForm({ ...form, note: event.target.value })} placeholder="Nə üçün çıxdı və ya qəbul olundu" />
             </Field>
             {error && <p className="form-error">{error}</p>}
             <div className="form-actions">
-              <button type="button" className="btn ghost" onClick={() => setReading(null)}>Ləğv et</button>
-              <button className="btn" type="submit">Qeyd et</button>
+              <Button type="button" className="ghost" onClick={() => setReading(null)}>Ləğv et</Button>
+              <Button  type="submit">Qeyd et</Button>
             </div>
           </form>
         </Drawer>
@@ -569,7 +579,7 @@ export default function Warehouse() {
             </div>
             <div className="pull-row">
               <Select ariaLabel="Dayanacaq" value={pick} onValueChange={setPick} options={locations.filter((item) => item.id !== stops[stops.length - 1] && item.id !== (stops.length ? "" : origin)).map((item) => ({ value: item.id, label: item.name }))} />
-              <button type="button" className="btn ghost small" onClick={() => { if (pick && pick !== stops[stops.length - 1] && !(stops.length === 0 && pick === origin)) setStops([...stops, pick]) }}>Əlavə et</button>
+              <Button type="button" className="ghost small" onClick={() => { if (pick && pick !== stops[stops.length - 1] && !(stops.length === 0 && pick === origin)) setStops([...stops, pick]) }}>Əlavə et</Button>
             </div>
             {lines.map((line) => {
               const material = materials.find((item) => item.id === line.materialId)
@@ -586,25 +596,25 @@ export default function Warehouse() {
                     options={materials.map((item) => ({ value: item.id, label: item.name }))}
                   />
                   <div className="recipe-line-qty">
-                    <input aria-label="Miqdar" type="number" min="0" step="0.1" value={line.qty} onChange={(event) => setLines(lines.map((row) => (row.key === line.key ? { ...row, qty: event.target.value } : row)))} />
-                    <input aria-label="Qiymət" type="number" min="0" step="1" value={line.price} onChange={(event) => setLines(lines.map((row) => (row.key === line.key ? { ...row, price: event.target.value } : row)))} />
-                    <button type="button" className="btn ghost small" onClick={() => setLines(lines.length === 1 ? lines : lines.filter((row) => row.key !== line.key))}><Icon name="trash" /> Sil</button>
+                    <Input aria-label="Miqdar" type="number" min="0" step="0.1" value={line.qty} onChange={(event) => setLines(lines.map((row) => (row.key === line.key ? { ...row, qty: event.target.value } : row)))} />
+                    <Input aria-label="Qiymət" type="number" min="0" step="1" value={line.price} onChange={(event) => setLines(lines.map((row) => (row.key === line.key ? { ...row, price: event.target.value } : row)))} />
+                    <Button type="button" className="ghost small" onClick={() => setLines(lines.length === 1 ? lines : lines.filter((row) => row.key !== line.key))}><Icon name="trash" /> Sil</Button>
                   </div>
                   <p className="muted">{material ? `Anbarda ${num(onHand(stocks, material.id, origin), 1)} ${material.unit} · ` : ""}{money(amount)}</p>
                 </div>
               )
             })}
             <div className="form-actions">
-              <button type="button" className="btn ghost small" onClick={() => { setLines([...lines, { key: lineKey, materialId: "", qty: "", price: "" }]); setLineKey(lineKey + 1) }}>Material əlavə et</button>
+              <Button type="button" className="ghost small" onClick={() => { setLines([...lines, { key: lineKey, materialId: "", qty: "", price: "" }]); setLineKey(lineKey + 1) }}>Material əlavə et</Button>
               <strong>{money(lines.reduce((sum, line) => sum + (Number(line.qty) || 0) * (Number(line.price) || 0), 0))}</strong>
             </div>
             <Field label="Mahiyyət">
-              <input value={purpose} onChange={(event) => setPurpose(event.target.value)} placeholder="Material hara və nə üçün gedir" />
+              <Input value={purpose} onChange={(event) => setPurpose(event.target.value)} placeholder="Material hara və nə üçün gedir" />
             </Field>
             {error && <p className="form-error">{error}</p>}
             <div className="form-actions">
-              <button type="button" className="btn ghost" onClick={() => setReading(null)}>Ləğv et</button>
-              <button type="button" className="btn" onClick={submitRoute}>Marşrutu yaz</button>
+              <Button type="button" className="ghost" onClick={() => setReading(null)}>Ləğv et</Button>
+              <Button type="button" onClick={submitRoute}>Marşrutu yaz</Button>
             </div>
           </div>
         </Drawer>

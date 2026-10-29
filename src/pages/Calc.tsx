@@ -1,3 +1,5 @@
+import { Button, Disclosure, Input, Metric, Panel, StatGrid, TableContainer } from "../components/primitives"
+import { StepNav } from "../components/StepNav"
 import { useEffect, useMemo, useRef, useState, type ReactNode, type RefObject } from "react"
 import { ApiError, api, dec } from "../api"
 import { PageHead, Select, Tabs, useTitle } from "../ui"
@@ -108,7 +110,7 @@ function gapText(diff: number) {
 function when(value: string) {
   const date = new Date(value)
   if (Number.isNaN(date.getTime())) return ""
-  return date.toLocaleDateString("az-AZ", { day: "numeric", month: "short", year: "numeric" })
+  return `${String(date.getDate()).padStart(2, "0")}.${String(date.getMonth() + 1).padStart(2, "0")}.${date.getFullYear()}`
 }
 
 function asRule(row: ApiRule): ProfileRule {
@@ -139,6 +141,9 @@ export function CalcPage() {
   const active = activeOf(state)
   const maker = Boolean(active && (active.kind === "admin" || ["qapi", "suse", "pvc", "fasad", "material"].includes(active.kind)))
   const [mode, setMode] = useState("pencere")
+  const [step, setStep] = useState("measure")
+  const steps = [{ id: "measure", label: "Ölçü" }, { id: "material", label: "Material" }, { id: "price", label: "Qiymət" }]
+  const stepIndex = steps.findIndex((item) => item.id === step)
   const [form, setForm] = useState<WindowInput>(blankWindow())
   const [rules, setRules] = useState<ProfileRule[]>([])
   const [jobs, setJobs] = useState<SavedJob[]>([])
@@ -150,11 +155,16 @@ export function CalcPage() {
   const [historyLarge, setHistoryLarge] = useState(false)
   const [region, setRegion] = useState<(typeof REGIONS)[number]>("Bakı və Abşeron")
   const historyRef = useRef<HTMLElement>(null)
+  const formRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    if (!historyLarge) return
-    historyRef.current?.scrollIntoView({ block: "start" })
-  }, [historyLarge])
+    const formElement = formRef.current
+    const viewport = formElement?.closest("main")
+    if (formElement && viewport && formElement.getBoundingClientRect().top < viewport.getBoundingClientRect().top) {
+      formElement.scrollIntoView({ block: "start", behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth" })
+    }
+  }, [step, historyLarge, mode])
+
   const [saving, setSaving] = useState(false)
   const [note, setNote] = useState("")
   const [loadError, setLoadError] = useState("")
@@ -193,6 +203,8 @@ export function CalcPage() {
   }, [])
 
   function fresh() {
+    setStep("measure")
+    setHistoryLarge(false)
     const systemId = rules.find((row) => row.confirmed)?.id ?? ""
     setForm({ ...blankWindow(), systemId })
     setPicked([])
@@ -201,6 +213,8 @@ export function CalcPage() {
   }
 
   function openJob(job: SavedJob) {
+    setStep("measure")
+    setHistoryLarge(false)
     setOpenId(job.id)
     setNote("")
     setPicked((job.products ?? []).map((item) => item.productId))
@@ -332,29 +346,22 @@ export function CalcPage() {
   return (
     <Guard>
       <div className="calc-page">
-        <PageHead kicker="İstehsal" title="Hesablama" text="Ölçüdən kəsim, maya və satış çıxır. Saxlanan hesablar bazada qalır və sonradan açıla bilir.">
-          <div className="calc-head-actions">
-            <Tabs
-              value={mode}
-              onChange={setMode}
-              options={[
-                { id: "pencere", label: "Pəncərə və qapı" },
-                { id: "norma", label: "İstehsal norması" },
-              ]}
-            />
-          </div>
+        <PageHead title="Hesablama" text={mode === "pencere" ? "Ölçüdən satış qiymətinə — üç sadə addım." : "Məhsulun sərfiyyatını, maya dəyərini və satışını hesablayın."}>
+          <label className="calc-mode-select"><span>Hesablama növü</span><Select value={mode} onValueChange={setMode} options={[{value:"pencere",label:"Pəncərə və qapı"},{value:"norma",label:"İstehsal norması"}]} ariaLabel="Hesablama növü" /></label>
         </PageHead>
+        {loadError && <p className="form-error" role="alert">{loadError}</p>}
 
         {mode === "norma" ? (
           <ProductNorms />
         ) : (
           <>
-            <div className="calc-stats">
-              <article><span>Saxlanmış hesab</span><strong>{jobs.length}</strong></article>
-              <article><span>Son satış</span><strong>{jobs[0] ? azn(num(jobs[0].gross)) : "—"}</strong></article>
-              <article><span>Satış cəmi</span><strong>{sales.length ? azn(saleSum) : "—"}</strong></article>
-              <article><span>Orta satış</span><strong>{sales.length ? azn(saleSum / sales.length) : "—"}</strong></article>
-            </div>
+            <Tabs value={historyLarge ? "history" : "calculate"} onChange={(value) => setHistoryLarge(value === "history")} options={[{id:"calculate",label:"Yeni hesab"},{id:"history",label:`Saxlanmış hesablar ${jobs.length}`}]} />
+            {historyLarge && (<StatGrid className="calc-stats">
+              <Metric><span>Saxlanmış hesab</span><strong>{jobs.length}</strong></Metric>
+              <Metric><span>Son satış</span><strong>{jobs[0] ? azn(num(jobs[0].gross)) : "—"}</strong></Metric>
+              <Metric><span>Satış cəmi</span><strong>{sales.length ? azn(saleSum) : "—"}</strong></Metric>
+              <Metric><span>Orta satış</span><strong>{sales.length ? azn(saleSum / sales.length) : "—"}</strong></Metric>
+            </StatGrid>)}
 
             {historyLarge && (
               <HistoryTable
@@ -370,37 +377,38 @@ export function CalcPage() {
               />
             )}
 
-            <div className="calc-board">
-              <div className="calc-form">
-                <section className="panel pad calc-card">
+            {!historyLarge && (<div className="calc-board">
+              <div className="calc-form" ref={formRef}>
+                <StepNav value={step} onChange={setStep} steps={steps} label="Hesablama mərhələləri" />
+
+                {step === "measure" && (<Panel className="pad calc-card">
                   <div className="calc-card-head">
-                    <h2>Ölçü</h2>
-                    <button type="button" className="btn ghost small" onClick={fresh}>Yeni hesab</button>
+                    <h2>Ölçülər və iş məlumatı</h2>
                   </div>
                   <div className="calc-grid">
                     <Field label="İşin adı" wide>
-                      <input value={form.title} placeholder="Port Baku yaşayış pəncərəsi" onChange={(event) => set("title", event.target.value)} />
+                      <Input value={form.title} placeholder="Port Baku yaşayış pəncərəsi" onChange={(event) => set("title", event.target.value)} />
                     </Field>
                     <Field label="Ünvan" wide>
-                      <input value={form.address} placeholder="Yasamal, Zərdabi" onChange={(event) => set("address", event.target.value)} />
+                      <Input value={form.address} placeholder="Yasamal, Zərdabi" onChange={(event) => set("address", event.target.value)} />
                     </Field>
-                    <Field label="En, mm"><input value={form.width} inputMode="decimal" placeholder="1400" onChange={(event) => set("width", event.target.value)} /></Field>
-                    <Field label="Hündürlük, mm"><input value={form.height} inputMode="decimal" placeholder="1500" onChange={(event) => set("height", event.target.value)} /></Field>
-                    <Field label="Say"><input value={form.count} inputMode="decimal" onChange={(event) => set("count", event.target.value)} /></Field>
-                    <Field label="Bölmə"><input value={form.sections} inputMode="decimal" onChange={(event) => set("sections", event.target.value)} /></Field>
+                    <Field label="En, mm"><Input value={form.width} inputMode="decimal" placeholder="1400" onChange={(event) => set("width", event.target.value)} /></Field>
+                    <Field label="Hündürlük, mm"><Input value={form.height} inputMode="decimal" placeholder="1500" onChange={(event) => set("height", event.target.value)} /></Field>
+                    <Field label="Say"><Input value={form.count} inputMode="decimal" onChange={(event) => set("count", event.target.value)} /></Field>
+                    <Field label="Bölmə"><Input value={form.sections} inputMode="decimal" onChange={(event) => set("sections", event.target.value)} /></Field>
                     <Field label="Açılış" wide>
                       <Select value={form.opening} onValueChange={(opening) => set("opening", opening as Opening)} options={OPENINGS.map(([value, label]) => ({ value, label }))} />
                     </Field>
                   </div>
-                </section>
+                </Panel>)}
 
-                <section className="panel pad calc-card">
+                {step === "material" && (<Panel className="pad calc-card">
                   <div className="calc-card-head">
                     <h2>Sistem və şüşə</h2>
                     {maker && (
-                      <button type="button" className="btn ghost small" onClick={() => setRuleOpen((current) => !current)}>
+                      <Button type="button" className="ghost small" onClick={() => setRuleOpen((current) => !current)}>
                         {ruleOpen ? "Qaydanı bağla" : "Profil qaydası"}
-                      </button>
+                      </Button>
                     )}
                   </div>
                   <div className="calc-grid">
@@ -411,42 +419,49 @@ export function CalcPage() {
                         options={[{ value: "", label: "Təsdiqli qayda yoxdur" }, ...rules.filter((item) => item.confirmed).map((item) => ({ value: item.id, label: item.system }))]}
                       />
                     </Field>
-                    <Field label="Rəng"><input value={form.color} placeholder="RAL 7016" onChange={(event) => set("color", event.target.value)} /></Field>
-                    <Field label="Profil qeydi"><input value={form.profileNote} placeholder="Xəzər 60" onChange={(event) => set("profileNote", event.target.value)} /></Field>
-                    <Field label="Şüşə növü"><input value={form.glassKind} placeholder="Paket" onChange={(event) => set("glassKind", event.target.value)} /></Field>
-                    <Field label="Qalınlıq, mm"><input value={form.glassThickness} placeholder="24" onChange={(event) => set("glassThickness", event.target.value)} /></Field>
-                    <Field label="Furnitur"><input value={form.hardware} placeholder="Dönər" onChange={(event) => set("hardware", event.target.value)} /></Field>
-                    <Field label="Montaj"><input value={form.installKind} placeholder="Montaj" onChange={(event) => set("installKind", event.target.value)} /></Field>
+                    <Field label="Rəng"><Input value={form.color} placeholder="RAL 7016" onChange={(event) => set("color", event.target.value)} /></Field>
+                    <Field label="Profil qeydi"><Input value={form.profileNote} placeholder="Xəzər 60" onChange={(event) => set("profileNote", event.target.value)} /></Field>
+                    <Field label="Şüşə növü"><Input value={form.glassKind} placeholder="Paket" onChange={(event) => set("glassKind", event.target.value)} /></Field>
+                    <Field label="Qalınlıq, mm"><Input value={form.glassThickness} placeholder="24" onChange={(event) => set("glassThickness", event.target.value)} /></Field>
+                    <Field label="Furnitur"><Input value={form.hardware} placeholder="Dönər" onChange={(event) => set("hardware", event.target.value)} /></Field>
+                    <Field label="Montaj"><Input value={form.installKind} placeholder="Montaj" onChange={(event) => set("installKind", event.target.value)} /></Field>
                   </div>
                   {ruleOpen && (
                     <div className="calc-rule">
                       <p>Kiloqram və kəsim itkisi yalnız bu təsdiqli qaydadan gəlir.</p>
                       <div className="calc-grid">
-                        <Field label="Sistem"><input value={ruleForm.system} onChange={(event) => setRuleForm({ ...ruleForm, system: event.target.value })} /></Field>
-                        <Field label="Kq/metr"><input value={ruleForm.kgPerM} inputMode="decimal" onChange={(event) => setRuleForm({ ...ruleForm, kgPerM: event.target.value })} /></Field>
-                        <Field label="Kəsim itkisi, %"><input value={ruleForm.wastePercent} inputMode="decimal" onChange={(event) => setRuleForm({ ...ruleForm, wastePercent: event.target.value })} /></Field>
-                        <Field label="Şüşə payı, mm"><input value={ruleForm.glassDeductMm} inputMode="decimal" onChange={(event) => setRuleForm({ ...ruleForm, glassDeductMm: event.target.value })} /></Field>
-                        <Field label="Şüşə itkisi, %" wide><input value={ruleForm.glassWastePercent} inputMode="decimal" onChange={(event) => setRuleForm({ ...ruleForm, glassWastePercent: event.target.value })} /></Field>
+                        <Field label="Sistem"><Input value={ruleForm.system} onChange={(event) => setRuleForm({ ...ruleForm, system: event.target.value })} /></Field>
+                        <Field label="Kq/metr"><Input value={ruleForm.kgPerM} inputMode="decimal" onChange={(event) => setRuleForm({ ...ruleForm, kgPerM: event.target.value })} /></Field>
+                        <Field label="Kəsim itkisi, %"><Input value={ruleForm.wastePercent} inputMode="decimal" onChange={(event) => setRuleForm({ ...ruleForm, wastePercent: event.target.value })} /></Field>
+                        <Field label="Şüşə payı, mm"><Input value={ruleForm.glassDeductMm} inputMode="decimal" onChange={(event) => setRuleForm({ ...ruleForm, glassDeductMm: event.target.value })} /></Field>
+                        <Field label="Şüşə itkisi, %" wide><Input value={ruleForm.glassWastePercent} inputMode="decimal" onChange={(event) => setRuleForm({ ...ruleForm, glassWastePercent: event.target.value })} /></Field>
                       </div>
-                      <button type="button" className="btn small" onClick={() => void saveRule()}>Qaydanı təsdiqlə</button>
+                      <Button type="button" className="small" onClick={() => void saveRule()}>Qaydanı təsdiqlə</Button>
                     </div>
                   )}
-                </section>
+                </Panel>)}
 
-                <section className="panel pad calc-card">
+                {step === "price" && (<Panel className="pad calc-card">
                   <h2>Vahid qiymətlər</h2>
                   <div className="calc-grid">
                     <Field label="Profil vahidi">
                       <Select value={form.profileUnit} onValueChange={(profileUnit) => set("profileUnit", profileUnit as WindowInput["profileUnit"])} options={[{ value: "m", label: "Metr" }, { value: "kq", label: "Kiloqram" }]} />
                     </Field>
-                    <Field label="Profil qiyməti"><input value={form.profileRate} inputMode="decimal" placeholder="12.40" onChange={(event) => set("profileRate", event.target.value)} /></Field>
-                    <Field label="Şüşə, ₼/m²"><input value={form.glassRate} inputMode="decimal" onChange={(event) => set("glassRate", event.target.value)} /></Field>
-                    <Field label="Furnitur, ₼/dəst"><input value={form.hardwareRate} inputMode="decimal" onChange={(event) => set("hardwareRate", event.target.value)} /></Field>
-                    <Field label="Əməkhaqqı, ₼/ədəd"><input value={form.laborRate} inputMode="decimal" onChange={(event) => set("laborRate", event.target.value)} /></Field>
-                    <Field label="Rayon" wide>
+                    <Field label="Profil qiyməti"><Input value={form.profileRate} inputMode="decimal" placeholder="12.40" onChange={(event) => set("profileRate", event.target.value)} /></Field>
+                    <Field label="Şüşə, ₼/m²"><Input value={form.glassRate} inputMode="decimal" onChange={(event) => set("glassRate", event.target.value)} /></Field>
+                    <Field label="Furnitur, ₼/dəst"><Input value={form.hardwareRate} inputMode="decimal" onChange={(event) => set("hardwareRate", event.target.value)} /></Field>
+                    <Field label="Əməkhaqqı, ₼/ədəd"><Input value={form.laborRate} inputMode="decimal" onChange={(event) => set("laborRate", event.target.value)} /></Field>
+
+                    <Field label="Vergi, %"><Input value={form.vat} inputMode="decimal" onChange={(event) => set("vat", event.target.value)} /></Field>
+                    <Field label="Mənfəət növü">
+                      <Select value={form.profitMode} onValueChange={(profitMode) => set("profitMode", profitMode as WindowInput["profitMode"])} options={[{ value: "faiz", label: "Maya üzərinə faiz" }, { value: "marja", label: "Satışdakı marja" }]} />
+                    </Field>
+                    <Field label="Mənfəət, %"><Input value={form.profit} inputMode="decimal" onChange={(event) => set("profit", event.target.value)} /></Field>
+                  </div>
+<Disclosure title="Əlavə xərclər və rayon tarifi" className="calc-advanced"><div className="calc-grid"><Field label="Rayon" wide>
                       <Select value={region} onValueChange={(value) => setRegion(value as (typeof REGIONS)[number])} options={REGIONS.map((item) => ({ value: item, label: item }))} />
                     </Field>
-                    <button type="button" className="btn ghost small" onClick={() => {
+                    <Button type="button" className="ghost small" onClick={() => {
                       const alum = regionMaterial("Alüminium", region)
                       const glass = regionMaterial("Şüşə", region)
                       const labor = laborQuote("Fasad ustası", region, "orta", "vahid")
@@ -454,17 +469,12 @@ export function CalcPage() {
                       if (glass) set("glassRate", String(glass.price))
                       if (labor) set("laborRate", String(labor.amount))
                       setNote(`${region} tarifi yazıldı. Alüminium kiloqramı, şüşə və fasad ustası ayrıdır.`)
-                    }}>Rayon tarifini gətir</button>
-                    <Field label="Qablaşdırma"><input value={form.packRate} inputMode="decimal" onChange={(event) => set("packRate", event.target.value)} /></Field>
-                    <Field label="Montaj"><input value={form.installRate} inputMode="decimal" onChange={(event) => set("installRate", event.target.value)} /></Field>
-                    <Field label="Daşınma"><input value={form.transport} inputMode="decimal" onChange={(event) => set("transport", event.target.value)} /></Field>
-                    <Field label="Əlavə"><input value={form.extra} inputMode="decimal" onChange={(event) => set("extra", event.target.value)} /></Field>
-                    <Field label="Vergi, %"><input value={form.vat} inputMode="decimal" onChange={(event) => set("vat", event.target.value)} /></Field>
-                    <Field label="Mənfəət növü">
-                      <Select value={form.profitMode} onValueChange={(profitMode) => set("profitMode", profitMode as WindowInput["profitMode"])} options={[{ value: "faiz", label: "Maya üzərinə faiz" }, { value: "marja", label: "Satışdakı marja" }]} />
-                    </Field>
-                    <Field label="Mənfəət, %"><input value={form.profit} inputMode="decimal" onChange={(event) => set("profit", event.target.value)} /></Field>
-                  </div>
+                    }}>Rayon tarifini gətir</Button>
+                    <Field label="Qablaşdırma"><Input value={form.packRate} inputMode="decimal" onChange={(event) => set("packRate", event.target.value)} /></Field>
+                    <Field label="Montaj"><Input value={form.installRate} inputMode="decimal" onChange={(event) => set("installRate", event.target.value)} /></Field>
+                    <Field label="Daşınma"><Input value={form.transport} inputMode="decimal" onChange={(event) => set("transport", event.target.value)} /></Field>
+                    <Field label="Əlavə"><Input value={form.extra} inputMode="decimal" onChange={(event) => set("extra", event.target.value)} /></Field></div></Disclosure>
+
                   <button type="button" className={form.glassConfirmed ? "calc-toggle on" : "calc-toggle"} aria-pressed={form.glassConfirmed} onClick={() => set("glassConfirmed", !form.glassConfirmed)}>
                     <span className="calc-toggle-copy">
                       <b>Şüşə ölçüsünü təsdiq edirəm</b>
@@ -472,10 +482,10 @@ export function CalcPage() {
                     </span>
                     <span className="calc-toggle-ui" aria-hidden="true"><span /></span>
                   </button>
-                </section>
+                </Panel>)}
 
-                {compare.length > 0 && (
-                  <section className="panel pad calc-card">
+                {step === "price" && compare.length > 0 && (
+                  <Disclosure title="Məhsulları müqayisə et"><Panel className="pad calc-card">
                     <h2>Müqayisə üçün məhsullar</h2>
                     <p className="calc-meta">Karta klikləyin. Həmin məhsulun qiyməti profil qiymətinin yerinə qoyulur və satış cari hesabla müqayisə olunur. Forma dəyişmir.</p>
                     <div className="calc-compare">
@@ -507,13 +517,15 @@ export function CalcPage() {
                         ))}
                       </div>
                     )}
-                  </section>
+                  </Panel></Disclosure>
                 )}
+
+                <div className="calc-step-footer"><span>{stepIndex + 1} / {steps.length}</span><div>{stepIndex > 0 && <Button className="ghost" onClick={() => setStep(steps[stepIndex - 1].id)}>Geri</Button>}{stepIndex < steps.length - 1 && <Button onClick={() => setStep(steps[stepIndex + 1].id)}>Davam et<Icon name="chevron" /></Button>}</div></div>
               </div>
 
               <aside className="calc-side">
-                <section className="calc-quote">
-                  <p>Canlı satış</p>
+                <Panel className="calc-quote overview-panel">
+                  <p>Hesabın nəticəsi</p>
                   <strong>{math.ready && math.gross != null ? azn(math.gross) : "Ölçü yazın"}</strong>
                   <div className="calc-metrics">
                     <div><span>Maya</span><b>{math.ready ? azn(math.cost) : "—"}</b></div>
@@ -521,7 +533,7 @@ export function CalcPage() {
                     <div><span>Vergi</span><b>{math.ready ? azn(math.vat) : "—"}</b></div>
                   </div>
                   {math.ready && (
-                    <>
+                    <Disclosure title="Hesabın detalları">
                       <div className="calc-kpis">
                         <span>{math.lengthM.toFixed(3)} m</span>
                         <span>{math.weightKg == null ? "çəki təsdiqsiz" : `${math.weightKg.toFixed(3)} kq`}</span>
@@ -539,17 +551,18 @@ export function CalcPage() {
                           <b>{line.amount == null ? "—" : azn(line.amount)}</b>
                         </div>
                       ))}
-                    </>
+                    </Disclosure>
                   )}
                   {math.blocked.length > 0 && <p className="calc-warn">{math.blocked.join(" ")}</p>}
-                  <button type="button" className="btn calc-save" onClick={() => void saveJob()} disabled={!form.title.trim() || saving}>
+                  <Button type="button" className="calc-save" onClick={() => void saveJob()} disabled={!form.title.trim() || saving}>
                     {saving ? "Yazılır…" : "Hesabı saxla"}
-                  </button>
+                  </Button>
+                  <Button className="ghost calc-fresh" onClick={fresh}>Yeni hesab</Button>
                   {note && <p className="calc-note">{note}</p>}
-                </section>
+                </Panel>
 
                 {open && (
-                  <section className="panel pad calc-card">
+                  <Disclosure title="Saxlanmış hesabın nəticəsi"><Panel className="pad calc-card">
                     <h2>Saxlanmış nəticə</h2>
                     <p className="calc-meta">{when(open.createdAt)} · {open.rule?.system || "qaydasız"} · {dec(open.widthMm) || "—"}×{dec(open.heightMm) || "—"} mm</p>
                     <div className="calc-saved-total"><span>Satış</span><b>{azn(num(open.gross))}</b></div>
@@ -562,34 +575,11 @@ export function CalcPage() {
                         <b>{azn(num(line.amount))}</b>
                       </div>
                     ))}
-                  </section>
+                  </Panel></Disclosure>
                 )}
 
-                {!historyLarge && <section className="panel pad calc-card calc-history">
-                  <div className="calc-card-head">
-                    <h2>Əvvəlki hesablar</h2>
-                    <div className="calc-history-tools">
-                      <button type="button" className="icon-btn" aria-label="Genişləndir" onClick={() => setHistoryLarge(true)}><Icon name="widen" /></button>
-                      <span>{shown.length}</span>
-                    </div>
-                  </div>
-                  <input className="calc-search" value={query} placeholder="Ad, ünvan, rəng" onChange={(event) => setQuery(event.target.value)} />
-                  {loadError && <p className="calc-meta">{loadError}</p>}
-                  {!loadError && jobs.length === 0 && <p className="calc-meta">Bazada saxlanmış hesab yoxdur.</p>}
-                  {!loadError && jobs.length > 0 && shown.length === 0 && <p className="calc-meta">Bu axtarışa uyğun hesab yoxdur.</p>}
-                  <div className="calc-list">
-                    {shown.map((job) => (
-                      <button key={job.id} type="button" className={job.id === openId ? "calc-hit on" : "calc-hit"} onClick={() => openJob(job)}>
-                        <b>{job.title || "Adsız hesab"}</b>
-                        <span>{dec(job.widthMm) || "—"}×{dec(job.heightMm) || "—"} mm · {dec(job.count) || "—"} ədəd</span>
-                        <span>{when(job.createdAt)}{job.address ? ` · ${job.address}` : ""}</span>
-                        <em>{azn(num(job.gross))}</em>
-                      </button>
-                    ))}
-                  </div>
-                </section>}
               </aside>
-            </div>
+            </div>)}
           </>
         )}
       </div>
@@ -619,19 +609,19 @@ function HistoryTable({
   onShrink: () => void
 }) {
   return (
-    <section className="panel pad calc-card calc-history-wide" ref={sectionRef}>
+    <Panel className="pad calc-card calc-history-wide" ref={sectionRef}>
       <div className="calc-card-head">
         <h2>Əvvəlki hesablar</h2>
         <div className="calc-history-tools">
-          <button type="button" className="icon-btn" aria-label="Daralt" onClick={onShrink}><Icon name="narrow" /></button>
+          <Button className="ghost small" onClick={onShrink}>Yeni hesaba qayıt</Button>
           <span>{jobs.length}</span>
         </div>
       </div>
-      <input className="calc-search" value={query} placeholder="Ad, ünvan, rəng" onChange={(event) => onQuery(event.target.value)} />
+      <Input className="calc-search" value={query} placeholder="Ad, ünvan, rəng" onChange={(event) => onQuery(event.target.value)} />
       {loadError && <p className="calc-meta">{loadError}</p>}
       {!loadError && empty && <p className="calc-meta">Bazada saxlanmış hesab yoxdur.</p>}
       {!loadError && !empty && jobs.length === 0 && <p className="calc-meta">Bu axtarışa uyğun hesab yoxdur.</p>}
-      <div className="calc-table-wrap">
+      <TableContainer className="calc-table-wrap">
         <table className="calc-table">
           <thead>
             <tr>
@@ -658,8 +648,8 @@ function HistoryTable({
             ))}
           </tbody>
         </table>
-      </div>
-    </section>
+      </TableContainer>
+    </Panel>
   )
 }
 
@@ -711,30 +701,30 @@ function ProductNorms() {
 
   return (
     <div className="calc-board">
-      <section className="panel pad calc-card">
+      <Panel className="pad calc-card">
         <h2>İstehsal norması</h2>
         <p className="calc-meta">Boya, sement, armatur və ya başqa məhsul üçün istehsalçı öz normasını yazır. Satış qiyməti mayadan ayrıdır.</p>
         <div className="calc-grid">
-          <Field label="Məhsul" wide><input value={form.system} placeholder="Boya, sement, armatur" onChange={(event) => setForm({ ...form, system: event.target.value })} /></Field>
-          <Field label="Vahid"><input value={form.unit} onChange={(event) => setForm({ ...form, unit: event.target.value })} /></Field>
-          <Field label="İtki, %"><input value={form.wastePercent} inputMode="decimal" onChange={(event) => setForm({ ...form, wastePercent: event.target.value })} /></Field>
-          <Field label="İşçilik, ₼/vahid"><input value={form.labor} inputMode="decimal" onChange={(event) => setForm({ ...form, labor: event.target.value })} /></Field>
-          <Field label="Xammal mayası"><input value={form.rawPrice} inputMode="decimal" onChange={(event) => setForm({ ...form, rawPrice: event.target.value })} /></Field>
-          <Field label="Satış qiyməti"><input value={form.salePrice} inputMode="decimal" onChange={(event) => setForm({ ...form, salePrice: event.target.value })} /></Field>
-          <Field label="Miqdar"><input value={form.qty} inputMode="decimal" onChange={(event) => setForm({ ...form, qty: event.target.value })} /></Field>
+          <Field label="Məhsul" wide><Input value={form.system} placeholder="Boya, sement, armatur" onChange={(event) => setForm({ ...form, system: event.target.value })} /></Field>
+          <Field label="Vahid"><Input value={form.unit} onChange={(event) => setForm({ ...form, unit: event.target.value })} /></Field>
+          <Field label="İtki, %"><Input value={form.wastePercent} inputMode="decimal" onChange={(event) => setForm({ ...form, wastePercent: event.target.value })} /></Field>
+          <Field label="İşçilik, ₼/vahid"><Input value={form.labor} inputMode="decimal" onChange={(event) => setForm({ ...form, labor: event.target.value })} /></Field>
+          <Field label="Xammal mayası"><Input value={form.rawPrice} inputMode="decimal" onChange={(event) => setForm({ ...form, rawPrice: event.target.value })} /></Field>
+          <Field label="Satış qiyməti"><Input value={form.salePrice} inputMode="decimal" onChange={(event) => setForm({ ...form, salePrice: event.target.value })} /></Field>
+          <Field label="Miqdar"><Input value={form.qty} inputMode="decimal" onChange={(event) => setForm({ ...form, qty: event.target.value })} /></Field>
         </div>
-        <button type="button" className="btn" onClick={() => void save()}>Normanı yaz</button>
+        <Button type="button" onClick={() => void save()}>Normanı yaz</Button>
         {note && <p className="calc-meta">{note}</p>}
-      </section>
+      </Panel>
       <aside className="calc-side">
-        <section className="calc-quote">
+        <Panel className="calc-quote overview-panel">
           <p>Bu miqdar üçün</p>
           <strong>{azn(sale)}</strong>
           <div className="calc-line"><span>Xammal · {rawQty.toFixed(3)} {form.unit}</span><b>{azn(rawCost)}</b></div>
           <div className="calc-line"><span>İşçilik</span><b>{azn(laborCost)}</b></div>
           <div className="calc-line"><span>Maya</span><b>{azn(cost)}</b></div>
-        </section>
-        <section className="panel pad calc-card">
+        </Panel>
+        <Panel className="pad calc-card">
           <h2>Yazılmış normalar</h2>
           {rows.length === 0 && <p className="calc-meta">Norma yoxdur.</p>}
           <div className="calc-list">
@@ -746,7 +736,7 @@ function ProductNorms() {
               </div>
             ))}
           </div>
-        </section>
+        </Panel>
       </aside>
     </div>
   )

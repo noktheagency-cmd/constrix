@@ -1,5 +1,8 @@
+import { Button, Input, Panel, SearchInput, SectionHeader, StatGrid, TableContainer } from "../components/primitives"
+import { FileTile } from "../components/FileTile"
+import { Pagination } from "../components/Pagination"
 import { useEffect, useRef, useState, type DragEvent, type FormEvent, type ReactNode } from "react"
-import { Link } from "react-router-dom"
+import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom"
 import { ApiError, api } from "../api"
 import {
   KINDS,
@@ -24,7 +27,7 @@ import { Icon } from "../icons"
 import { patchProcure, procureNow, replaceProcure, stamp, useProcure } from "../procure/store"
 import { chooseOrg, loadAccountOrgs, orgKind, useOrgs, type AccountOrg } from "../orgs"
 import { useStore } from "../store"
-import { Confirm, Field, Meter, Modal, PageHead, RowMenu, Select, useTitle } from "../ui"
+import { Confirm, Empty, Field, Meter, Modal, PageHead, RowMenu, Select, Tabs, useTitle } from "../ui"
 
 function id() {
   return crypto.randomUUID()
@@ -162,7 +165,7 @@ export function CompanyPage() {
 
   if (!view) {
     return (
-      <section className="panel pad firm-create">
+      <Panel className="pad firm-create">
         <div className="page-head">
           <div>
             <p className="eyebrow">Şirkət</p>
@@ -170,7 +173,7 @@ export function CompanyPage() {
           </div>
         </div>
         <Link className="btn" to="/sirket/yeni">Şirkət yaz</Link>
-      </section>
+      </Panel>
     )
   }
 
@@ -298,20 +301,20 @@ export function CompanyPage() {
           <article>
             <h2>Şirkət</h2>
             <label>Fəaliyyət<Select value={draft.kind} onValueChange={(kind) => setField("kind", kind)} options={KINDS.filter(([value]) => value !== "admin").map(([value, label]) => ({ value, label }))} /></label>
-            <label>Ad<input value={draft.name} onChange={(event) => setField("name", event.target.value)} /></label>
-            <label>İşçi sayı<input value={draft.staffCount} onChange={(event) => setField("staffCount", event.target.value)} /></label>
-            <label>Ərazi<input value={draft.regions} onChange={(event) => setField("regions", event.target.value)} /></label>
-            <label>İstiqamət<input value={draft.directions} onChange={(event) => setField("directions", event.target.value)} /></label>
+            <label>Ad<Input value={draft.name} onChange={(event) => setField("name", event.target.value)} /></label>
+            <label>İşçi sayı<Input value={draft.staffCount} onChange={(event) => setField("staffCount", event.target.value)} /></label>
+            <label>Ərazi<Input value={draft.regions} onChange={(event) => setField("regions", event.target.value)} /></label>
+            <label>İstiqamət<Input value={draft.directions} onChange={(event) => setField("directions", event.target.value)} /></label>
           </article>
           <article>
             <h2>Əlaqə</h2>
-            <label>Məsul<input value={draft.director} onChange={(event) => setField("director", event.target.value)} /></label>
-            <label>Telefon<input value={draft.phone} onChange={(event) => setField("phone", event.target.value)} /></label>
-            <label>E-poçt<input value={draft.email} onChange={(event) => setField("email", event.target.value)} /></label>
+            <label>Məsul<Input value={draft.director} onChange={(event) => setField("director", event.target.value)} /></label>
+            <label>Telefon<Input value={draft.phone} onChange={(event) => setField("phone", event.target.value)} /></label>
+            <label>E-poçt<Input value={draft.email} onChange={(event) => setField("email", event.target.value)} /></label>
             {secrets ? (
               <>
-                <label>VÖEN<input value={draft.voen} onChange={(event) => setField("voen", event.target.value)} autoComplete="off" /></label>
-                <label>Bank<input value={draft.bankDetails} onChange={(event) => setField("bankDetails", event.target.value)} autoComplete="off" /></label>
+                <label>VÖEN<Input value={draft.voen} onChange={(event) => setField("voen", event.target.value)} autoComplete="off" /></label>
+                <label>Bank<Input value={draft.bankDetails} onChange={(event) => setField("bankDetails", event.target.value)} autoComplete="off" /></label>
               </>
             ) : (
               <SecretAsk ask={askSecret} password={secretPassword} error={secretError} busy={secretBusy} onAsk={() => setAskSecret(true)} onPassword={setSecretPassword} onSubmit={() => void revealSecrets()} />
@@ -319,22 +322,22 @@ export function CompanyPage() {
           </article>
           <article>
             <h2>Ünvan</h2>
-            <label>Hüquqi<input value={draft.legalAddress} onChange={(event) => setField("legalAddress", event.target.value)} /></label>
-            <label>Faktiki<input value={draft.actualAddress} onChange={(event) => setField("actualAddress", event.target.value)} /></label>
-            <label>Anbar<input value={draft.warehouse} onChange={(event) => setField("warehouse", event.target.value)} /></label>
+            <label>Hüquqi<Input value={draft.legalAddress} onChange={(event) => setField("legalAddress", event.target.value)} /></label>
+            <label>Faktiki<Input value={draft.actualAddress} onChange={(event) => setField("actualAddress", event.target.value)} /></label>
+            <label>Anbar<Input value={draft.warehouse} onChange={(event) => setField("warehouse", event.target.value)} /></label>
           </article>
           <article>
             <h2>İmkan və icazə</h2>
-            <label>Həcm<input value={draft.capacity} onChange={(event) => setField("capacity", event.target.value)} /></label>
-            <label>Texnika<input value={draft.equipmentPark} onChange={(event) => setField("equipmentPark", event.target.value)} /></label>
-            <label>Dövriyyə<input value={draft.turnoverNote} onChange={(event) => setField("turnoverNote", event.target.value)} /></label>
-            <label>İcazə<input value={draft.permits} onChange={(event) => setField("permits", event.target.value)} /></label>
-            <label>Zəmanət<input value={draft.warranty} onChange={(event) => setField("warranty", event.target.value)} /></label>
+            <label>Həcm<Input value={draft.capacity} onChange={(event) => setField("capacity", event.target.value)} /></label>
+            <label>Texnika<Input value={draft.equipmentPark} onChange={(event) => setField("equipmentPark", event.target.value)} /></label>
+            <label>Dövriyyə<Input value={draft.turnoverNote} onChange={(event) => setField("turnoverNote", event.target.value)} /></label>
+            <label>İcazə<Input value={draft.permits} onChange={(event) => setField("permits", event.target.value)} /></label>
+            <label>Zəmanət<Input value={draft.warranty} onChange={(event) => setField("warranty", event.target.value)} /></label>
           </article>
           {editError && <p className="form-error">{editError}</p>}
           <div className="firm-edit-actions">
-            <button type="submit" className="btn" disabled={saving}>Saxla</button>
-            <button type="button" className="btn ghost" onClick={() => setEditing(false)}>Bağla</button>
+            <Button type="submit"  disabled={saving}>Saxla</Button>
+            <Button type="button" className="ghost" onClick={() => setEditing(false)}>Bağla</Button>
           </div>
         </form>
       ) : facts.length > 0 && (
@@ -398,7 +401,7 @@ export function CompanyPage() {
                 <strong>{org.name}</strong>
                 <span>{org.regions}</span>
               </div>
-              <button type="button" className="btn ghost" onClick={() => void chooseOrg(org.id)}>Keç</button>
+              <Button type="button" className="ghost" onClick={() => void chooseOrg(org.id)}>Keç</Button>
             </article>
           ))}
         </section>
@@ -464,7 +467,7 @@ function SecretAsk({
   }
   return (
     <div className="firm-pass">
-      <input type="password" value={password} onChange={(event) => onPassword(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") { event.preventDefault(); onSubmit() } }} placeholder="Şifrə" autoComplete="current-password" autoFocus />
+      <Input type="password" value={password} onChange={(event) => onPassword(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") { event.preventDefault(); onSubmit() } }} placeholder="Şifrə" autoComplete="current-password" autoFocus />
       <button type="button" disabled={busy} onClick={onSubmit}>Göstər</button>
       {error && <p>{error}</p>}
     </div>
@@ -491,7 +494,7 @@ function fileWhen(value?: string) {
   if (!value) return ""
   const date = new Date(value)
   if (Number.isNaN(date.getTime())) return ""
-  return date.toLocaleDateString("az-AZ", { day: "2-digit", month: "short", year: "numeric" })
+  return `${String(date.getDate()).padStart(2, "0")}.${String(date.getMonth() + 1).padStart(2, "0")}.${date.getFullYear()}`
 }
 
 async function keepBlob(bytes: Uint8Array) {
@@ -504,8 +507,16 @@ async function keepBlob(bytes: Uint8Array) {
   }
 }
 
+export function FileDetailPage() {
+  const { fileId } = useParams()
+  return <FilesPage key={fileId} />
+}
+
 export function FilesPage() {
-  useTitle("Layihə faylı")
+  const { fileId } = useParams()
+  const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const libraryUrl = `/layihe-fayl${searchParams.size ? `?${searchParams}` : ""}`
   const state = useProcure()
   const active = activeOf(state)
   const [error, setError] = useState("")
@@ -514,19 +525,62 @@ export function FilesPage() {
   const [menu, setMenu] = useState(false)
   const [picking, setPicking] = useState(false)
   const [picked, setPicked] = useState<string[]>([])
-  const [openId, setOpenId] = useState("")
   const [rowId, setRowId] = useState("")
   const [renaming, setRenaming] = useState(false)
   const [nameDraft, setNameDraft] = useState("")
-  const [query, setQuery] = useState("")
+  const query = searchParams.get("q") ?? ""
+  const [fileView, setFileView] = useState("rows")
+  const [rowQuery, setRowQuery] = useState("")
+  const [rowFilter, setRowFilter] = useState("all")
   const menuRef = useRef<HTMLDivElement>(null)
+  const uploadRef = useRef<HTMLInputElement>(null)
+  const versionRef = useRef<HTMLInputElement>(null)
   const files = state.files.filter((item) => item.companyId === state.activeId)
-  const open = files.find((item) => item.id === openId) ?? null
+  const open = files.find((item) => item.id === fileId) ?? null
+  useTitle(fileId ? open?.name ?? "Fayl tapılmadı" : "Fayllar")
   const needle = query.trim().toLocaleLowerCase("az")
   const visible = needle ? files.filter((file) => file.name.toLocaleLowerCase("az").includes(needle) || file.ext.toLocaleLowerCase("az").includes(needle)) : files
+  const pageSize = 12
+  const requestedPage = Number(searchParams.get("page") ?? 1)
+  const page = Math.min(Math.max(1, Math.ceil(visible.length / pageSize)), Number.isFinite(requestedPage) ? Math.max(1, Math.floor(requestedPage)) : 1)
+  const pageFiles = visible.slice((page - 1) * pageSize, page * pageSize)
+
+  function setQuery(value: string) {
+    const params = new URLSearchParams(searchParams)
+    if (value) params.set("q", value)
+    else params.delete("q")
+    params.delete("page")
+    setSearchParams(params, { replace: true })
+  }
+
+  function changePage(value: number) {
+    const params = new URLSearchParams(searchParams)
+    if (value > 1) params.set("page", String(value))
+    else params.delete("page")
+    setSearchParams(params)
+  }
   const confirmed = files.reduce((sum, file) => sum + file.rows.filter((row) => row.confirmed).length, 0)
   const rows = files.reduce((sum, file) => sum + file.rows.length, 0)
   const excel = open?.ext === "xlsx" || open?.ext === "xls"
+  const rowNeedle = rowQuery.trim().toLocaleLowerCase("az")
+  const shownRows = (open?.rows ?? []).filter((row) =>
+    (rowFilter === "all" || (rowFilter === "confirmed" ? row.confirmed : !row.confirmed)) &&
+    (!rowNeedle || [row.name, row.code, row.profile, row.spec].some((value) => value.toLocaleLowerCase("az").includes(rowNeedle))))
+  const confirmedRows = open?.rows.filter((row) => row.confirmed).length ?? 0
+
+  function showFile(targetId: string) {
+    setError("")
+    setNote("")
+    setRowId("")
+    setPicking(false)
+    setPicked([])
+    setMenu(false)
+    setRenaming(false)
+    setFileView("rows")
+    setRowQuery("")
+    setRowFilter("all")
+    if (targetId !== fileId) navigate(`/layihe-fayl/${encodeURIComponent(targetId)}${searchParams.size ? `?${searchParams}` : ""}`)
+  }
 
   function changeFile(fileId: string, recipe: (file: (typeof files)[number]) => (typeof files)[number]) {
     patchProcure((current) => ({
@@ -552,8 +606,7 @@ export function FilesPage() {
       files: [...current.files, { id: fileId, companyId: active.id, name: file.name, ext: parsed.scan.ext, size: file.size, at: new Date().toISOString(), blobId, scan: "temiz", scanNote: parsed.scan.note, rows: extracted, versions: [] }],
       audit: [...current.audit, stamp(current, "Fayl qəbul oldu", file.name)],
     }))
-    setOpenId(fileId)
-    setRowId("")
+    showFile(fileId)
   }
 
   async function takeVersion(file: File) {
@@ -586,7 +639,7 @@ export function FilesPage() {
       } : item),
       audit: [...current.audit, stamp(current, "Faylın yeni versiyası", file.name)],
     }))
-    setRowId("")
+    showFile(currentFile.id)
   }
 
   function patchRow(fileId: string, target: string, recipe: (row: Extracted) => Extracted) {
@@ -623,54 +676,38 @@ export function FilesPage() {
 
   return (
     <Guard path="/layihe-fayl">
-      <PageHead kicker="Layihə" title="Fayl və çertyoj" text="Excel, Word, PDF, skan və çertyoj qəbul olunur. Yazılı ölçü və profil sətirə düşür. Xətdən gələn ölçü qeyri-dəqiq sayılır. Təsdiqdən əvvəl miqdar hesaba düşmür." />
-      <div className="library">
-        <div className="library-bar">
-          <div>
-            <strong>{files.length} fayl</strong>
-            <span>{rows} sətir · {confirmed} təsdiq</span>
-          </div>
-          {active && (
-            <label className="file-pick">
-              <input type="file" accept={FILE_ACCEPT} onChange={(event) => { const file = event.target.files?.[0]; if (file) void take(file); event.target.value = "" }} />
-              Fayl əlavə et
-            </label>
-          )}
-        </div>
+      {!fileId && <PageHead title="Fayllar" text="Faylı seçin və məzmununu ayrıca səhifədə açın.">
+        {active && <Button onClick={() => uploadRef.current?.click()}><Icon name="plus" />Fayl əlavə et</Button>}
+      </PageHead>}
+      {fileId && <Link className="file-library-back" to={libraryUrl}><Icon name="chevronLeft" />Fayl kitabxanasına qayıt</Link>}
+      <div className={`library file-library${fileId ? " file-detail-page" : ""}`}>
+        <input ref={uploadRef} hidden type="file" accept={FILE_ACCEPT} onChange={(event) => { const file = event.target.files?.[0]; if (file) void take(file); event.target.value = "" }} />
         {error && <p className="form-error">{error}</p>}
         {!active && <p className="lede">Əvvəl şirkət seçilməlidir.</p>}
-        {files.length === 0 && <p className="lede">Fayl yoxdur.</p>}
-        {files.length > 0 && (
-          <div className={open ? "library-body" : "library-body alone"}>
-            <div className="file-index">
-              <label className="file-find">
-                <Icon name="search" />
-                <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Fayl axtar" aria-label="Fayl axtar" />
-              </label>
-              <div className="file-list">
-                {visible.map((file) => {
+        {!fileId && files.length === 0 && <Empty title="Hələ fayl yoxdur" text="İlk faylı əlavə etmək üçün “Fayl əlavə et” düyməsini seçin." />}
+        {fileId && !open && <PageHead title="Fayl tapılmadı" text="Bu fayl seçilmiş şirkətdə yoxdur. Kitabxanaya qayıdıb başqa fayl seçin." />}
+          <div className={fileId ? "file-workspace has-detail" : "file-workspace"}>
+            {!fileId && files.length > 0 && <div className="file-index">
+              <div className="file-collection-head"><div><h2>Fayl kitabxanası</h2><p>{files.length} fayl · {rows} sətir · {confirmed} təsdiq</p></div><SearchInput value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Fayllarda axtar..." /></div>
+              <div className="file-entries" aria-label="Fayllar">
+                {pageFiles.map((file) => {
                   const done = file.rows.filter((row) => row.confirmed).length
-                  const selected = open?.id === file.id
                   return (
-                    <button key={file.id} type="button" className={selected ? "file-card on" : "file-card"} aria-expanded={selected} onClick={() => { setOpenId(selected ? "" : file.id); setRowId(""); setPicking(false); setPicked([]); setMenu(false); setRenaming(false) }}>
-                      <em>{file.ext.toUpperCase()}</em>
-                      <span className="file-card-copy">
-                        <strong>{file.name}</strong>
-                        <small>{fileSize(file.size)} · {file.rows.length} sətir · {done} təsdiq{(file.versions?.length ?? 0) > 0 ? ` · ${(file.versions?.length ?? 0) + 1} versiya` : ""}</small>
-                      </span>
-                    </button>
+                    <FileTile key={file.id} name={file.name} extension={file.ext} metadata={`${file.rows.length} sətir · ${done} təsdiq`} progress={file.rows.length ? done / file.rows.length * 100 : 0} to={`/layihe-fayl/${encodeURIComponent(file.id)}${searchParams.size ? `?${searchParams}` : ""}`} />
                   )
                 })}
-                {visible.length === 0 && <p className="lede">Uyğun fayl yoxdur.</p>}
               </div>
-            </div>
+              {visible.length === 0 && <Empty title="Uyğun fayl yoxdur" text="Faylın adını və ya uzantısını dəyişib yenidən axtarın." />}
+              <Pagination page={page} pageSize={pageSize} total={visible.length} onChange={changePage} />
+            </div>}
+            {fileId && <div className="file-detail-slot">
         {open && (
-          <section className="file-sheet">
+          <section key={open.id} className="file-sheet" aria-label={`${open.name} sətirləri`}>
             <header>
               <div>
                 <p>{open.ext.toUpperCase()} · {fileSize(open.size)}{fileWhen(open.at) ? ` · ${fileWhen(open.at)}` : ""}</p>
                 <div className="file-title">
-                  <h2>{open.name}</h2>
+                  <h1>{open.name}</h1>
                   {!renaming && (
                     <button type="button" aria-label="Adı dəyiş" onClick={() => { setNameDraft(open.name); setRenaming(true) }}>
                       <Icon name="edit" />
@@ -685,32 +722,48 @@ export function FilesPage() {
                     changeFile(open.id, (file) => ({ ...file, name }))
                     setRenaming(false)
                   }}>
-                    <input aria-label="Faylın adı" value={nameDraft} onChange={(event) => setNameDraft(event.target.value)} onKeyDown={(event) => { if (event.key === "Escape") setRenaming(false) }} autoFocus />
+                    <Input aria-label="Faylın adı" value={nameDraft} onChange={(event) => setNameDraft(event.target.value)} onKeyDown={(event) => { if (event.key === "Escape") setRenaming(false) }} autoFocus />
                     <button type="submit" aria-label="Saxla"><Icon name="check" /></button>
                     <button type="button" aria-label="Bağla" onClick={() => setRenaming(false)}><Icon name="close" /></button>
                   </form>
                 )}
               </div>
-              <strong>Təsdiqlənmiş say {open.rows.filter((row) => row.confirmed).reduce((sum, row) => sum + (Number(row.qty) || 0), 0)}</strong>
+              <div className="file-document-actions">
+                <Button disabled={busy} onClick={() => void downloadRows(open.rows, undefined, !excel)}><Icon name="download" />Yüklə</Button>
+                <Button className="ghost" title="Yenilənmiş faylı seçin. Əvvəlki nüsxə tarixçədə saxlanacaq." onClick={() => versionRef.current?.click()}>Faylı yenilə</Button>
+              </div>
             </header>
+            <Tabs value={fileView} onChange={setFileView} options={[{id: "rows", label: `Sətirlər ${open.rows.length}`}, {id: "history", label: `Tarixçə ${open.versions?.length ?? 0}`}]} />
+            {fileView === "rows" && <>
+            <div className="file-row-toolbar">
+              <SearchInput value={rowQuery} onChange={(event) => setRowQuery(event.target.value)} placeholder="Sətirdə axtar..." />
+              <div className="file-status-filters" aria-label="Sətir statusu">
+                {[{id:"all",label:"Hamısı",count:open.rows.length},{id:"confirmed",label:"Təsdiqlənib",count:confirmedRows},{id:"waiting",label:"Gözləyir",count:open.rows.length-confirmedRows}].map((filter)=><Button key={filter.id} className="ghost small" aria-pressed={rowFilter===filter.id} onClick={()=>setRowFilter(filter.id)}>{filter.label}<span>{filter.count}</span></Button>)}
+              </div>
+              <Button className="ghost file-add-row" onClick={() => {
+                const row = { ...emptyExtract("Yeni sətir"), id: id(), flags: [] as Extracted["flags"] }
+                changeFile(open.id, (file) => ({ ...file, revised: true, rows: [...file.rows, row] }))
+                setRowQuery(""); setRowFilter("all"); setRowId(row.id)
+              }}><Icon name="plus" />Sətir əlavə et</Button>
+            </div>
             <div className="file-actions">
               <div className="file-actions-side">
                 <div className="file-menu" ref={menuRef}>
-                  <button type="button" className="file-icon" aria-label="Endir" disabled={busy} onClick={() => setMenu((value) => !value)}>
-                    <Icon name="download" />
-                  </button>
+                  <Button disabled={busy} aria-expanded={menu} aria-controls="file-download-options" onClick={() => setMenu((value) => !value)}>
+                    <Icon name="download" />{busy ? "Hazırlanır..." : "Yükləmə seçimləri"}<Icon name="chevron" />
+                  </Button>
                   {menu && (
-                    <div className="file-menu-pop">
+                    <div className="file-menu-pop" id="file-download-options" onKeyDown={(event) => { if (event.key === "Escape") { setMenu(false); menuRef.current?.querySelector('button')?.focus() } }}>
                       {excel ? (
                         <>
-                          <button type="button" onClick={() => void downloadRows(open.rows)}>Bütün data</button>
+                          <button type="button" onClick={() => void downloadRows(open.rows)}>Bütün sətirləri yüklə</button>
                           <button type="button" onClick={() => {
                             if (picking && picked.length) void downloadRows(open.rows.filter((row) => picked.includes(row.id)))
                             else { setPicking(true); setMenu(false) }
-                          }}>{picking && picked.length ? `Seçilənləri endir (${picked.length})` : "Seçilmiş sətirlər"}</button>
+                          }}>{picking && picked.length ? `Seçilənləri yüklə (${picked.length})` : "Yükləmək üçün sətir seç"}</button>
                         </>
                       ) : (
-                        <button type="button" onClick={() => void downloadRows(open.rows, undefined, true)}>Faylı endir</button>
+                        <button type="button" onClick={() => void downloadRows(open.rows, undefined, true)}>Faylı yüklə</button>
                       )}
                       {EXPORTS.filter(([item]) => item !== open.ext && !(excel && item === "xlsx")).map(([item, label]) => (
                         <button key={item} type="button" onClick={() => void downloadRows(open.rows, item)}>{label}</button>
@@ -719,61 +772,45 @@ export function FilesPage() {
                     </div>
                   )}
                 </div>
-                <label className="file-pick quiet">
-                  <input type="file" accept={FILE_ACCEPT} onChange={(event) => { const file = event.target.files?.[0]; if (file) void takeVersion(file); event.target.value = "" }} />
-                  Yeni versiya
-                </label>
               </div>
-              <button type="button" className="file-quiet" onClick={() => {
-                const row = { ...emptyExtract("Yeni sətir"), id: id(), flags: [] as Extracted["flags"] }
-                changeFile(open.id, (file) => ({ ...file, revised: true, rows: [...file.rows, row] }))
-                setRowId(row.id)
-              }}>Sətir əlavə et</button>
+              <span className="file-row-count">{shownRows.length} / {open.rows.length} sətir · Miqdarlar təsdiqdən sonra hesablanır</span>
             </div>
             {note && <p className="lede">{note}</p>}
-            {(open.versions?.length ?? 0) > 0 && (
-              <div className="file-versions">
-                <p>Əvvəlki versiyalar</p>
-                {[...(open.versions ?? [])].reverse().map((version) => (
-                  <div key={version.id} className="file-version">
-                    <span>{version.name} · {fileWhen(version.at)} · {version.scanNote}</span>
-                  </div>
-                ))}
-              </div>
-            )}
+            {picking && <div className="file-selection-bar"><span>{picked.length} sətir seçilib</span><Button className="small" disabled={!picked.length || busy} onClick={()=>void downloadRows(open.rows.filter(row=>picked.includes(row.id)))}>Seçilənləri yüklə</Button><Button className="ghost small" onClick={()=>{setPicking(false);setPicked([])}}>Seçimi ləğv et</Button></div>}
             <div className={picking ? "file-table picking" : "file-table"}>
-              <div className="file-head"><span>Ad</span><span>Kod</span><span>Say</span><span>Ölçü</span><span>Profil</span><span>Təsdiq</span></div>
-              {open.rows.map((row) => (
+              <div className="file-head"><span>Ad</span><span>Kod</span><span>Say</span><span>Ölçü</span><span>Profil</span><span>Təsdiq</span><span /></div>
+              {shownRows.map((row) => (
                 <div key={row.id} className={rowId === row.id ? "file-line open" : "file-line"}>
                   <div className="file-line-top">
                     {picking && (
                       <input type="checkbox" aria-label={row.name} checked={picked.includes(row.id)} onChange={(event) => setPicked((current) => event.target.checked ? [...current, row.id] : current.filter((item) => item !== row.id))} />
                     )}
-                    <button type="button" className="file-line-main" onClick={() => setRowId((current) => current === row.id ? "" : row.id)}>
+                    <button type="button" className="file-line-main" aria-expanded={rowId === row.id} onClick={() => setRowId((current) => current === row.id ? "" : row.id)}>
                     <span>{row.name}</span>
-                    <span>{row.code}</span>
-                    <span>{row.qty}</span>
-                    <span>{row.width && row.height ? `${row.width}×${row.height}` : "—"}</span>
-                    <span>{row.profile || "—"}</span>
-                    <span className={row.confirmed ? "is-yes" : ""}>{row.confirmed ? "Bəli" : "Xeyr"}</span>
+                    <span data-label="Kod">{row.code || "—"}</span>
+                    <span data-label="Say">{row.qty}</span>
+                    <span data-label="Ölçü">{row.width && row.height ? `${row.width}×${row.height}` : "—"}</span>
+                    <span data-label="Profil">{row.profile || "—"}</span>
+                    <span data-label="Təsdiq" className={row.confirmed ? "is-yes" : ""}>{row.confirmed ? "Bəli" : "Xeyr"}</span>
+                    <span className="file-line-open"><Icon name="edit" />{rowId === row.id ? "Bağla" : "Düzəliş"}</span>
                     </button>
                   </div>
                   {row.flags.length > 0 && <div className="file-flags">{row.flags.map((flag) => <em key={flag}>{FLAG_LABEL[flag]}</em>)}</div>}
                   {rowId === row.id && (
                     <div className="file-edit">
-                      <label>Ad<input value={row.name} onChange={(event) => patchRow(open.id, row.id, (item) => ({ ...item, name: event.target.value }))} /></label>
-                      <label>Kod<input value={row.code} onChange={(event) => patchRow(open.id, row.id, (item) => ({ ...item, code: event.target.value }))} /></label>
-                      <label>Say<input value={row.qty} onChange={(event) => patchRow(open.id, row.id, (item) => ({ ...item, qty: event.target.value }))} /></label>
-                      <label>En<input value={row.width} onChange={(event) => patchRow(open.id, row.id, (item) => ({ ...item, width: event.target.value }))} /></label>
-                      <label>Hündürlük<input value={row.height} onChange={(event) => patchRow(open.id, row.id, (item) => ({ ...item, height: event.target.value }))} /></label>
-                      <label>Profil<input value={row.profile} onChange={(event) => patchRow(open.id, row.id, (item) => ({ ...item, profile: event.target.value }))} /></label>
-                      <label>Şüşə<input value={row.glass} onChange={(event) => patchRow(open.id, row.id, (item) => ({ ...item, glass: event.target.value }))} /></label>
-                      <label>Furnitur<input value={row.hardware} onChange={(event) => patchRow(open.id, row.id, (item) => ({ ...item, hardware: event.target.value }))} /></label>
-                      <label>Spesifikasiya<input value={row.spec} onChange={(event) => patchRow(open.id, row.id, (item) => ({ ...item, spec: event.target.value }))} /></label>
-                      <label>Montaj<input value={row.install} onChange={(event) => patchRow(open.id, row.id, (item) => ({ ...item, install: event.target.value }))} /></label>
+                      <label>Ad<Input value={row.name} onChange={(event) => patchRow(open.id, row.id, (item) => ({ ...item, name: event.target.value }))} /></label>
+                      <label>Kod<Input value={row.code} onChange={(event) => patchRow(open.id, row.id, (item) => ({ ...item, code: event.target.value }))} /></label>
+                      <label>Say<Input value={row.qty} onChange={(event) => patchRow(open.id, row.id, (item) => ({ ...item, qty: event.target.value }))} /></label>
+                      <label>En<Input value={row.width} onChange={(event) => patchRow(open.id, row.id, (item) => ({ ...item, width: event.target.value }))} /></label>
+                      <label>Hündürlük<Input value={row.height} onChange={(event) => patchRow(open.id, row.id, (item) => ({ ...item, height: event.target.value }))} /></label>
+                      <label>Profil<Input value={row.profile} onChange={(event) => patchRow(open.id, row.id, (item) => ({ ...item, profile: event.target.value }))} /></label>
+                      <label>Şüşə<Input value={row.glass} onChange={(event) => patchRow(open.id, row.id, (item) => ({ ...item, glass: event.target.value }))} /></label>
+                      <label>Furnitur<Input value={row.hardware} onChange={(event) => patchRow(open.id, row.id, (item) => ({ ...item, hardware: event.target.value }))} /></label>
+                      <label>Spesifikasiya<Input value={row.spec} onChange={(event) => patchRow(open.id, row.id, (item) => ({ ...item, spec: event.target.value }))} /></label>
+                      <label>Montaj<Input value={row.install} onChange={(event) => patchRow(open.id, row.id, (item) => ({ ...item, install: event.target.value }))} /></label>
                       <div className="file-row-actions">
                         <button type="button" className={row.confirmed ? "file-quiet on" : "file-quiet"} onClick={() => patchRow(open.id, row.id, (item) => ({ ...item, confirmed: !item.confirmed }))}>{row.confirmed ? "Təsdiqlənib" : "Təsdiq"}</button>
-                        <button type="button" className="file-quiet" disabled={busy} onClick={() => void downloadRows([row])}>Endir</button>
+                        <button type="button" className="file-quiet" disabled={busy} onClick={() => void downloadRows([row])}>Sətri yüklə</button>
                         <button type="button" className="file-drop" onClick={() => { changeFile(open.id, (file) => ({ ...file, revised: true, rows: file.rows.filter((item) => item.id !== row.id) })); setPicked((current) => current.filter((item) => item !== row.id)); setRowId("") }}>Sil</button>
                         <button type="button" className="file-quiet" onClick={() => setRowId("")}>Bağla</button>
                       </div>
@@ -782,10 +819,17 @@ export function FilesPage() {
                 </div>
               ))}
             </div>
+            {shownRows.length===0 && <Empty title="Uyğun sətir yoxdur" text="Axtarışı və ya status filtrini dəyişin." />}
+            </>}
+            {fileView === "history" && <div className="file-history">
+              <p className="file-version-hint">Faylı yenilədikdə əvvəlki nüsxə və sətirlər burada saxlanılır.</p>
+              {(open.versions?.length ?? 0)===0 ? <Empty title="Əvvəlki nüsxə yoxdur" text="Bu faylın ilk nüsxəsi ilə işləyirsiniz." /> : [...(open.versions ?? [])].reverse().map((version)=><article key={version.id}><span className="history-point" /><div><strong>{version.name}</strong><p>{fileWhen(version.at)} · {fileSize(version.size)} · {version.rows.length} sətir</p>{version.scanNote&&<small>{version.scanNote}</small>}</div><span className="file-history-label">Əvvəlki nüsxə</span></article>)}
+            </div>}
+            <input ref={versionRef} hidden type="file" accept={FILE_ACCEPT} onChange={(event) => { const file = event.target.files?.[0]; if (file) void takeVersion(file); event.target.value = "" }} />
           </section>
         )}
+            </div>}
           </div>
-        )}
       </div>
     </Guard>
   )
@@ -895,13 +939,13 @@ function TariffEditor({ plan, onSave }: { plan: Plan; onSave: (amount: string, n
     <div className="tariff-edit">
       <label>
         {plan.kind === "komissiya" ? "Faiz" : "Məbləğ, ₼"}
-        <input value={amount} inputMode="decimal" onChange={(event) => setAmount(event.target.value)} />
+        <Input value={amount} inputMode="decimal" onChange={(event) => setAmount(event.target.value)} />
       </label>
       <label>
         Qısa izah
-        <input value={note} onChange={(event) => setNote(event.target.value)} />
+        <Input value={note} onChange={(event) => setNote(event.target.value)} />
       </label>
-      <button type="button" className="btn small" disabled={!dirty || !amount.trim()} onClick={() => onSave(amount.trim(), note.trim())}>Saxla</button>
+      <Button type="button" className="small" disabled={!dirty || !amount.trim()} onClick={() => onSave(amount.trim(), note.trim())}>Saxla</Button>
     </div>
   )
 }
@@ -913,6 +957,9 @@ export function TariffPage() {
   const admin = active?.kind === "admin"
   const kind = active?.kind ?? ""
   const plans = withPlanDefaults(state.plans)
+  const [tab, setTab] = useState("plans")
+  const [selectedId, setSelectedId] = useState("")
+  const selected = plans.find((plan) => plan.id === selectedId)
   const [orderSum, setOrderSum] = useState("18400")
   const [focusId, setFocusId] = useState("")
   const [notice, setNotice] = useState("")
@@ -933,16 +980,10 @@ export function TariffPage() {
     { side: "maker" as const, who: makerName, fee: "Sifariş komissiyası", why: rate == null ? "Faiz yazılmayıb" : `${money(order)} × ${String(rate).replace(".", ",")} faiz`, amount: rate == null ? null : (order * rate) / 100 },
   ]
   const total = rows.reduce((sum, row) => sum + (row.amount ?? 0), 0)
-  const mineNames = plans.filter((plan) => paysTariff(kind, plan.id)).map((plan) => plan.name)
   const ordered = [...plans].sort((a, b) => Number(paysTariff(kind, b.id)) - Number(paysTariff(kind, a.id)))
   const bills = state.charges.filter((item) => admin || item.companyId === state.activeId).slice().reverse()
   const waiting = bills.filter((item) => item.status === "gozleyir")
   const waitingSum = waiting.reduce((sum, item) => sum + (num(item.amount) ?? 0), 0)
-  const intro = !active || admin
-    ? "Hər haqqın kimdən, nə vaxt və nə üçün tutulduğu yazılıb. Sifariş məbləğini dəyişin, komissiya və cəm yenilənir."
-    : mineNames.length
-      ? `${active.name} bunları ödəyir: ${mineNames.join(", ")}. Yaşıl kart sizin haqqınızdır.`
-      : `${active.name} kabinetindən platforma haqqı tutulmur. Cədvəl sifarişçi və təchizatçı üçündür.`
 
   useEffect(() => {
     const next = withPlanDefaults(state.plans)
@@ -964,12 +1005,14 @@ export function TariffPage() {
   }
 
   useEffect(() => {
-    if (!focusId) return
+    if (!focusId || tab !== "bills") return
     document.getElementById(`bill-${focusId}`)?.scrollIntoView({ behavior: "smooth", block: "center" })
-  }, [focusId, bills.length])
+  }, [focusId, bills.length, tab])
 
   function charge(plan: Plan) {
     if (!active || admin || !paysTariff(active.kind, plan.id) || opening.current) return
+    setSelectedId("")
+    setTab("bills")
     const waitingBill = state.charges.find((item) => item.companyId === active.id && item.planId === plan.id && item.status === "gozleyir")
     if (waitingBill) {
       setNotice(`${waitingBill.invoice} artıq gözləyir. Eyni haqq üçün ikinci qaimə açılmır.`)
@@ -1026,41 +1069,20 @@ export function TariffPage() {
   return (
     <Guard path="/tarif">
       <div className="tariff-page">
-        <PageHead kicker="Tarif" title="Kim nə ödəyir" text={intro} />
-        <section className="statstrip">
-          <article>
-            <span>Sifarişçi, ay</span>
-            <strong>{feeText(plans.find((plan) => plan.id === "abune") ?? plans[0])}</strong>
-            <em>3 layihə, 2 istifadəçi</em>
-          </article>
-          <article>
-            <span>Təchizatçı, ay</span>
-            <strong>{feeText(plans.find((plan) => plan.id === "kabinet") ?? plans[0])}</strong>
-            <em>qiymət və təklif</em>
-          </article>
-          <article>
-            <span>Komissiya</span>
-            <strong>{feeText(plans.find((plan) => plan.id === "komissiya") ?? plans[0])}</strong>
-            <em>bağlanmış sifarişdən</em>
-          </article>
-          <article>
-            <span>Bu sifarişdə</span>
-            <strong>{money(total)}</strong>
-            <em>{project}</em>
-          </article>
-        </section>
-        <section className="panel pad tariff-story">
-          <div className="panel-head">
+        <PageHead title="Tariflər" text="Platforma haqları və qaimələr." />
+        <Tabs value={tab} onChange={setTab} options={[{ id: "plans", label: "Tariflər" }, { id: "bills", label: "Qaimələr " + bills.length }, { id: "example", label: "Hesablama nümunəsi" }]} />
+        {tab === "example" && <Panel className="pad tariff-story">
+          <SectionHeader>
             <div>
               <h2>Bir sifarişdə kim nə ödəyir</h2>
               <p className="lede">{buyerName} «{project}» layihəsində {makerName} ilə sifariş bağlayır. Komissiya aşağıdakı məbləğdən düşür.</p>
             </div>
             <label className="tariff-order">
               Sifariş məbləği, ₼
-              <input value={orderSum} inputMode="decimal" onChange={(event) => setOrderSum(event.target.value)} />
+              <Input value={orderSum} inputMode="decimal" onChange={(event) => setOrderSum(event.target.value)} />
             </label>
-          </div>
-          <div className="table-wrap">
+          </SectionHeader>
+          <TableContainer>
             <table>
               <thead>
                 <tr>
@@ -1085,25 +1107,34 @@ export function TariffPage() {
                 </tr>
               </tbody>
             </table>
-          </div>
+          </TableContainer>
           {showMine && active && (
             <p className="tariff-key"><i /> Açıq rəng {active.name} üçündür. Bu şirkətin hər haqqı eyni rəngdədir, ona görə yan-yana sətirlər eyni görünür.</p>
           )}
           <p className="lede">Hesablama modulu bu cəmə daxil deyil: zavod və ya montaj onu ayrıca, aylıq ödəyir. Korporativ tarif seçiləndə aylıq abunə düşür və onun yerinə korporativ məbləğ yazılır.</p>
-        </section>
-        <section className="tariff-grid">
-          {ordered.map((plan) => {
+        </Panel>}
+        {tab === "plans" && <>
+          <p className="tariff-hint">{admin ? "Tarifi seçərək məbləği və izahı dəyişə bilərsiniz." : "Şirkətinizə uyğun tariflər işarələnib. Ətraflı məlumat üçün tarifi seçin."}</p>
+          <TableContainer className="tariff-library"><table>
+            <thead><tr><th>Tarif</th><th>Kim üçün</th><th>Ödəniş dövrü</th><th className="num">Qiymət</th>{showMine && <th>Uyğunluq</th>}<th>Aç</th></tr></thead>
+            <tbody>{ordered.map((plan) => <tr key={plan.id} tabIndex={0} onClick={() => setSelectedId(plan.id)} onKeyDown={(event) => { if(event.key === "Enter" || event.key === " ") { event.preventDefault(); setSelectedId(plan.id) } }}>
+              <td><strong>{plan.name}</strong></td><td>{TARIFF[plan.id]?.payer || "—"}</td><td>{TARIFF[plan.id]?.cadence || "—"}</td><td className="num">{feeText(plan)}</td>{showMine && <td>{paysTariff(kind, plan.id) ? <span className="badge pine">Uyğundur</span> : <span className="tariff-hint">—</span>}</td>}<td><Icon name="chevron" /></td>
+            </tr>)}</tbody>
+          </table></TableContainer>
+        </>}
+        {selected && <Modal title={selected.name} onClose={() => setSelectedId("")} className="tariff-detail-modal">
+          {[selected].map((plan) => {
             const copy = TARIFF[plan.id]
             const mine = paysTariff(kind, plan.id)
             const due = chargeAmount(plan, plan.kind === "komissiya" ? order : 0)
             const blocked = due == null || (plan.kind === "komissiya" && order <= 0)
             return (
-              <article key={plan.id} className={showMine && mine ? "tariff-card mine" : "tariff-card"}>
+              <div key={plan.id} className="tariff-detail">
                 <header>
                   <span className="badge pine">{copy?.cadence ?? "Haqq"}</span>
                   {showMine && <span className={mine ? "badge gold" : "badge stone"}>{mine ? "Siz ödəyirsiniz" : "Siz ödəmirsiniz"}</span>}
                 </header>
-                <h2>{plan.name}</h2>
+                
                 {plan.note && <p className="tariff-note">{plan.note}</p>}
                 <p className="tariff-price">{feeText(plan)}{copy && <span>{copy.unit}</span>}</p>
                 {copy && (
@@ -1113,29 +1144,30 @@ export function TariffPage() {
                   </dl>
                 )}
                 {copy && <ul className="tariff-covers">{copy.covers.map((item) => <li key={item}>{item}</li>)}</ul>}
+                {plan.kind === "komissiya" && <Field label="Sifariş məbləği, ₼"><Input value={orderSum} inputMode="decimal" onChange={(event) => setOrderSum(event.target.value)} /></Field>}
                 <p className="tariff-example"><b>Nümunə.</b> {sampleLine(plan, order)}</p>
                 {admin && <TariffEditor plan={plan} onSave={(amount, note) => setPlan(plan, amount, note)} />}
                 {showMine && mine && (() => {
                   const openBill = state.charges.find((item) => item.companyId === active?.id && item.planId === plan.id && item.status === "gozleyir")
                   return (
-                    <button type="button" className="btn" disabled={blocked && !openBill} onClick={() => charge(plan)}>
+                    <Button type="button" disabled={blocked && !openBill} onClick={() => charge(plan)}>
                       {openBill ? `Açıq qaimə · ${openBill.invoice}` : `Qaimə aç${due == null ? "" : ` · ${money(due)}`}`}
-                    </button>
+                    </Button>
                   )
                 })()}
-              </article>
+              </div>
             )
           })}
-        </section>
-        <section className="panel pad tariff-bills" id="yazilmis-qaimeler">
-          <div className="panel-head">
+        </Modal>}
+        {tab === "bills" && <Panel className="pad tariff-bills" id="yazilmis-qaimeler">
+          <SectionHeader>
             <h2>Yazılmış qaimələr</h2>
             <span>{waiting.length ? `${waiting.length} gözləyir · ${money(waitingSum)}` : bills.length ? "Açıq qaimə yoxdur" : "Hələ yazılmayıb"}</span>
-          </div>
+          </SectionHeader>
           {notice && <p className="tariff-opened">{notice}</p>}
-          {bills.length === 0 && <p className="lede">{admin ? "Şirkət öz kartından qaimə açanda burada görünəcək." : "«Qaimə aç» bu şirkətə bir borc yazır və sətir bura gətirilir. Eyni haqq üçün ikinci qaimə açılmır. Təsdiqdən sonra sətir dəyişmir."}</p>}
+          {bills.length === 0 && <p className="lede">{admin ? "Şirkət tarifdən qaimə açanda burada görünəcək." : "Qaimə yaratmaq üçün Tariflər tabından şirkətinizə uyğun tarifi seçin."}</p>}
           {bills.length > 0 && (
-            <div className="table-wrap">
+            <TableContainer>
               <table>
                 <thead>
                   <tr>
@@ -1163,7 +1195,7 @@ export function TariffPage() {
                         <td className="acts">
                           {open && (
                             <div className="row-actions stay">
-                              {admin && <button type="button" className="btn small" onClick={() => patchProcure((current) => ({ ...current, charges: current.charges.map((row) => row.id === item.id ? { ...row, status: "qeyd" } : row) }))}>Təsdiqlə</button>}
+                              {admin && <Button type="button" className="small" onClick={() => patchProcure((current) => ({ ...current, charges: current.charges.map((row) => row.id === item.id ? { ...row, status: "qeyd" } : row) }))}>Təsdiqlə</Button>}
                               <RowMenu label={`${item.invoice} əməliyyat`} items={[
                                 { id: "edit", label: "Düzəlt", onClick: () => { setEditId(item.id); setEditAmount(item.amount); setDropId("") } },
                                 { id: "delete", label: "Sil", onClick: () => { setDropId(item.id); setEditId("") } },
@@ -1176,17 +1208,17 @@ export function TariffPage() {
                   })}
                 </tbody>
               </table>
-            </div>
+            </TableContainer>
           )}
-        </section>
+        </Panel>}
         {editId && (
           <Modal title="Qaiməni düzəlt" onClose={() => setEditId("")}>
             <Field label="Məbləğ, ₼">
-              <input value={editAmount} inputMode="decimal" autoFocus onChange={(event) => setEditAmount(event.target.value)} />
+              <Input value={editAmount} inputMode="decimal" autoFocus onChange={(event) => setEditAmount(event.target.value)} />
             </Field>
             <div className="form-actions">
-              <button type="button" className="btn ghost" onClick={() => setEditId("")}>Ləğv et</button>
-              <button type="button" className="btn" disabled={!editAmount.trim() || num(editAmount) == null} onClick={saveBill}>Saxla</button>
+              <Button type="button" className="ghost" onClick={() => setEditId("")}>Ləğv et</Button>
+              <Button type="button" disabled={!editAmount.trim() || num(editAmount) == null} onClick={saveBill}>Saxla</Button>
             </div>
           </Modal>
         )}
@@ -1272,12 +1304,12 @@ function WordList({
         <span>{needle ? `${shown.length} / ${names.length}` : names.length}</span>
       </header>
       <form className="platform-join" onSubmit={(event) => { event.preventDefault(); onAdd() }}>
-        <input aria-label={label} value={value} placeholder={placeholder} onChange={(event) => onChange(event.target.value)} />
-        <button type="submit" className="btn" disabled={!value.trim()}>Əlavə et</button>
+        <Input aria-label={label} value={value} placeholder={placeholder} onChange={(event) => onChange(event.target.value)} />
+        <Button type="submit"  disabled={!value.trim()}>Əlavə et</Button>
       </form>
       <label className="dict-find">
         <Icon name="search" />
-        <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Siyahıda axtar" aria-label={`${title} axtar`} />
+        <Input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Siyahıda axtar" aria-label={`${title} axtar`} />
       </label>
       <div className="dict-scroll">
         {shown.length === 0 && <p>{names.length === 0 ? "Siyahı boşdur." : "Uyğun ad yoxdur."}</p>}
@@ -1320,11 +1352,11 @@ function DisputeList({
   return (
     <>
       <form className="dispute-compose" onSubmit={(event) => { event.preventDefault(); onAdd() }}>
-        <input aria-label="Mübahisə mətni" value={draft} placeholder="Nə baş verib" onChange={(event) => onDraft(event.target.value)} />
-        <button type="submit" className="btn" disabled={!draft.trim()}>Aç</button>
+        <Input aria-label="Mübahisə mətni" value={draft} placeholder="Nə baş verib" onChange={(event) => onDraft(event.target.value)} />
+        <Button type="submit"  disabled={!draft.trim()}>Aç</Button>
         <label className="dict-find">
           <Icon name="search" />
-          <input value={query} onChange={(event) => setQuery(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") event.preventDefault() }} placeholder="Mübahisədə axtar" aria-label="Mübahisədə axtar" />
+          <Input value={query} onChange={(event) => setQuery(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") event.preventDefault() }} placeholder="Mübahisədə axtar" aria-label="Mübahisədə axtar" />
         </label>
         <div className="dispute-tabs">
           {([["hamisi", "Hamısı"], ["aciq", "Açıq"], ["bagli", "Bağlı"]] as const).map(([value, label]) => (
@@ -1369,7 +1401,7 @@ function AuditLog({ rows }: { rows: AuditRow[] }) {
     <>
       <label className="dict-find">
         <Icon name="search" />
-        <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Jurnalda axtar" aria-label="Jurnalda axtar" />
+        <Input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Jurnalda axtar" aria-label="Jurnalda axtar" />
       </label>
       <div className="dict-scroll audit-scroll">
         {shown.length === 0 && <p>{rows.length === 0 ? "Jurnal boşdur." : "Uyğun yazı yoxdur."}</p>}
@@ -1473,13 +1505,13 @@ export function PlatformPage() {
   return (
     <Guard path="/platforma">
       <div className="platform-page">
-        <PageHead kicker="İdarə" title="Platforma idarəsi" text="Şirkət, kateqoriya, vahid, etibarlılıq, mübahisə və audit ayrı panellərdədir. Ehtiyat faylı bir sahəyə atılır." />
-        <div className="statstrip">
+        <PageHead kicker="İdarə" title="Platforma idarəsi" text="Şirkətlər, təsnifatlar, müraciətlər və audit." />
+        <StatGrid>
           <Link to="/sirket">
             <span>Şirkət</span>
             <strong>{state.companies.length}</strong>
           </Link>
-          <Link to="/sifaris-merhele">
+          <Link to="/sifaris">
             <span>Açıq sifariş</span>
             <strong>{openOrders}</strong>
           </Link>
@@ -1492,14 +1524,14 @@ export function PlatformPage() {
             <strong>{state.charges.length}</strong>
             <em className={openDisputes ? "warn" : ""}>{openDisputes ? `${openDisputes} açıq mübahisə` : "Mübahisə yoxdur"}</em>
           </Link>
-        </div>
+        </StatGrid>
         <div className="platform-board">
           <div className="stack">
-            <section className="panel pad">
-              <div className="panel-head">
+            <Panel className="pad">
+              <SectionHeader>
                 <h2>Etibarlılıq</h2>
                 <span>0–100</span>
-              </div>
+              </SectionHeader>
               {state.companies.length === 0 && <p className="lede">Şirkət yoxdur.</p>}
               <div className="trust-grid">
                 {state.companies.map((company) => {
@@ -1514,7 +1546,7 @@ export function PlatformPage() {
                       </header>
                       <div className="trust-score">
                         <b>{score == null ? "—" : Math.round(score)}</b>
-                        <input
+                        <Input
                           aria-label={`${company.name || "Şirkət"} etibarlılığı`}
                           inputMode="decimal"
                           value={raw}
@@ -1528,11 +1560,11 @@ export function PlatformPage() {
                   )
                 })}
               </div>
-            </section>
-            <section className="panel pad">
-              <div className="panel-head">
+            </Panel>
+            <Panel className="pad">
+              <SectionHeader>
                 <h2>Kateqoriya və vahid</h2>
-              </div>
+              </SectionHeader>
               <div className="dict-pair">
                 <WordList
                   title="Kateqoriya"
@@ -1554,12 +1586,12 @@ export function PlatformPage() {
                 />
               </div>
               {dictError && <p className="form-error">{dictError}</p>}
-            </section>
-            <section className="panel pad">
-              <div className="panel-head">
+            </Panel>
+            <Panel className="pad">
+              <SectionHeader>
                 <h2>Mübahisə</h2>
                 <span>{openDisputes ? `${openDisputes} açıq` : "Açıq yoxdur"}</span>
-              </div>
+              </SectionHeader>
               <DisputeList
                 disputes={state.disputes}
                 companies={state.companies}
@@ -1574,17 +1606,17 @@ export function PlatformPage() {
                 }}
                 onToggle={(target) => patchProcure((current) => ({ ...current, disputes: current.disputes.map((row) => row.id === target ? { ...row, status: row.status === "aciq" ? "bagli" : "aciq" } : row) }))}
               />
-            </section>
+            </Panel>
           </div>
           <div className="stack">
-            <section className="panel pad">
-              <div className="panel-head">
+            <Panel className="pad">
+              <SectionHeader>
                 <h2>Ehtiyat faylı</h2>
-                <button type="button" className="btn ghost small" onClick={() => download("afez-ehtiyat.json", JSON.stringify(state), "application/json")}>
+                <Button type="button" className="ghost small" onClick={() => download("afez-ehtiyat.json", JSON.stringify(state), "application/json")}>
                   <Icon name="download" />
                   Endir
-                </button>
-              </div>
+                </Button>
+              </SectionHeader>
               <p className="lede">Şirkət, tarif və sifariş vəziyyəti bir JSON faylındadır. Faylı sahəyə atın və ya seçin.</p>
               <label
                 className={`backup-drop${over ? " over" : ""}${backup?.status === "done" && !error ? " done" : ""}${error ? " bad" : ""}`}
@@ -1612,14 +1644,14 @@ export function PlatformPage() {
                 <span>{backup ? `${fileSize(backup.size)} · ${error ? "qəbul olunmadı" : backup.status === "done" ? "qaytarıldı" : "oxunur"}` : "və ya seçin · yalnız .json"}</span>
               </label>
               {error && <p className="form-error">{error}</p>}
-            </section>
-            <section className="panel pad">
-              <div className="panel-head">
+            </Panel>
+            <Panel className="pad">
+              <SectionHeader>
                 <h2>Audit</h2>
                 <span>{state.audit.length ? `${state.audit.length} yazı` : "Boş"}</span>
-              </div>
+              </SectionHeader>
               <AuditLog rows={state.audit} />
-            </section>
+            </Panel>
           </div>
         </div>
       </div>

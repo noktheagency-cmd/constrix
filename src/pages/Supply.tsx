@@ -1,3 +1,4 @@
+import { Button, Input, TableContainer, Toolbar } from "../components/primitives"
 import { useState, type FormEvent } from "react"
 import { DateField } from "../DateField"
 import { TODAY } from "../domain/ops"
@@ -103,27 +104,27 @@ export default function Supply() {
     <>
       <PageHead kicker={t("page.supply.kicker")} title={t("page.supply.title")} text={t("page.supply.text")}>
         {tab === "reyestr" && (
-          <button type="button" className="btn" onClick={() => { setError(""); setGearForm({ ...emptyGear, category: shelf !== "hamisi" ? shelf : "alet" }); setComposer("gear") }}>
+          <Button type="button" onClick={() => { setError(""); setGearForm({ ...emptyGear, category: shelf !== "hamisi" ? shelf : "alet" }); setComposer("gear") }}>
             <Icon name="plus" /> Təchizat
-          </button>
+          </Button>
         )}
         {tab === "teleb" && (
-          <button type="button" className="btn" onClick={() => { setError(""); setDemand({ projectId: projects[0]?.id || "", materialId: materials[0]?.id || "", qty: "" }); setComposer("teleb") }}>
+          <Button type="button" onClick={() => { setError(""); setDemand({ projectId: projects[0]?.id || "", materialId: materials[0]?.id || "", qty: "" }); setComposer("teleb") }}>
             <Icon name="plus" /> Tələb
-          </button>
+          </Button>
         )}
         {tab === "teklif" && (
-          <button type="button" className="btn" onClick={() => { setError(""); setQuote({ requestId: openRequests[0]?.id || "", supplier: suppliers[0]?.name || "", amount: "", days: "7" }); setComposer("teklif") }}>
+          <Button type="button" onClick={() => { setError(""); setQuote({ requestId: openRequests[0]?.id || "", supplier: suppliers[0]?.name || "", amount: "", days: "7" }); setComposer("teklif") }}>
             <Icon name="plus" /> Təklif
-          </button>
+          </Button>
         )}
         {tab === "sifaris" && (
-          <button type="button" className="btn" onClick={() => { setError(""); setForm({ ...emptyPo, supplier: suppliers[0]?.name || "", materialId: materials[0]?.id || "" }); setComposer("sifaris") }}>
+          <Button type="button" onClick={() => { setError(""); setForm({ ...emptyPo, supplier: suppliers[0]?.name || "", materialId: materials[0]?.id || "" }); setComposer("sifaris") }}>
             <Icon name="plus" /> Sifariş
-          </button>
+          </Button>
         )}
       </PageHead>
-      <div className="toolbar">
+      <Toolbar>
         <Tabs
           value={tab}
           onChange={(id) => { setTab(id as Tab); setReading(null); setError("") }}
@@ -137,17 +138,17 @@ export default function Supply() {
             { id: "yoxlama", label: "Yoxlama" },
           ]}
         />
-      </div>
+      </Toolbar>
       {tab === "reyestr" && (
         <>
-          <div className="toolbar">
+          <Toolbar>
             <Tabs
               value={shelf}
               onChange={(id) => { setShelf(id as Shelf); setReading(null); setError("") }}
               options={SHELVES}
             />
-          </div>
-          <div className="table-wrap">
+          </Toolbar>
+          <TableContainer>
             <table>
               <thead>
                 <tr>
@@ -183,12 +184,12 @@ export default function Supply() {
             {gear.filter((item) => shelf === "hamisi" || item.category === shelf).length === 0 && (
               <Empty title="Təchizat yoxdur" text="Bu kateqoriyada kart tapılmadı." />
             )}
-          </div>
+          </TableContainer>
         </>
       )}
 
       {tab === "yoxlama" && (
-        <div className="table-wrap">
+        <TableContainer>
           <table>
             <thead>
               <tr>
@@ -219,11 +220,11 @@ export default function Supply() {
             </tbody>
           </table>
           {gear.filter(inCheck).length === 0 && <Empty title="Yoxlama yoxdur" text="Vaxtı çatan və ya prosesdə olan təchizat burada durur." />}
-        </div>
+        </TableContainer>
       )}
 
       {tab === "teleb" && (
-        <div className="table-wrap">
+        <TableContainer>
           <table>
             <thead>
               <tr>
@@ -257,10 +258,10 @@ export default function Supply() {
                     <td>
                       <div className="row-actions stay" onClick={(event) => event.stopPropagation()}>
                         {(item.status === "gozleyir" || item.status === "teklif") && stock + 1e-9 >= item.qty && (
-                          <button type="button" className="btn small" onClick={() => act(coverRequest(item.id))}>Anbardan</button>
+                          <Button type="button" className="small" onClick={() => act(coverRequest(item.id))}>Anbardan</Button>
                         )}
                         {item.status === "gozleyir" && stock + 1e-9 < item.qty && (
-                          <button type="button" className="btn ghost small" onClick={() => act(convertRequest(item.id))}>Sifarişə</button>
+                          <Button type="button" className="ghost small" onClick={() => act(convertRequest(item.id))}>Sifarişə</Button>
                         )}
                       </div>
                     </td>
@@ -270,11 +271,11 @@ export default function Supply() {
             </tbody>
           </table>
           {requestRows.length === 0 && <Empty title="Tələb yoxdur" text="Axtarışa uyğun tələbnamə tapılmadı." />}
-        </div>
+        </TableContainer>
       )}
 
       {tab === "teklif" && (
-        <div className="table-wrap">
+        <TableContainer>
           <table>
             <thead>
               <tr>
@@ -303,7 +304,7 @@ export default function Supply() {
                     <td className="num">{money(item.amount)}</td>
                     <td>
                       {item.status === "acik" && (
-                        <button type="button" className="btn small" onClick={(event) => { event.stopPropagation(); act(awardQuote(item.id)) }}>Seç</button>
+                        <Button type="button" className="small" onClick={(event) => { event.stopPropagation(); act(awardQuote(item.id)) }}>Seç</Button>
                       )}
                     </td>
                   </tr>
@@ -312,11 +313,11 @@ export default function Supply() {
             </tbody>
           </table>
           {quoteRows.length === 0 && <Empty title="Təklif yoxdur" text="Açıq tələbə təchizatçı təklifi yazın." />}
-        </div>
+        </TableContainer>
       )}
 
       {tab === "sifaris" && (
-        <div className="table-wrap">
+        <TableContainer>
           <table>
             <thead>
               <tr>
@@ -351,11 +352,11 @@ export default function Supply() {
             </tbody>
           </table>
           {orders.length === 0 && <Empty title="Sifariş yoxdur" text="Axtarışa uyğun satınalma tapılmadı." />}
-        </div>
+        </TableContainer>
       )}
 
       {tab === "borc" && (
-        <div className="table-wrap">
+        <TableContainer>
           <table>
             <thead>
               <tr>
@@ -382,7 +383,7 @@ export default function Supply() {
                   <td className="num">{money(item.amount)}</td>
                   <td>
                     {item.status === "acik" && (
-                      <button type="button" className="btn small" onClick={(event) => { event.stopPropagation(); act(payPayable(item.id)) }}>Ödə</button>
+                      <Button type="button" className="small" onClick={(event) => { event.stopPropagation(); act(payPayable(item.id)) }}>Ödə</Button>
                     )}
                   </td>
                 </tr>
@@ -390,11 +391,11 @@ export default function Supply() {
             </tbody>
           </table>
           {payableRows.length === 0 && <Empty title="Borc yoxdur" text="Qəbul edilmiş sifariş borc açır." />}
-        </div>
+        </TableContainer>
       )}
 
       {tab === "techizatci" && (
-        <div className="table-wrap">
+        <TableContainer>
           <table>
             <thead>
               <tr>
@@ -420,7 +421,7 @@ export default function Supply() {
             </tbody>
           </table>
           {vendorRows.length === 0 && <Empty title="Təchizatçı tapılmadı" text="Axtarışı dəyişin." />}
-        </div>
+        </TableContainer>
       )}
 
       {reading?.kind === "gear" && (
@@ -518,12 +519,12 @@ export default function Supply() {
               <Select value={demand.materialId} onValueChange={(materialId) => setDemand({ ...demand, materialId })} options={materials.map((item) => ({ value: item.id, label: item.name }))} />
             </Field>
             <Field label="Miqdar">
-              <input type="number" min="0" step="0.1" value={demand.qty} onChange={(event) => setDemand({ ...demand, qty: event.target.value })} />
+              <Input type="number" min="0" step="0.1" value={demand.qty} onChange={(event) => setDemand({ ...demand, qty: event.target.value })} />
             </Field>
             {error && <p className="form-error">{error}</p>}
             <div className="form-actions">
-              <button type="button" className="btn ghost" onClick={() => setComposer("")}>Ləğv et</button>
-              <button className="btn" type="submit">Yaz</button>
+              <Button type="button" className="ghost" onClick={() => setComposer("")}>Ləğv et</Button>
+              <Button  type="submit">Yaz</Button>
             </div>
           </form>
         </Modal>
@@ -544,15 +545,15 @@ export default function Supply() {
               <Select value={quote.supplier} onValueChange={(supplier) => setQuote({ ...quote, supplier })} options={suppliers.map((vendor) => ({ value: vendor.name, label: vendor.name }))} />
             </Field>
             <Field label="Məbləğ, ₼">
-              <input type="number" min="1" value={quote.amount} onChange={(event) => setQuote({ ...quote, amount: event.target.value })} />
+              <Input type="number" min="1" value={quote.amount} onChange={(event) => setQuote({ ...quote, amount: event.target.value })} />
             </Field>
             <Field label="Müddət, gün">
-              <input type="number" min="1" value={quote.days} onChange={(event) => setQuote({ ...quote, days: event.target.value })} />
+              <Input type="number" min="1" value={quote.days} onChange={(event) => setQuote({ ...quote, days: event.target.value })} />
             </Field>
             {error && <p className="form-error">{error}</p>}
             <div className="form-actions">
-              <button type="button" className="btn ghost" onClick={() => setComposer("")}>Ləğv et</button>
-              <button className="btn" type="submit">Yaz</button>
+              <Button type="button" className="ghost" onClick={() => setComposer("")}>Ləğv et</Button>
+              <Button  type="submit">Yaz</Button>
             </div>
           </form>
         </Modal>
@@ -573,18 +574,18 @@ export default function Supply() {
               <Select value={form.materialId} onValueChange={(materialId) => setForm({ ...form, materialId })} options={materials.map((item) => ({ value: item.id, label: item.name }))} />
             </Field>
             <Field label="Miqdar">
-              <input type="number" min="0" step="0.1" value={form.qty} onChange={(event) => setForm({ ...form, qty: event.target.value })} />
+              <Input type="number" min="0" step="0.1" value={form.qty} onChange={(event) => setForm({ ...form, qty: event.target.value })} />
             </Field>
             <Field label="Məbləğ, ₼">
-              <input type="number" min="1" value={form.amount} onChange={(event) => setForm({ ...form, amount: event.target.value })} />
+              <Input type="number" min="1" value={form.amount} onChange={(event) => setForm({ ...form, amount: event.target.value })} />
             </Field>
             <Field label="Gəliş tarixi">
               <DateField value={form.eta} onChange={(eta) => setForm({ ...form, eta })} />
             </Field>
             {error && <p className="form-error">{error}</p>}
             <div className="form-actions">
-              <button type="button" className="btn ghost" onClick={() => setComposer("")}>Ləğv et</button>
-              <button className="btn" type="submit">Aç</button>
+              <Button type="button" className="ghost" onClick={() => setComposer("")}>Ləğv et</Button>
+              <Button  type="submit">Aç</Button>
             </div>
           </form>
         </Modal>
@@ -598,7 +599,7 @@ export default function Supply() {
             if (!message) setComposer("")
           }}>
             <Field label="Ad">
-              <input value={gearForm.name} onChange={(event) => setGearForm({ ...gearForm, name: event.target.value })} />
+              <Input value={gearForm.name} onChange={(event) => setGearForm({ ...gearForm, name: event.target.value })} />
             </Field>
             <Field label="Kateqoriya">
               <Select
@@ -608,21 +609,21 @@ export default function Supply() {
               />
             </Field>
             <Field label="Yer">
-              <input value={gearForm.place} onChange={(event) => setGearForm({ ...gearForm, place: event.target.value })} />
+              <Input value={gearForm.place} onChange={(event) => setGearForm({ ...gearForm, place: event.target.value })} />
             </Field>
             <Field label="Say">
-              <input type="number" min="0" step="1" value={gearForm.qty} onChange={(event) => setGearForm({ ...gearForm, qty: event.target.value })} />
+              <Input type="number" min="0" step="1" value={gearForm.qty} onChange={(event) => setGearForm({ ...gearForm, qty: event.target.value })} />
             </Field>
             <Field label="Vahid">
-              <input value={gearForm.unit} onChange={(event) => setGearForm({ ...gearForm, unit: event.target.value })} />
+              <Input value={gearForm.unit} onChange={(event) => setGearForm({ ...gearForm, unit: event.target.value })} />
             </Field>
             <Field label="Növbəti yoxlama">
               <DateField value={gearForm.nextCheck} onChange={(nextCheck) => setGearForm({ ...gearForm, nextCheck })} />
             </Field>
             {error && <p className="form-error">{error}</p>}
             <div className="form-actions">
-              <button type="button" className="btn ghost" onClick={() => setComposer("")}>Ləğv et</button>
-              <button className="btn" type="submit">Yaz</button>
+              <Button type="button" className="ghost" onClick={() => setComposer("")}>Ləğv et</Button>
+              <Button  type="submit">Yaz</Button>
             </div>
           </form>
         </Modal>
@@ -697,7 +698,7 @@ function RequestRead({
   const canOrder = request.status === "gozleyir" && stock + 1e-9 < request.qty
   const canReject = request.status === "gozleyir" || request.status === "teklif"
   return (
-    <Drawer title={request.id} onClose={onClose}>
+    <Drawer className="supply-drawer" title={request.id} onClose={onClose}>
       <div className="supply-sheet">
         <Chain request={request} quotes={quotes} orders={orders} payables={payables} />
         <div className="supply-facts">
@@ -707,7 +708,7 @@ function RequestRead({
           {request.text && <p>{request.text}</p>}
           {request.decision && <p className="muted">Qərar: {request.decision}{request.decidedBy ? ` · ${request.decidedBy}` : ""}</p>}
         </div>
-        {order && <button type="button" className="btn ghost small" onClick={() => onOpen({ kind: "sifaris", id: order.id })}>{order.id} · {order.supplier}</button>}
+        {order && <Button type="button" className="ghost small" onClick={() => onOpen({ kind: "sifaris", id: order.id })}>{order.id} · {order.supplier}</Button>}
         {quotes.length > 0 && (
           <div className="supply-quotes">
             {quotes.map((item) => (
@@ -718,7 +719,7 @@ function RequestRead({
                 </button>
                 <span className="supply-quote-actions">
                   <Badge status={item.status} />
-                  {item.status === "acik" && <button type="button" className="btn small" onClick={() => onAward(item.id)}>Seç</button>}
+                  {item.status === "acik" && <Button type="button" className="small" onClick={() => onAward(item.id)}>Seç</Button>}
                 </span>
               </article>
             ))}
@@ -726,17 +727,17 @@ function RequestRead({
         )}
         {(canCover || canOrder) && (
           <div className="supply-actions">
-            {canCover && <button type="button" className="btn" onClick={() => onCover(request.id)}>Anbardan köçür</button>}
-            {canOrder && <button type="button" className="btn" onClick={() => onOrder(request.id)}>Birbaşa sifariş</button>}
+            {canCover && <Button type="button" onClick={() => onCover(request.id)}>Anbardan köçür</Button>}
+            {canOrder && <Button type="button" onClick={() => onOrder(request.id)}>Birbaşa sifariş</Button>}
           </div>
         )}
         {canReject && (
           <form className="form supply-reject" onSubmit={(event) => { event.preventDefault(); onReject(request.id) }}>
             <Field label="Rədd səbəbi">
-              <input value={reason} onChange={(event) => onReason(event.target.value)} />
+              <Input value={reason} onChange={(event) => onReason(event.target.value)} />
             </Field>
             <div className="form-actions">
-              <button className="btn ghost" type="submit">Rədd et</button>
+              <Button className="ghost" type="submit">Rədd et</Button>
             </div>
           </form>
         )}
@@ -759,7 +760,7 @@ function QuoteRead({
 }) {
   if (!quote) return null
   return (
-    <Drawer title={quote.supplier} onClose={onClose}>
+    <Drawer className="supply-drawer" title={quote.supplier} onClose={onClose}>
       <p className="muted">{quote.id} · {quote.days} gün · {money(quote.amount)}</p>
       <Badge status={quote.status} />
       {request && (
@@ -776,7 +777,7 @@ function QuoteRead({
           </article>
         ))}
       </div>
-      {quote.status === "acik" && <button type="button" className="btn" onClick={() => onAward(quote.id)}>Bu təklifi seç</button>}
+      {quote.status === "acik" && <Button type="button" onClick={() => onAward(quote.id)}>Bu təklifi seç</Button>}
       {error && <p className="form-error">{error}</p>}
     </Drawer>
   )
@@ -795,18 +796,18 @@ function OrderRead({
 }) {
   if (!order) return null
   return (
-    <Drawer title={order.id} onClose={onClose}>
+    <Drawer className="supply-drawer" title={order.id} onClose={onClose}>
       <OrderChain order={order} payables={bills} />
       <p><b>{order.supplier}</b></p>
       <p>{order.item} · {num(order.receivedQty || 0)} / {num(order.qty)} {order.unit}</p>
       <p className="muted">Gəliş {dateAZ(order.eta)} · {money(order.amount)}. Qəbul mərkəzi anbara düşür və borc açır.</p>
-      {request && <button type="button" className="btn ghost small" onClick={() => onOpen({ kind: "teleb", id: request.id })}>{request.id}</button>}
+      {request && <Button type="button" className="ghost small" onClick={() => onOpen({ kind: "teleb", id: request.id })}>{request.id}</Button>}
       {bills.map((item) => (
-        <button key={item.id} type="button" className="btn ghost small" onClick={() => onOpen({ kind: "borc", id: item.id })}>{item.id} · {money(item.amount)}</button>
+        <Button key={item.id} type="button" className="ghost small" onClick={() => onOpen({ kind: "borc", id: item.id })}>{item.id} · {money(item.amount)}</Button>
       ))}
       {order.status !== "qebul" && order.materialId && (
         <div className="form-actions">
-          <button type="button" className="btn" onClick={() => onReceive(order.id)}>Qəbul et</button>
+          <Button type="button" onClick={() => onReceive(order.id)}>Qəbul et</Button>
         </div>
       )}
       {error && <p className="form-error">{error}</p>}
@@ -826,12 +827,12 @@ function BillRead({
 }) {
   if (!bill) return null
   return (
-    <Drawer title={bill.id} onClose={onClose}>
+    <Drawer className="supply-drawer" title={bill.id} onClose={onClose}>
       <p><b>{bill.supplier}</b> · {money(bill.amount)}</p>
       <p className="muted">{dateAZ(bill.date)}</p>
       <Badge status={bill.status} />
       {order && <p><button type="button" className="text-btn" onClick={() => onOpen({ kind: "sifaris", id: order.id })}>{order.id} · {order.item}</button></p>}
-      {bill.status === "acik" && <button type="button" className="btn" onClick={() => onPay(bill.id)}>Ödə</button>}
+      {bill.status === "acik" && <Button type="button" onClick={() => onPay(bill.id)}>Ödə</Button>}
       {error && <p className="form-error">{error}</p>}
     </Drawer>
   )
@@ -849,7 +850,7 @@ function VendorRead({
 }) {
   if (!vendor) return null
   return (
-    <Drawer title={vendor.name} onClose={onClose}>
+    <Drawer className="supply-drawer" title={vendor.name} onClose={onClose}>
       <p className="muted">{vendor.category} · {vendor.city} · {vendor.terms}</p>
       <p>{vendor.contact} · reytinq {vendor.rating}</p>
       <h3 className="block-title">Sifariş</h3>
@@ -895,7 +896,7 @@ function GearRead({
   const checking = gear.status === "gonderildi" || gear.status === "yoxlamada" || gear.status === "tesdiq"
   const index = checkIndex(gear)
   return (
-    <Drawer title={gear.name} onClose={onClose}>
+    <Drawer className="supply-drawer" title={gear.name} onClose={onClose}>
       <p className="muted">{gear.id} · {CATEGORY_LABEL[gear.category]} · {gear.place}</p>
       <p>{num(gear.qty)} {gear.unit}</p>
       <p>Növbəti yoxlama {dateAZ(gear.nextCheck)}</p>
@@ -903,34 +904,34 @@ function GearRead({
       {!closed && (
         <form className="form" onSubmit={(event) => event.preventDefault()}>
           <Field label="Qeyd">
-            <input value={note} onChange={(event) => onNote(event.target.value)} />
+            <Input value={note} onChange={(event) => onNote(event.target.value)} />
           </Field>
           <div className="form-actions">
             {(gear.status === "istifade" || gear.status === "anbarda") && (
-              <button type="button" className="btn" onClick={() => onCheck(gear.id)}>Yoxlamaya göndər</button>
+              <Button type="button" onClick={() => onCheck(gear.id)}>Yoxlamaya göndər</Button>
             )}
             {gear.status === "gonderildi" && (
-              <button type="button" className="btn" onClick={() => onStart(gear.id)}>Yoxlamanı aç</button>
+              <Button type="button" onClick={() => onStart(gear.id)}>Yoxlamanı aç</Button>
             )}
             {gear.status === "yoxlamada" && (
-              <button type="button" className="btn" onClick={() => onConfirm(gear.id)}>Təsdiqlə</button>
+              <Button type="button" onClick={() => onConfirm(gear.id)}>Təsdiqlə</Button>
             )}
             {gear.status === "tesdiq" && (
-              <button type="button" className="btn" onClick={() => onFinish(gear.id)}>Yoxlama bitdi</button>
+              <Button type="button" onClick={() => onFinish(gear.id)}>Yoxlama bitdi</Button>
             )}
             {checking && (
-              <button type="button" className="btn ghost" onClick={() => onReturn(gear.id)}>Qaytar</button>
+              <Button type="button" className="ghost" onClick={() => onReturn(gear.id)}>Qaytar</Button>
             )}
             {gear.status === "deyisme" && (
-              <button type="button" className="btn" onClick={() => onAccept(gear.id)}>Dəyişməni qəbul et</button>
+              <Button type="button" onClick={() => onAccept(gear.id)}>Dəyişməni qəbul et</Button>
             )}
             {!checking && gear.status !== "deyisme" && (
-              <button type="button" className="btn ghost" onClick={() => onReplace(gear.id)}>Dəyiş</button>
+              <Button type="button" className="ghost" onClick={() => onReplace(gear.id)}>Dəyiş</Button>
             )}
             {!checking && (
               <>
-                <button type="button" className="btn ghost" onClick={() => onObsolete(gear.id)}>Köhnəlmiş</button>
-                <button type="button" className="btn ghost" onClick={() => onLose(gear.id)}>İtki</button>
+                <Button type="button" className="ghost" onClick={() => onObsolete(gear.id)}>Köhnəlmiş</Button>
+                <Button type="button" className="ghost" onClick={() => onLose(gear.id)}>İtki</Button>
               </>
             )}
           </div>

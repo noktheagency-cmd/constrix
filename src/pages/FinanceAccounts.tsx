@@ -1,3 +1,4 @@
+import { Disclosure, Panel, SectionHeader, TableContainer, Toolbar } from "../components/primitives"
 import { useState } from "react"
 import { balanceLines, cashAccounts, moneyMoves } from "../domain/financeView"
 import { hit, money } from "../format"
@@ -17,7 +18,7 @@ export default function FinanceAccounts() {
   return (
     <>
       <PageHead kicker={t("page.accounts.kicker")} title={t("page.accounts.title")} text={t("page.accounts.text")} />
-      <div className="toolbar">
+      <Toolbar>
         <Tabs
           value={tab}
           onChange={setTab}
@@ -26,14 +27,14 @@ export default function FinanceAccounts() {
             { id: "balans", label: "Balans" },
           ]}
         />
-      </div>
+      </Toolbar>
       {tab === "pul" && (
         <>
-          <section className="panel pad">
-            <div className="panel-head"><h2>Qalıq</h2></div>
+          <Disclosure title="Qalıq"><Panel className="pad">
+            <SectionHeader><h2>Qalıq</h2></SectionHeader>
             <Columns rows={cash.map((item) => ({ label: item.name, value: item.balance, tone: item.kind === "bank" ? "pine" : "copper" }))} />
-          </section>
-          <div className="table-wrap" style={{ marginTop: 14 }}>
+          </Panel></Disclosure>
+          <TableContainer  style={{ marginTop: 14 }}>
           <table>
             <thead>
               <tr>
@@ -59,16 +60,16 @@ export default function FinanceAccounts() {
             </tbody>
           </table>
           {cash.length === 0 && <Empty title="Hesab yoxdur" text="Axtarışa uyğun pul hesabı tapılmadı." />}
-        </div>
+        </TableContainer>
         </>
       )}
       {tab === "balans" && (
         <>
-          <section className="panel pad">
-            <div className="panel-head"><h2>Balans</h2></div>
+          <Disclosure title="Balans"><Panel className="pad">
+            <SectionHeader><h2>Balans</h2></SectionHeader>
             <Columns rows={lines.map((item) => ({ label: item.name, value: item.amount, tone: item.id === "kreditor" ? "rose" : "copper" }))} />
-          </section>
-          <div className="table-wrap" style={{ marginTop: 14 }}>
+          </Panel></Disclosure>
+          <TableContainer  style={{ marginTop: 14 }}>
           <table>
             <thead>
               <tr>
@@ -90,7 +91,7 @@ export default function FinanceAccounts() {
             </tbody>
           </table>
           {lines.length === 0 && <Empty title="Sətir yoxdur" text="Axtarışa uyğun balans sətri tapılmadı." />}
-        </div>
+        </TableContainer>
         </>
       )}
     </>

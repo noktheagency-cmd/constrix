@@ -1,3 +1,4 @@
+import { Button, Disclosure, Input, Panel, SectionHeader, TableContainer, Toolbar } from "../components/primitives"
 import { useState, type FormEvent } from "react"
 import { DateField } from "../DateField"
 import { moneyMoves, periods } from "../domain/financeView"
@@ -41,16 +42,16 @@ export default function FinanceMoves() {
     <>
       <PageHead kicker={t("page.moves.kicker")} title={t("page.moves.title")} text={t("page.moves.text")}>
         {tab !== "in" && (
-          <button type="button" className="btn" onClick={() => { setError(""); setForm({ ...emptyForm, project: state.projects[0]?.name || "" }) }}>
+          <Button type="button" onClick={() => { setError(""); setForm({ ...emptyForm, project: state.projects[0]?.name || "" }) }}>
             <Icon name="plus" /> {tab === "out" ? "Məxaric" : "Xərc"}
-          </button>
+          </Button>
         )}
       </PageHead>
-      <section className="panel pad">
-        <div className="panel-head"><h2>Ay üzrə pul</h2></div>
+      <Disclosure title="Ay üzrə pul"><Panel className="pad">
+        <SectionHeader><h2>Ay üzrə pul</h2></SectionHeader>
         <FlowBars rows={flow} />
-      </section>
-      <div className="toolbar">
+      </Panel></Disclosure>
+      <Toolbar>
         <Tabs
           value={tab}
           onChange={setTab}
@@ -61,9 +62,9 @@ export default function FinanceMoves() {
             { id: "qaralama", label: `Qaralama (${drafts.length})` },
           ]}
         />
-      </div>
+      </Toolbar>
       {tab !== "qaralama" && (
-        <div className="table-wrap">
+        <TableContainer>
           <table>
             <thead>
               <tr>
@@ -107,10 +108,10 @@ export default function FinanceMoves() {
             </tbody>
           </table>
           {rows.length === 0 && <Empty title="Hərəkət yoxdur" text="Pul hesabına düşən sənəd tapılmadı." />}
-        </div>
+        </TableContainer>
       )}
       {tab === "qaralama" && (
-        <div className="table-wrap">
+        <TableContainer>
           <table>
             <thead>
               <tr>
@@ -147,7 +148,7 @@ export default function FinanceMoves() {
             </tbody>
           </table>
           {drafts.length === 0 && <Empty title="Qaralama yoxdur" text="Yeni xərc əvvəl qaralama olur. Təsdiqdən sonra pula və layihə xərcinə düşür." />}
-        </div>
+        </TableContainer>
       )}
 
       {form && (
@@ -157,21 +158,21 @@ export default function FinanceMoves() {
               <Select value={form.category} onValueChange={(category) => setForm({ ...form, category })} options={categories.map((item) => ({ value: item, label: item }))} />
             </Field>
             <Field label="Tərəf">
-              <input value={form.vendor} onChange={(event) => setForm({ ...form, vendor: event.target.value })} />
+              <Input value={form.vendor} onChange={(event) => setForm({ ...form, vendor: event.target.value })} />
             </Field>
             <Field label="Layihə">
               <Select value={form.project} onValueChange={(project) => setForm({ ...form, project })} options={state.projects.map((project) => ({ value: project.name, label: project.name }))} />
             </Field>
             <Field label="Məbləğ, ₼">
-              <input type="number" min="1" value={form.amount} onChange={(event) => setForm({ ...form, amount: event.target.value })} />
+              <Input type="number" min="1" value={form.amount} onChange={(event) => setForm({ ...form, amount: event.target.value })} />
             </Field>
             <Field label="Tarix">
               <DateField value={form.date} onChange={(date) => setForm({ ...form, date })} />
             </Field>
             {error && <p className="form-error">{error}</p>}
             <div className="form-actions">
-              <button type="button" className="btn ghost" onClick={() => setForm(null)}>Ləğv et</button>
-              <button className="btn" type="submit">Saxla</button>
+              <Button type="button" className="ghost" onClick={() => setForm(null)}>Ləğv et</Button>
+              <Button  type="submit">Saxla</Button>
             </div>
           </form>
         </Modal>

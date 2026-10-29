@@ -1,3 +1,4 @@
+import { Button, Input, Panel, SearchInput, TableContainer, Textarea, Toolbar } from "../components/primitives"
 import { useEffect, useMemo, useState, type FormEvent } from "react"
 import { ApiError, api, dayInput, dec } from "../api"
 import { DateField } from "../DateField"
@@ -148,6 +149,8 @@ export function EmploymentPage() {
   const [openings, setOpenings] = useState<Opening[]>([])
   const [people, setPeople] = useState<Talent[]>([])
   const [tab, setTab] = useState("vakansiya")
+  const [query, setQuery] = useState("")
+  const [region, setRegion] = useState("all")
   const [pick, setPick] = useState("")
   const [openId, setOpenId] = useState("")
   const [vacancyOpen, setVacancyOpen] = useState(false)
@@ -188,8 +191,8 @@ export function EmploymentPage() {
     return map
   }, [openings, people])
 
-  const shownOpenings = openings.filter((row) => hit(store.query, row.profession, row.region, row.note, row.certificate, row.minYears as string))
-  const shownPeople = people.filter((row) => hit(store.query, row.name, row.profession, row.regions, row.phone, row.email, row.education, row.skills, row.proofs.map((proof) => proof.title).join(" ")))
+  const shownOpenings = openings.filter((row) => hit(store.query, row.profession, row.region, row.note, row.certificate, row.minYears as string) && hit(query,row.profession,row.region,row.note,row.certificate) && (region === "all" || row.region === region))
+  const shownPeople = people.filter((row) => hit(store.query, row.name, row.profession, row.regions, row.phone, row.email, row.education, row.skills, row.proofs.map((proof) => proof.title).join(" ")) && hit(query,row.name,row.profession,row.regions))
   const selectedOpening = shownOpenings.find((row) => row.id === pick) || shownOpenings[0] || null
   const selectedFits = selectedOpening ? fits.get(selectedOpening.id) || [] : []
   const selectedPerson = people.find((row) => row.id === openId) || null
@@ -257,38 +260,17 @@ export function EmploymentPage() {
   }
 
   return (
-    <div className="mesgulluq">
-      <PageHead kicker="Kadr" title="Məşğulluq" text="Vakansiya peşə, staj, region və sertifikata görə namizədlə tutuşdurulur. Başqa şirkətin profili yalnız əlaqə razılığı ilə görünür.">
-        <button type="button" className="btn ghost" onClick={() => { setNote(null); setPersonOpen(true) }}><Icon name="plus" /> Namizəd</button>
-        <button type="button" className="btn" onClick={() => { setNote(null); setVacancyOpen(true) }}><Icon name="plus" /> Vakansiya</button>
+    <div className="mesgulluq employment-workspace">
+      <PageHead kicker="Kadr" title="Məşğulluq" text="Vakansiyaları, namizədləri və uyğunluq nəticələrini idarə edin.">
+        <Button type="button" className="ghost" onClick={() => { setNote(null); setPersonOpen(true) }}><Icon name="plus" /> Namizəd əlavə et</Button>
+        <Button type="button" onClick={() => { setNote(null); setVacancyOpen(true) }}><Icon name="plus" /> Yeni vakansiya</Button>
       </PageHead>
 
-      <section className="statstrip">
-        <article>
-          <span>Vakansiya</span>
-          <strong>{ready ? openings.length : "…"}</strong>
-          <em>Açıq yer</em>
-        </article>
-        <article>
-          <span>Namizəd</span>
-          <strong>{ready ? people.length : "…"}</strong>
-          <em>Şirkət bazası</em>
-        </article>
-        <article>
-          <span>Razılıq</span>
-          <strong>{ready ? consent : "…"}</strong>
-          <em>Əlaqə açıqdır</em>
-        </article>
-        <article>
-          <span>Orta staj</span>
-          <strong>{ready ? average : "…"}</strong>
-          <em>Təsdiqli il</em>
-        </article>
-      </section>
+      <Panel className="employment-summary">{[{icon:"briefcase" as const,label:"Vakansiya",value:openings.length},{icon:"users" as const,label:"Namizəd",value:people.length},{icon:"check" as const,label:"Əlaqə razılığı",value:consent},{icon:"clock" as const,label:"Orta staj",value:`${average} il`}].map((item) => <div key={item.label}><Icon name={item.icon} /><div><strong>{ready ? item.value : "…"}</strong><span>{item.label}</span></div></div>)}</Panel>
 
       {note && <p className={note.bad ? "form-error" : "form-note"}>{note.text}</p>}
 
-      <div className="toolbar">
+      <Toolbar>
         <Tabs
           value={tab}
           onChange={setTab}
@@ -301,48 +283,13 @@ export function EmploymentPage() {
         <span className="muted">
           {tab === "namized" ? `${shownPeople.length} profil` : tab === "uygun" ? `${selectedFits.length} uyğun` : `${shownOpenings.length} vakansiya`}
         </span>
-      </div>
+      </Toolbar>
 
-      {tab === "vakansiya" && (
-        shownOpenings.length === 0 ? (
-          <Empty title={ready ? "Vakansiya yoxdur" : "Oxunur"} text={ready ? "Peşə, region və minimum staj yazın." : "Məşğulluq bazası açılır."} />
-        ) : (
-          <div className="job-grid">
-            {shownOpenings.map((row) => {
-              const matches = fits.get(row.id) || []
-              return (
-                <article className="job-card" key={row.id}>
-                  <header className="job-card-head">
-                    <div>
-                      <h3>{row.profession}</h3>
-                      <p>{row.region || "Region açıqdır"}</p>
-                    </div>
-                    <span className="job-years">{formatYears(amount(row.minYears))}</span>
-                  </header>
-                  <p className="job-note">{row.note || "Qeyd yazılmayıb"}</p>
-                  <dl className="job-meta">
-                    <div>
-                      <dt>Sertifikat</dt>
-                      <dd title={row.certificate || "Tələb olunmur"}>{row.certificate || "Tələb olunmur"}</dd>
-                    </div>
-                    <div>
-                      <dt>Başlanğıc</dt>
-                      <dd>{row.startOn ? dateAZ(isoDay(row.startOn)) : "Açıq"}</dd>
-                    </div>
-                  </dl>
-                  <footer>
-                    <span><b>{matches.length}</b> uyğun namizəd</span>
-                    <button type="button" className="btn small" onClick={() => openMatch(row.id)}>Tutuşdur</button>
-                  </footer>
-                </article>
-              )
-            })}
-          </div>
-        )
-      )}
+      {tab !== "uygun" && <Toolbar className="finance-list-toolbar"><SearchInput value={query} onChange={(event) => setQuery(event.target.value)} placeholder={tab === "namized" ? "Ad, peşə və ya region axtar" : "Peşə və ya region axtar"} />{tab === "vakansiya" && <Select ariaLabel="Vakansiya regionu" value={region} onValueChange={setRegion} options={[{value:"all",label:"Bütün regionlar"},...Array.from(new Set(openings.map((item) => item.region).filter(Boolean))).map((item) => ({value:item,label:item}))]} />}</Toolbar>}
+      {tab === "vakansiya" && <TableContainer className="finance-records-table employment-table"><table><thead><tr><th>Peşə</th><th>Region</th><th>Minimum staj</th><th>Başlanğıc</th><th>Uyğun namizəd</th><th><span className="sr-only">Uyğunlaşdır</span></th></tr></thead><tbody>{shownOpenings.map((row) => <tr key={row.id} tabIndex={0} onClick={() => openMatch(row.id)} onKeyDown={(event) => {if(event.key === "Enter" || event.key === " "){event.preventDefault();openMatch(row.id)}}}><td><strong>{row.profession}</strong><small>{row.certificate || row.note || "Sertifikat tələb olunmur"}</small></td><td>{row.region || "Region açıqdır"}</td><td>{formatYears(amount(row.minYears))}</td><td>{row.startOn ? dateAZ(isoDay(row.startOn)) : "—"}</td><td><span className={`badge ${(fits.get(row.id)||[]).length ? "pine" : "stone"}`}>{(fits.get(row.id)||[]).length} namizəd</span></td><td><Icon name="chevron" /></td></tr>)}</tbody></table>{!shownOpenings.length && <Empty title={ready ? "Vakansiya tapılmadı" : "Məlumatlar oxunur"} text="Filtrləri dəyişin və ya yeni vakansiya əlavə edin." />}</TableContainer>}
 
       {tab === "namized" && (
-        <div className="table-wrap">
+        <TableContainer className="finance-records-table employment-table">
           <table>
             <thead>
               <tr>
@@ -357,7 +304,7 @@ export function EmploymentPage() {
             </thead>
             <tbody>
               {shownPeople.map((row) => (
-                <tr key={row.id} onClick={() => setOpenId(row.id)}>
+                <tr key={row.id} tabIndex={0} onClick={() => setOpenId(row.id)} onKeyDown={(event) => {if(event.key === "Enter" || event.key === " "){event.preventDefault();setOpenId(row.id)}}}>
                   <td>
                     <b>{row.name}</b>
                     <div className="muted">{row.education || row.skills || "Təhsil yazılmayıb"}</div>
@@ -373,34 +320,16 @@ export function EmploymentPage() {
             </tbody>
           </table>
           {shownPeople.length === 0 && <Empty title={ready ? "Namizəd yoxdur" : "Oxunur"} text={ready ? "Profil, peşə və staj sübutu əlavə edin." : "Namizədlər açılır."} />}
-        </div>
+        </TableContainer>
       )}
 
       {tab === "uygun" && (
         openings.length === 0 ? (
           <Empty title="Tutuşdurmaq üçün vakansiya lazımdır" text="Əvvəl açıq yeri yazın." />
         ) : (
-          <div className="job-match">
-            <div className="job-pick">
-              {shownOpenings.map((row) => (
-                <button type="button" key={row.id} className={row.id === selectedOpening?.id ? "on" : ""} onClick={() => setPick(row.id)}>
-                  <b>{row.profession}</b>
-                  <span>{row.region || "Region açıqdır"} · min. {formatYears(amount(row.minYears))}</span>
-                  <em>{(fits.get(row.id) || []).length} uyğun</em>
-                </button>
-              ))}
-              {shownOpenings.length === 0 && <Empty title="Bu axtarışa vakansiya yoxdur" text="Başqa peşə və ya region yoxlayın." />}
-            </div>
+          <div className="employment-matching">
+            <Panel className="pad employment-match-header"><label>Vakansiya<Select ariaLabel="Uyğunlaşdırılacaq vakansiya" value={selectedOpening?.id || ""} onValueChange={setPick} options={shownOpenings.map((row) => ({value:row.id,label:`${row.profession} · ${row.region || "Bütün regionlar"}`}))} /></label>{selectedOpening && <p className="muted">Minimum {formatYears(amount(selectedOpening.minYears))}{selectedOpening.certificate ? ` · ${selectedOpening.certificate}` : ""} · {selectedFits.length} uyğun namizəd</p>}</Panel>
             <div className="job-rank">
-              {selectedOpening && (
-                <div className="panel pad job-brief">
-                  <div className="card-top">
-                    <h2>{selectedOpening.profession}</h2>
-                    <span className="job-years">{formatYears(amount(selectedOpening.minYears))}</span>
-                  </div>
-                  <p className="muted">{[selectedOpening.region, selectedOpening.certificate, selectedOpening.note].filter(Boolean).join(" · ") || "Şərt yazılmayıb"}</p>
-                </div>
-              )}
               {selectedFits.map((row) => (
                 <article key={row.person.id}>
                   <div className="job-person">
@@ -460,15 +389,15 @@ export function EmploymentPage() {
       {vacancyOpen && (
         <Modal wide title="Yeni vakansiya" onClose={() => setVacancyOpen(false)}>
           <form className="form cols" onSubmit={(event) => void addVacancy(event)}>
-            <Field label="Peşə"><input value={vacancy.profession} onChange={(event) => setVacancy({ ...vacancy, profession: event.target.value })} required /></Field>
-            <Field label="Minimum staj, il"><input value={vacancy.minYears} onChange={(event) => setVacancy({ ...vacancy, minYears: event.target.value })} /></Field>
-            <Field label="Region"><input value={vacancy.region} onChange={(event) => setVacancy({ ...vacancy, region: event.target.value })} /></Field>
-            <Field label="Sertifikat"><input value={vacancy.certificate} onChange={(event) => setVacancy({ ...vacancy, certificate: event.target.value })} /></Field>
+            <Field label="Peşə"><Input value={vacancy.profession} onChange={(event) => setVacancy({ ...vacancy, profession: event.target.value })} required /></Field>
+            <Field label="Minimum staj, il"><Input value={vacancy.minYears} onChange={(event) => setVacancy({ ...vacancy, minYears: event.target.value })} /></Field>
+            <Field label="Region"><Input value={vacancy.region} onChange={(event) => setVacancy({ ...vacancy, region: event.target.value })} /></Field>
+            <Field label="Sertifikat"><Input value={vacancy.certificate} onChange={(event) => setVacancy({ ...vacancy, certificate: event.target.value })} /></Field>
             <Field label="Başlanğıc"><DateField value={vacancy.startOn} onChange={(startOn) => setVacancy({ ...vacancy, startOn })} /></Field>
-            <Field label="Qeyd"><textarea value={vacancy.note} onChange={(event) => setVacancy({ ...vacancy, note: event.target.value })} /></Field>
+            <Field label="Qeyd"><Textarea value={vacancy.note} onChange={(event) => setVacancy({ ...vacancy, note: event.target.value })} /></Field>
             <div className="form-actions">
-              <button type="button" className="btn ghost" onClick={() => setVacancyOpen(false)}>Ləğv et</button>
-              <button type="submit" className="btn">Saxla</button>
+              <Button type="button" className="ghost" onClick={() => setVacancyOpen(false)}>Ləğv et</Button>
+              <Button type="submit" >Saxla</Button>
             </div>
           </form>
         </Modal>
@@ -477,15 +406,15 @@ export function EmploymentPage() {
       {personOpen && (
         <Modal wide title="Yeni namizəd" onClose={() => setPersonOpen(false)}>
           <form className="form cols" onSubmit={(event) => void addPerson(event)}>
-            <Field label="Ad"><input value={person.name} onChange={(event) => setPerson({ ...person, name: event.target.value })} required /></Field>
-            <Field label="Peşə"><input value={person.profession} onChange={(event) => setPerson({ ...person, profession: event.target.value })} required /></Field>
-            <Field label="Staj, il"><input value={person.years} onChange={(event) => setPerson({ ...person, years: event.target.value })} /></Field>
-            <Field label="Telefon"><input value={person.phone} onChange={(event) => setPerson({ ...person, phone: event.target.value })} /></Field>
-            <Field label="E-poçt"><input value={person.email} onChange={(event) => setPerson({ ...person, email: event.target.value })} /></Field>
-            <Field label="Region"><input value={person.regions} onChange={(event) => setPerson({ ...person, regions: event.target.value })} /></Field>
-            <Field label="Təhsil"><input value={person.education} onChange={(event) => setPerson({ ...person, education: event.target.value })} /></Field>
-            <Field label="Bacarıq"><input value={person.skills} onChange={(event) => setPerson({ ...person, skills: event.target.value })} /></Field>
-            <Field label="Gözlənti, AZN"><input value={person.expectPay} onChange={(event) => setPerson({ ...person, expectPay: event.target.value })} /></Field>
+            <Field label="Ad"><Input value={person.name} onChange={(event) => setPerson({ ...person, name: event.target.value })} required /></Field>
+            <Field label="Peşə"><Input value={person.profession} onChange={(event) => setPerson({ ...person, profession: event.target.value })} required /></Field>
+            <Field label="Staj, il"><Input value={person.years} onChange={(event) => setPerson({ ...person, years: event.target.value })} /></Field>
+            <Field label="Telefon"><Input value={person.phone} onChange={(event) => setPerson({ ...person, phone: event.target.value })} /></Field>
+            <Field label="E-poçt"><Input value={person.email} onChange={(event) => setPerson({ ...person, email: event.target.value })} /></Field>
+            <Field label="Region"><Input value={person.regions} onChange={(event) => setPerson({ ...person, regions: event.target.value })} /></Field>
+            <Field label="Təhsil"><Input value={person.education} onChange={(event) => setPerson({ ...person, education: event.target.value })} /></Field>
+            <Field label="Bacarıq"><Input value={person.skills} onChange={(event) => setPerson({ ...person, skills: event.target.value })} /></Field>
+            <Field label="Gözlənti, AZN"><Input value={person.expectPay} onChange={(event) => setPerson({ ...person, expectPay: event.target.value })} /></Field>
             <Field label="Başlama"><DateField value={person.startOn} onChange={(startOn) => setPerson({ ...person, startOn })} /></Field>
             <Field label="Sübut mənbəyi">
               <Select value={person.source} onValueChange={(source) => setPerson({ ...person, source })} options={SOURCES} />
@@ -493,14 +422,14 @@ export function EmploymentPage() {
             <Field label="Status">
               <Select value={person.state} onValueChange={(state) => setPerson({ ...person, state })} options={STATES} />
             </Field>
-            <Field label="Sertifikat"><input value={person.certificate} onChange={(event) => setPerson({ ...person, certificate: event.target.value })} /></Field>
+            <Field label="Sertifikat"><Input value={person.certificate} onChange={(event) => setPerson({ ...person, certificate: event.target.value })} /></Field>
             <Field label="Sertifikatın bitmə tarixi"><DateField value={person.expires} onChange={(expires) => setPerson({ ...person, expires })} /></Field>
             <Field label="Əlaqə razılığı">
               <Select value={person.shareConsent ? "beli" : "xeyr"} onValueChange={(value) => setPerson({ ...person, shareConsent: value === "beli" })} options={[{ value: "xeyr", label: "Yoxdur" }, { value: "beli", label: "Var" }]} />
             </Field>
             <div className="form-actions">
-              <button type="button" className="btn ghost" onClick={() => setPersonOpen(false)}>Ləğv et</button>
-              <button type="submit" className="btn">Saxla</button>
+              <Button type="button" className="ghost" onClick={() => setPersonOpen(false)}>Ləğv et</Button>
+              <Button type="submit" >Saxla</Button>
             </div>
           </form>
         </Modal>

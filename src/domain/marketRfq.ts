@@ -17,7 +17,9 @@ export type MarketQuote = {
   supplier: string
   unitPrice: number
   deliveryDays: number
-  vat: "daxil" | "xaric"
+  vat: "daxil" | "xaric" | "unknown"
+  qty?: number
+  delivery?: number
   note: string
 }
 
@@ -96,6 +98,7 @@ export function orderFromRfq(rfq: MarketRfq, existing: MarketOrder[]): MarketOrd
   if (rfq.status !== "secilib" || !rfq.chosenQuoteId) return "Əvvəl təklif seçilməlidir."
   const quote = rfq.quotes.find((item) => item.id === rfq.chosenQuoteId)
   if (!quote) return "Seçilmiş təklif tapılmadı."
+  if (quote.qty !== undefined && quote.qty < rfq.lines.reduce((sum, line) => sum + line.qty, 0)) return "Seçilmiş təklif bütün sifariş miqdarını ödəmir."
   return {
     id: crypto.randomUUID(),
     number: nextOrderNumber(existing),
@@ -141,7 +144,7 @@ export function quoteCompareRows(rfq: MarketRfq) {
   const qty = rfq.lines.reduce((sum, line) => sum + line.qty, 0) || 1
   return rfq.quotes.map((quote) => ({
     ...quote,
-    total: Math.round(quote.unitPrice * qty * 100) / 100,
+    total: Math.round((quote.unitPrice * (quote.qty ?? qty) + (quote.delivery ?? 0)) * 100) / 100,
     chosen: quote.id === rfq.chosenQuoteId,
   }))
 }

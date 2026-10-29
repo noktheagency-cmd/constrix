@@ -1,3 +1,4 @@
+import { Button, Input, Metric, StatGrid, TableContainer, Toolbar } from "../components/primitives"
 import { useState, type FormEvent } from "react"
 import type { Client } from "../domain/types"
 import { stages } from "../data"
@@ -65,35 +66,35 @@ export default function Crm() {
   return (
     <>
       <PageHead kicker={t("page.crm.kicker")} title={t("page.crm.title")} text={t("page.crm.text")}>
-        <button type="button" className="btn" onClick={() => openClientForm()}>
+        <Button type="button" onClick={() => openClientForm()}>
           <Icon name="plus" /> Müştəri
-        </button>
+        </Button>
       </PageHead>
 
-      <section className="statstrip">
-        <article>
+      <StatGrid>
+        <Metric>
           <span>Sifarişçi</span>
           <strong>{clients.length}</strong>
           <em>{moneyShort(clients.reduce((sum, item) => sum + item.value, 0))} portfel</em>
-        </article>
-        <article>
+        </Metric>
+        <Metric>
           <span>Açıq sövdə</span>
           <strong>{moneyShort(pipe)}</strong>
           <em>{deals.filter((item) => item.stage !== "uduzulub").length} sövdə</em>
-        </article>
-        <article>
+        </Metric>
+        <Metric>
           <span>Podrat</span>
           <strong>{contracts.length}</strong>
           <em>Müqavilə</em>
-        </article>
-        <article>
+        </Metric>
+        <Metric>
           <span>Açıq faktura</span>
           <strong>{moneyShort(invoices.filter((item) => item.status !== "odenilib").reduce((sum, item) => sum + item.amount, 0))}</strong>
           <em>Ödənilməyən</em>
-        </article>
-      </section>
+        </Metric>
+      </StatGrid>
 
-      <div className="toolbar">
+      <Toolbar>
         <Tabs
           value={tab}
           onChange={setTab}
@@ -106,11 +107,11 @@ export default function Crm() {
         <span className="muted">
           {tab === "muqavile" ? `${papers.length} müqavilə` : tab === "portfel" ? `${books.length} sifarişçi` : `${visibleClients.length} sifarişçi`}
         </span>
-      </div>
+      </Toolbar>
       {error && !modal && !selected && <p className="form-error">{error}</p>}
 
       {tab === "musteri" && (
-        <div className="table-wrap">
+        <TableContainer>
           <table>
             <thead>
               <tr>
@@ -153,11 +154,11 @@ export default function Crm() {
             </tbody>
           </table>
           {visibleClients.length === 0 && <Empty title="Müştəri tapılmadı" text="Axtarışı dəyişin və ya yeni müştəri əlavə edin." />}
-        </div>
+        </TableContainer>
       )}
 
       {tab === "muqavile" && (
-        <div className="table-wrap">
+        <TableContainer>
           <table>
             <thead>
               <tr>
@@ -183,11 +184,11 @@ export default function Crm() {
             </tbody>
           </table>
           {papers.length === 0 && <Empty title="Müqavilə yoxdur" text="Sövdə müqavilə mərhələsindən layihə açıldıqda müqavilə burada durur." />}
-        </div>
+        </TableContainer>
       )}
 
       {tab === "portfel" && (
-        <div className="table-wrap">
+        <TableContainer>
           <table>
             <thead>
               <tr>
@@ -210,7 +211,7 @@ export default function Crm() {
               ))}
             </tbody>
           </table>
-        </div>
+        </TableContainer>
       )}
 
       {selected && (
@@ -226,8 +227,8 @@ export default function Crm() {
             <dt>Portfel</dt><dd>{money(selected.value)}</dd>
           </dl>
           <div className="form-actions" style={{ marginTop: 12 }}>
-            <button type="button" className="btn ghost" onClick={() => openClientForm(selected)}><Icon name="edit" /> Redaktə</button>
-            <button type="button" className="btn ghost" onClick={() => { const message = removeClient(selected.id); setError(message); if (!message) setClientId("") }}><Icon name="trash" /> Sil</button>
+            <Button type="button" className="ghost" onClick={() => openClientForm(selected)}><Icon name="edit" /> Redaktə</Button>
+            <Button type="button" className="ghost" onClick={() => { const message = removeClient(selected.id); setError(message); if (!message) setClientId("") }}><Icon name="trash" /> Sil</Button>
           </div>
           {error && <p className="form-error">{error}</p>}
           <p className="block-title">Tapşırıqlar</p>
@@ -300,7 +301,7 @@ export default function Crm() {
         <Modal wide title={editingClient ? "Sifarişçini yaz" : "Yeni müştəri"} onClose={() => setModal(false)}>
           <form className="form cols" onSubmit={submitClient}>
             <Field label="Şirkət">
-              <input value={clientForm.name} onChange={(event) => setClientForm({ ...clientForm, name: event.target.value })} />
+              <Input value={clientForm.name} onChange={(event) => setClientForm({ ...clientForm, name: event.target.value })} />
             </Field>
             <Field label="Sektor">
               <Select
@@ -310,24 +311,24 @@ export default function Crm() {
               />
             </Field>
             <Field label="Əlaqə şəxsi">
-              <input value={clientForm.contact} onChange={(event) => setClientForm({ ...clientForm, contact: event.target.value })} />
+              <Input value={clientForm.contact} onChange={(event) => setClientForm({ ...clientForm, contact: event.target.value })} />
             </Field>
             <Field label="Telefon">
-              <input value={clientForm.phone} onChange={(event) => setClientForm({ ...clientForm, phone: event.target.value })} />
+              <Input value={clientForm.phone} onChange={(event) => setClientForm({ ...clientForm, phone: event.target.value })} />
             </Field>
             <Field label="E-poçt">
-              <input value={clientForm.email} onChange={(event) => setClientForm({ ...clientForm, email: event.target.value })} />
+              <Input value={clientForm.email} onChange={(event) => setClientForm({ ...clientForm, email: event.target.value })} />
             </Field>
             <Field label="Şəhər">
-              <input value={clientForm.city} onChange={(event) => setClientForm({ ...clientForm, city: event.target.value })} />
+              <Input value={clientForm.city} onChange={(event) => setClientForm({ ...clientForm, city: event.target.value })} />
             </Field>
             <Field label="Portfel, ₼">
-              <input type="number" min="0" value={clientForm.value} onChange={(event) => setClientForm({ ...clientForm, value: event.target.value })} />
+              <Input type="number" min="0" value={clientForm.value} onChange={(event) => setClientForm({ ...clientForm, value: event.target.value })} />
             </Field>
             {error && <p className="form-error">{error}</p>}
             <div className="form-actions">
-              <button type="button" className="btn ghost" onClick={() => setModal(false)}>Ləğv et</button>
-              <button className="btn" type="submit">Saxla</button>
+              <Button type="button" className="ghost" onClick={() => setModal(false)}>Ləğv et</Button>
+              <Button  type="submit">Saxla</Button>
             </div>
           </form>
         </Modal>

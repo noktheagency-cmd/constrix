@@ -1,9 +1,12 @@
+import { StageBadge } from "../components/StageBadge"
+import { Link, useNavigate, useSearchParams } from "react-router-dom"
+import { Button, Disclosure, Input, Panel, SearchInput, TableContainer, Toolbar } from "../components/primitives"
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react"
 import { ApiError, api } from "../api"
 import { Icon } from "../icons"
 import { STAGES, kindLabel, nextStage, showPath, stageLabel, type Stage } from "../procure/engine"
 import { useProcure } from "../procure/store"
-import { Meter, Modal, PageHead, Select, useTitle } from "../ui"
+import { Meter, Modal, PageHead, Select, Tabs, useTitle } from "../ui"
 
 function activeOf(state: ReturnType<typeof useProcure>) {
   return state.companies.find((item) => item.id === state.activeId)
@@ -12,7 +15,7 @@ function activeOf(state: ReturnType<typeof useProcure>) {
 function Guard({ children }: { children: ReactNode }) {
   const state = useProcure()
   const kind = activeOf(state)?.kind ?? ""
-  if (showPath("/sifaris-merhele", kind)) return children
+  if (showPath("/sifaris", kind)) return children
   return <PageHead kicker="Kabinet" title="Bu bölmə bağlıdır" text={`${kind ? kindLabel(kind) : "Şirkət seçilməyib"}. Bu növün kabinetində həmin iş yoxdur.`} />
 }
 
@@ -46,7 +49,7 @@ const LENS: { id: Lens; label: string }[] = [
 function when(value: string) {
   const date = new Date(value)
   if (Number.isNaN(date.getTime())) return value
-  return date.toLocaleDateString("az-AZ", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" })
+  return [date.getUTCDate(), date.getUTCMonth() + 1, date.getUTCFullYear()].map((part) => String(part).padStart(2, "0")).join(".")
 }
 
 function lastEvent(flow: SavedFlow) {
@@ -81,9 +84,11 @@ export function FlowPage() {
   const [query, setQuery] = useState("")
   const [lens, setLens] = useState<Lens>("hami")
   const [scope, setScope] = useState<"oz" | "terefdas">("oz")
-  const [picked, setPicked] = useState<string | null>(null)
+  const [params] = useSearchParams()
+  const navigate = useNavigate()
+  const picked = params.get("order")
+  function setPicked(id: string) { navigate("?order=" + encodeURIComponent(id)) }
   const [creating, setCreating] = useState(false)
-  const [large, setLarge] = useState(false)
   const [loaded, setLoaded] = useState(false)
   const [loadError, setLoadError] = useState("")
   const [title, setTitle] = useState("")
@@ -100,11 +105,11 @@ export function FlowPage() {
   const [docs, setDocs] = useState("")
   const [saving, setSaving] = useState(false)
   const [actionNote, setActionNote] = useState("")
-  const historyRef = useRef<HTMLElement>(null)
+  const pageRef = useRef<HTMLDivElement>(null)
 
   const own = rows.filter((row) => row.mine)
   const shared = rows.filter((row) => !row.mine)
-  const pool = scope === "terefdas" ? shared : own.length ? own : rows
+  const pool = scope === "terefdas" ? shared : own
   const shown = useMemo(() => {
     const needle = query.trim().toLocaleLowerCase("az")
     return pool.filter((row) => {
@@ -115,10 +120,6 @@ export function FlowPage() {
     })
   }, [pool, query, lens])
   const open = rows.find((row) => row.id === picked) ?? null
-  const closed = own.filter((row) => row.stage === "zemanet").length
-  const active = own.filter((row) => row.stage !== "zemanet").length
-  const latest = own[0] ? stageLabel(own[0].stage) : "—"
-
   function reload() {
     return api<FlowList>("/api/platform/flows").then((payload) => {
       const flows = sortFlows(payload.flows)
@@ -132,10 +133,6 @@ export function FlowPage() {
 
   useEffect(() => {
     reload()
-      .then((flows) => {
-        const mine = flows.filter((row) => row.mine)
-        setPicked((mine[0] ?? flows[0])?.id ?? "")
-      })
       .catch((reason) => {
         setLoaded(true)
         setLoadError(reason instanceof ApiError ? reason.message : "Əvvəlki sifarişlər açılmadı")
@@ -143,9 +140,9 @@ export function FlowPage() {
   }, [])
 
   useEffect(() => {
-    if (!large) return
-    historyRef.current?.scrollIntoView({ block: "start" })
-  }, [large])
+    pageRef.current?.closest("main")?.scrollTo({ top: 0, behavior: "instant" })
+    setActionNote("")
+  }, [picked])
 
   useEffect(() => {
     setPerson("")
@@ -232,77 +229,40 @@ export function FlowPage() {
 
   return (
     <Guard>
-      <div className="flow-page calc-page">
+      <div className="flow-page calc-page" ref={pageRef}>
+        {picked && <Link className="offer-back" to="/sifaris"><Icon name="chevronLeft" />Sifarişlərə qayıt</Link>}
         <PageHead
-          kicker="Sifariş"
-          title="Sifariş mərhələləri"
-          text="Keçmiş sifarişlər, məsul və sənəd bazada qalır. Hər mərhələ bir-bir irəliləyir."
+          title={picked ? "Sifariş" : "Sifarişlər"}
+          text={picked ? "Cari mərhələ və sifariş məlumatları." : "Sifarişləri izləyin və mərhələləri yeniləyin."}
         >
-          <button type="button" className="btn" onClick={fresh}>Yeni sifariş</button>
+          <Button type="button" onClick={fresh}>Yeni sifariş</Button>
         </PageHead>
 
-        <div className="calc-stats">
-          <article><span>Sifariş</span><strong>{own.length || rows.length}</strong></article>
-          <article><span>Açıq</span><strong>{active}</strong></article>
-          <article><span>Zəmanətdə</span><strong>{closed}</strong></article>
-          <article><span>Son mərhələ</span><strong>{latest}</strong></article>
-        </div>
-
-        {large && (
-          <section className="panel pad calc-card calc-history-wide" ref={historyRef}>
-            <div className="calc-card-head">
-              <h2>Keçmiş sifarişlər</h2>
-              <div className="haul-history-tools">
-                <button type="button" className="icon-btn" aria-label="Daralt" onClick={() => setLarge(false)}><Icon name="narrow" /></button>
-                <span>{shown.length}</span>
-              </div>
-            </div>
-            <FlowFilters query={query} onQuery={setQuery} lens={lens} onLens={setLens} scope={scope} onScope={setScope} shared={shared.length} />
-            <FlowTable rows={shown} picked={picked} onOpen={setPicked} loaded={loaded} loadError={loadError} total={pool.length} />
-          </section>
-        )}
-
-        <div className="flow-board">
-          {!large && (
-            <aside className="flow-aside">
-              <div className="calc-card-head">
-                <h2>Keçmiş sifarişlər</h2>
-                <div className="haul-history-tools">
-                  <button type="button" className="icon-btn" aria-label="Genişləndir" onClick={() => setLarge(true)}><Icon name="widen" /></button>
-                  <span>{shown.length}</span>
-                </div>
-              </div>
-              <FlowFilters query={query} onQuery={setQuery} lens={lens} onLens={setLens} scope={scope} onScope={setScope} shared={shared.length} />
-              <FlowTable rows={shown} picked={picked} onOpen={setPicked} loaded={loaded} loadError={loadError} total={pool.length} />
-            </aside>
-          )}
-
-          <div className="flow-main">
-            {open && <FlowSheet flow={open} person={person} date={date} note={note} docs={docs} saving={saving} actionNote={creating ? "" : actionNote} onPerson={setPerson} onDate={setDate} onNote={setNote} onDocs={setDocs} onAdvance={() => void advance(open)} />}
-
-            {!open && loaded && !loadError && (
-              <section className="panel pad calc-card flow-empty">
-                <h2>Sifariş seçin</h2>
-                <p>Keçmiş sifariş cədvəldədir. Yeni iş «Yeni sifariş» düyməsindən açılır.</p>
-              </section>
-            )}
-          </div>
-        </div>
+        {!picked && <>
+          <Tabs value={scope} onChange={(value) => setScope(value as "oz" | "terefdas")} options={[{ id: "oz", label: "Öz sifarişlərim " + own.length }, { id: "terefdas", label: "Tərəfdaş sifarişləri " + shared.length }]} />
+          <FlowFilters query={query} onQuery={setQuery} lens={lens} onLens={setLens} />
+          <Panel className="flow-library"><FlowTable rows={shown} picked={picked} onOpen={setPicked} loaded={loaded} loadError={loadError} total={pool.length} /></Panel>
+          <p className="calc-meta">{shown.length} sifariş</p>
+        </>}
+        {picked && <div className="flow-main">
+          {open && <FlowSheet key={open.id} flow={open} person={person} date={date} note={note} docs={docs} saving={saving} actionNote={creating ? "" : actionNote} onPerson={setPerson} onDate={setDate} onNote={setNote} onDocs={setDocs} onAdvance={() => void advance(open)} />}
+          {!open && <Panel className="pad flow-empty"><h2>{loaded ? "Sifariş tapılmadı" : "Sifariş açılır…"}</h2><p>{loadError || "Sifarişlər siyahısından işi seçin."}</p></Panel>}
+        </div>}
 
         {creating && (
           <Modal wide className="flow-modal" title="Yeni sifariş" onClose={closeCreate}>
             <div className="calc-grid">
-              <label className="calc-span-2"><span>Ad</span><input value={title} onChange={(event) => setTitle(event.target.value)} placeholder="Port Baku fasad pəncərələri" /></label>
+              <label className="calc-span-2"><span>Ad</span><Input value={title} onChange={(event) => setTitle(event.target.value)} placeholder="Port Baku fasad pəncərələri" /></label>
               <label><span>İstehsalçı</span><Select value={supplierId} onValueChange={setSupplierId} options={makerOptions} /></label>
               <label><span>Daşıyıcı</span><Select value={carrierId} onValueChange={setCarrierId} options={carrierOptions} /></label>
               <label><span>Montaj</span><Select value={installerId} onValueChange={setInstallerId} options={installerOptions} /></label>
-              <label><span>Məsul</span><input value={openPerson} onChange={(event) => setOpenPerson(event.target.value)} placeholder="Elvin Məmmədov" /></label>
-              <label><span>Tarix</span><input type="date" value={openDate} onChange={(event) => setOpenDate(event.target.value)} /></label>
-              <label><span>Qeyd</span><input value={openNote} onChange={(event) => setOpenNote(event.target.value)} /></label>
-              <label><span>Sənəd</span><input value={openDocs} onChange={(event) => setOpenDocs(event.target.value)} placeholder="sifaris.pdf" /></label>
+              <label><span>Məsul</span><Input value={openPerson} onChange={(event) => setOpenPerson(event.target.value)} placeholder="Elvin Məmmədov" /></label>
+              <label><span>Tarix</span><Input type="date" value={openDate} onChange={(event) => setOpenDate(event.target.value)} /></label>
+              <label><span>Qeyd</span><Input value={openNote} onChange={(event) => setOpenNote(event.target.value)} /></label>
+              <label><span>Sənəd</span><Input value={openDocs} onChange={(event) => setOpenDocs(event.target.value)} placeholder="sifaris.pdf" /></label>
             </div>
-            <button type="button" className="btn" onClick={() => void createFlow()} disabled={!title.trim() || saving}>{saving ? "Yazılır…" : "Sifarişi aç"}</button>
-            {actionNote && <p className="calc-meta">{actionNote}</p>}
+            <Button type="button" onClick={() => void createFlow()} disabled={!title.trim() || saving}>{saving ? "Yazılır…" : "Sifarişi aç"}</Button>
+      {actionNote && <p className="calc-meta">{actionNote}</p>}
           </Modal>
         )}
       </div>
@@ -310,41 +270,11 @@ export function FlowPage() {
   )
 }
 
-function FlowFilters({
-  query,
-  onQuery,
-  lens,
-  onLens,
-  scope,
-  onScope,
-  shared,
-}: {
-  query: string
-  onQuery: (value: string) => void
-  lens: Lens
-  onLens: (value: Lens) => void
-  scope: "oz" | "terefdas"
-  onScope: (value: "oz" | "terefdas") => void
-  shared: number
-}) {
-  return (
-    <>
-      <input className="calc-search" value={query} placeholder="Ad, layihə, məsul və ya sənəd" onChange={(event) => onQuery(event.target.value)} />
-      <div className="haul-filters">
-        {LENS.map((item) => (
-          <button key={item.id} type="button" className={lens === item.id ? "calc-chip on" : "calc-chip"} onClick={() => onLens(item.id)}>
-            <b>{item.label}</b>
-          </button>
-        ))}
-        {shared > 0 && (
-          <button type="button" className={scope === "terefdas" ? "calc-chip on" : "calc-chip"} onClick={() => onScope(scope === "terefdas" ? "oz" : "terefdas")}>
-            <b>Tərəfdaş</b>
-            <span>{shared}</span>
-          </button>
-        )}
-      </div>
-    </>
-  )
+function FlowFilters({ query, onQuery, lens, onLens }: { query: string; onQuery: (value: string) => void; lens: Lens; onLens: (value: Lens) => void }) {
+  return <Toolbar className="flow-toolbar">
+    <SearchInput aria-label="Sifariş axtar" value={query} placeholder="Sifariş axtar — ad, layihə, məsul" onChange={(event) => onQuery(event.target.value)} />
+    <Select ariaLabel="Mərhələ filtri" value={lens} onValueChange={(value) => onLens(value as Lens)} options={LENS.map((item) => ({ value: item.id, label: item.id === "hami" ? "Bütün mərhələlər" : item.label }))} />
+  </Toolbar>
 }
 
 function FlowTable({
@@ -364,10 +294,11 @@ function FlowTable({
 }) {
   return (
     <>
-      {loadError && <p className="calc-meta">{loadError}</p>}
+      {loadError && <p className="calc-meta" role="alert">{loadError}</p>}
+      {!loaded && <p className="calc-meta" role="status">Sifarişlər açılır…</p>}
       {loaded && !loadError && total === 0 && <p className="calc-meta">Bazada saxlanmış sifariş yoxdur.</p>}
       {loaded && !loadError && total > 0 && rows.length === 0 && <p className="calc-meta">Bu axtarışa uyğun sifariş yoxdur.</p>}
-      <div className="calc-table-wrap">
+      <TableContainer className="calc-table-wrap">
         <table className="calc-table flow-table">
           <thead>
             <tr>
@@ -375,8 +306,8 @@ function FlowTable({
               <th>Layihə</th>
               <th>Mərhələ</th>
               <th>İstehsalçı</th>
-              <th>Son keçid</th>
-              <th>İrəliləyiş</th>
+              <th>Son yenilənmə</th>
+              <th>Aç</th>
             </tr>
           </thead>
           <tbody>
@@ -386,16 +317,16 @@ function FlowTable({
                 <tr key={row.id} className={row.id === picked ? "on" : ""} tabIndex={0} onClick={() => onOpen(row.id)} onKeyDown={(eventKey) => { if (eventKey.key === "Enter" || eventKey.key === " ") { eventKey.preventDefault(); onOpen(row.id) } }}>
                   <td>{row.title}</td>
                   <td>{row.project?.name || "—"}</td>
-                  <td><span className={row.stage === "zemanet" ? "haul-fit uygun" : "haul-fit tutum"}>{stageLabel(row.stage)}</span></td>
+                  <td><StageBadge stage={row.stage} /></td>
                   <td>{row.supplier?.name || "—"}</td>
                   <td>{event ? `${when(event.date)} · ${event.person}` : "—"}</td>
-                  <td>{stageAt(row.stage) + 1}/13</td>
+                  <td><Icon name="chevron" /></td>
                 </tr>
               )
             })}
           </tbody>
         </table>
-      </div>
+      </TableContainer>
     </>
   )
 }
@@ -427,60 +358,51 @@ function FlowSheet({
   onDocs: (value: string) => void
   onAdvance: () => void
 }) {
+  const [tab, setTab] = useState("general")
   const here = stageAt(flow.stage)
   const upcoming = nextStage(flow.stage)
   const pct = Math.round(((here + 1) / STAGES.length) * 100)
   const event = lastEvent(flow)
   return (
-    <section className="panel pad calc-card flow-sheet">
+    <Panel className="pad calc-card flow-sheet">
       <div className="calc-card-head">
         <h2>{flow.title}</h2>
-        <span className={flow.stage === "zemanet" ? "haul-fit uygun" : "haul-fit tutum"}>{stageLabel(flow.stage)}</span>
+        <StageBadge stage={flow.stage} />
       </div>
       <p className="calc-meta">{flow.project?.name || "Layihə bağlanmayıb"}{event ? ` · son keçid ${when(event.date)}` : ""}</p>
       <Meter value={pct} tone="pine" />
-      <div className="flow-parties">
+      <p className="calc-meta">Mərhələ {here + 1} / {STAGES.length}</p>
+      <Tabs value={tab} onChange={setTab} options={[{ id: "general", label: "Ümumi məlumat" }, { id: "history", label: "Tarixçə " + flow.events.length }]} />
+      {tab === "general" && <><div className="flow-parties">
         <div><span>İstehsalçı</span><b>{flow.supplier?.name || "Seçilməyib"}</b></div>
         <div><span>Daşıyıcı</span><b>{flow.carrier?.name || "Seçilməyib"}</b></div>
         <div><span>Montaj</span><b>{flow.installer?.name || "Seçilməyib"}</b></div>
       </div>
-      <ol className="flow-rail">
-        {STAGES.map(([key, label], index) => {
-          const hit = [...flow.events].reverse().find((item) => item.stage === key)
-          const state = index < here ? "done" : index === here ? "here" : "wait"
-          return (
-            <li key={key} className={`flow-step ${state}`}>
-              <div className="flow-mark" aria-hidden="true"><i /><span /></div>
-              <div>
-                <b>{index + 1}. {label}</b>
-                {hit ? (
-                  <>
-                    <p>{hit.person} · {when(hit.date)}</p>
-                    {hit.note && <p>{hit.note}</p>}
-                    {hit.docs && <em>{hit.docs}</em>}
-                  </>
-                ) : (
-                  <p>{state === "here" ? "Bu mərhələdədir" : "Gözləyir"}</p>
-                )}
-              </div>
-            </li>
-          )
-        })}
-      </ol>
       {flow.mine && upcoming && (
         <div className="flow-advance">
           <h3>Növbəti: {stageLabel(upcoming)}</h3>
           <div className="flow-next">
-            <label><span>Məsul</span><input value={person} onChange={(event) => onPerson(event.target.value)} placeholder="Ad soyad" /></label>
-            <label><span>Tarix</span><input type="date" value={date} onChange={(event) => onDate(event.target.value)} /></label>
-            <label className="flow-next-wide"><span>Qeyd</span><input value={note} onChange={(event) => onNote(event.target.value)} placeholder="Nə baş verdi" /></label>
-            <label className="flow-next-wide"><span>Sənəd</span><input value={docs} onChange={(event) => onDocs(event.target.value)} placeholder="akt.pdf" /></label>
+            <label><span>Məsul</span><Input value={person} onChange={(event) => onPerson(event.target.value)} placeholder="Ad soyad" /></label>
+            <label><span>Tarix</span><Input type="date" value={date} onChange={(event) => onDate(event.target.value)} /></label>
           </div>
-          <button type="button" className="btn" onClick={onAdvance} disabled={!person.trim() || !date.trim() || saving}>{saving ? "Yazılır…" : "Mərhələni yaz"}</button>
+          <Disclosure title="Qeyd və sənəd"><div className="flow-next">
+            <label className="flow-next-wide"><span>Qeyd</span><Input value={note} onChange={(event) => onNote(event.target.value)} placeholder="Nə baş verdi" /></label>
+            <label className="flow-next-wide"><span>Sənəd</span><Input value={docs} onChange={(event) => onDocs(event.target.value)} placeholder="akt.pdf" /></label>
+          </div>
+          </Disclosure>
+          <Button type="button" onClick={onAdvance} disabled={!person.trim() || !date.trim() || saving}>{saving ? "Yazılır…" : "Mərhələni təsdiqlə"}</Button>
         </div>
       )}
-      {flow.stage === "zemanet" && <p className="calc-meta">Sifariş zəmanət mərhələsindədir. Keçmiş qeydlər yuxarıda qalır.</p>}
+      {flow.stage === "zemanet" && <p className="calc-meta">Sifariş zəmanət mərhələsindədir. Keçmiş qeydlər Tarixçə tabındadır.</p>}
+            </>}
+      {tab === "history" && <div className="flow-history">
+        {flow.events.length === 0 && <p className="calc-meta">Hələ mərhələ qeydi yoxdur.</p>}
+        <ol className="flow-rail">{[...flow.events].sort((a, b) => b.date.localeCompare(a.date)).map((item) => <li key={item.id} className="flow-step done">
+          <div className="flow-mark" aria-hidden="true"><i /><span /></div><div><b>{stageLabel(item.stage)}</b><p>{item.person || "Məsul yazılmayıb"} · {when(item.date)}</p>{item.note && <p>{item.note}</p>}{item.docs && <em>{item.docs}</em>}</div>
+        </li>)}</ol>
+        <Disclosure title="Bütün mərhələlər"><ol className="flow-all-stages">{STAGES.map(([key, label], index) => <li key={key} aria-current={key === flow.stage ? "step" : undefined}>{label}{key === flow.stage ? " · Cari mərhələ" : index < here ? " · Keçilib" : ""}</li>)}</ol></Disclosure>
+      </div>}
       {actionNote && <p className="calc-meta">{actionNote}</p>}
-    </section>
+    </Panel>
   )
 }

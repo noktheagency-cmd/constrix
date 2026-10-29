@@ -1,3 +1,4 @@
+import { Button, Input, TableContainer, Textarea, Toolbar } from "../components/primitives"
 import { useState, type FormEvent } from "react"
 import { DateField } from "../DateField"
 import type { DailyReport, Weather } from "../domain/types"
@@ -168,24 +169,24 @@ export default function Reports({ embedded = false, projectId }: { embedded?: bo
       {!embedded && (
         <PageHead kicker={t("page.daily.kicker")} title={t("page.daily.title")} text={t("page.daily.text")}>
           {tab === "qeyd" ? (
-            <button type="button" className="btn" onClick={() => { setError(""); setNote({ id: "", site: places[0] || "", text: "" }) }}>
+            <Button type="button" onClick={() => { setError(""); setNote({ id: "", site: places[0] || "", text: "" }) }}>
               <Icon name="plus" /> Qeyd
-            </button>
+            </Button>
           ) : allowed("site") ? (
-            <button type="button" className="btn" onClick={startCreate}>
+            <Button type="button" onClick={startCreate}>
               <Icon name="plus" /> Gündəlik
-            </button>
+            </Button>
           ) : null}
         </PageHead>
       )}
       {embedded && allowed("site") && (
-        <div className="toolbar" style={{ marginBottom: 8 }}>
-          <button type="button" className="btn" onClick={startCreate}>
+        <Toolbar  style={{ marginBottom: 8 }}>
+          <Button type="button" onClick={startCreate}>
             <Icon name="plus" /> Gündəlik
-          </button>
-        </div>
+          </Button>
+        </Toolbar>
       )}
-      <div className="toolbar">
+      <Toolbar>
         <Tabs
           value={tab}
           onChange={openTab}
@@ -200,10 +201,10 @@ export default function Reports({ embedded = false, projectId }: { embedded?: bo
         <span className="muted">
           {tab === "hecm" ? `${volumes.length} iş` : tab === "tabel" ? `${times.length} saat sətri` : tab === "texnika" ? `${machines.length} moto-saat` : tab === "qeyd" ? `${notes.length} qeyd` : `${rows.filter((item) => item.status === "qaralama" || item.status === "duzelis").length} açıq`}
         </span>
-      </div>
+      </Toolbar>
 
       {tab === "gundelik" && (
-        <div className="table-wrap">
+        <TableContainer>
           <table>
             <thead>
               <tr>
@@ -236,11 +237,11 @@ export default function Reports({ embedded = false, projectId }: { embedded?: bo
             </tbody>
           </table>
           {rows.length === 0 && <Empty title="Gündəlik yoxdur" text="Yeni gündəlik açın və ya axtarışı dəyişin." />}
-        </div>
+        </TableContainer>
       )}
 
       {tab === "hecm" && (
-        <div className="table-wrap">
+        <TableContainer>
           <table>
             <thead>
               <tr>
@@ -264,11 +265,11 @@ export default function Reports({ embedded = false, projectId }: { embedded?: bo
             </tbody>
           </table>
           {volumes.length === 0 && <Empty title="Həcm yoxdur" text="Gündəlik smeta sətrinə həcm yazılanda burada görünür." />}
-        </div>
+        </TableContainer>
       )}
 
       {tab === "tabel" && (
-        <div className="table-wrap">
+        <TableContainer>
           <table>
             <thead>
               <tr>
@@ -292,11 +293,11 @@ export default function Reports({ embedded = false, projectId }: { embedded?: bo
             </tbody>
           </table>
           {times.length === 0 && <Empty title="Tabel boşdur" text="Gündəliyə işçi saatı yazılanda burada dayanır." />}
-        </div>
+        </TableContainer>
       )}
 
       {tab === "texnika" && (
-        <div className="table-wrap">
+        <TableContainer>
           <table>
             <thead>
               <tr>
@@ -320,11 +321,11 @@ export default function Reports({ embedded = false, projectId }: { embedded?: bo
             </tbody>
           </table>
           {machines.length === 0 && <Empty title="Texnika yoxdur" text="Gündəliyə moto-saat yazılanda burada görünür." />}
-        </div>
+        </TableContainer>
       )}
 
       {tab === "qeyd" && (
-        <div className="table-wrap">
+        <TableContainer>
           <table>
             <thead>
               <tr>
@@ -353,7 +354,7 @@ export default function Reports({ embedded = false, projectId }: { embedded?: bo
             </tbody>
           </table>
           {notes.length === 0 && <Empty title="Qeyd yoxdur" text="Sahədən qısa qeyd yazın." />}
-        </div>
+        </TableContainer>
       )}
 
       {report && (
@@ -362,15 +363,15 @@ export default function Reports({ embedded = false, projectId }: { embedded?: bo
             <Badge status={report.status} />
             {(report.status === "qaralama" || report.status === "duzelis") && (
               <>
-                <button type="button" className="btn ghost small" onClick={() => startEdit(report)}><Icon name="edit" /> Redaktə</button>
-                <button type="button" className="btn ghost small" onClick={() => { const message = removeDaily(report.id); setError(message); if (!message) setOpenId("") }}><Icon name="trash" /> Sil</button>
-                <button type="button" className="btn small" onClick={() => setError(submitDaily(report.id))}>Təsdiqə göndər</button>
+                <Button type="button" className="ghost small" onClick={() => startEdit(report)}><Icon name="edit" /> Redaktə</Button>
+                <Button type="button" className="ghost small" onClick={() => { const message = removeDaily(report.id); setError(message); if (!message) setOpenId("") }}><Icon name="trash" /> Sil</Button>
+                <Button type="button" className="small" onClick={() => setError(submitDaily(report.id))}>Təsdiqə göndər</Button>
               </>
             )}
             {report.status === "gonderilib" && canSign && (
               <>
-                <button type="button" className="btn small" onClick={() => setError(approveDaily(report.id))}>Təsdiqlə</button>
-                <button type="button" className="btn ghost small" onClick={() => setError(returnDaily(report.id))}>Düzəlişə qaytar</button>
+                <Button type="button" className="small" onClick={() => setError(approveDaily(report.id))}>Təsdiqlə</Button>
+                <Button type="button" className="ghost small" onClick={() => setError(returnDaily(report.id))}>Düzəlişə qaytar</Button>
               </>
             )}
           </div>
@@ -443,7 +444,7 @@ export default function Reports({ embedded = false, projectId }: { embedded?: bo
             </div>
             <div className="daily-span">
               <Field label="Briqada, nəfər">
-                <input value={form.crew} onChange={(event) => setForm({ ...form, crew: event.target.value })} />
+                <Input value={form.crew} onChange={(event) => setForm({ ...form, crew: event.target.value })} />
               </Field>
             </div>
             {crew.length > 0 && (
@@ -452,7 +453,7 @@ export default function Reports({ embedded = false, projectId }: { embedded?: bo
                 {crew.map((person) => (
                   <label key={person.id} className="qty-line">
                     <span>{person.name} · {person.role}</span>
-                    <input type="number" min="0" step="0.5" placeholder="Saat" value={form.attendance[person.id] || ""} onChange={(event) => setForm({ ...form, attendance: { ...form.attendance, [person.id]: event.target.value } })} />
+                    <Input type="number" min="0" step="0.5" placeholder="Saat" value={form.attendance[person.id] || ""} onChange={(event) => setForm({ ...form, attendance: { ...form.attendance, [person.id]: event.target.value } })} />
                   </label>
                 ))}
               </div>
@@ -463,7 +464,7 @@ export default function Reports({ embedded = false, projectId }: { embedded?: bo
                 {smeta.lines.map((line) => (
                   <label key={line.id} className="qty-line">
                     <span>{line.code} {line.name} · qalıq {num(Math.max(0, line.qty - line.doneQty), 1)} {line.unit}</span>
-                    <input type="number" min="0" step="0.1" placeholder="Həcm" value={form.lines[line.id] || ""} onChange={(event) => setForm({ ...form, lines: { ...form.lines, [line.id]: event.target.value } })} />
+                    <Input type="number" min="0" step="0.1" placeholder="Həcm" value={form.lines[line.id] || ""} onChange={(event) => setForm({ ...form, lines: { ...form.lines, [line.id]: event.target.value } })} />
                   </label>
                 ))}
               </div>
@@ -477,20 +478,20 @@ export default function Reports({ embedded = false, projectId }: { embedded?: bo
                 />
               </Field>
               <Field label="Moto-saat">
-                <input type="number" min="0" step="0.5" value={form.hours} onChange={(event) => setForm({ ...form, hours: event.target.value })} />
+                <Input type="number" min="0" step="0.5" value={form.hours} onChange={(event) => setForm({ ...form, hours: event.target.value })} />
               </Field>
             </div>
             <div className="daily-span">
               <Field label="Görülən iş və qeyd">
-                <textarea value={form.note} onChange={(event) => setForm({ ...form, note: event.target.value })} />
+                <Textarea value={form.note} onChange={(event) => setForm({ ...form, note: event.target.value })} />
               </Field>
             </div>
             <div className="split">
               <Field label="Material">
-                <input value={form.material} onChange={(event) => setForm({ ...form, material: event.target.value })} placeholder="sərf olunan material" />
+                <Input value={form.material} onChange={(event) => setForm({ ...form, material: event.target.value })} placeholder="sərf olunan material" />
               </Field>
               <Field label="Gecikmə">
-                <input value={form.delay} onChange={(event) => setForm({ ...form, delay: event.target.value })} placeholder="səbəb və saat" />
+                <Input value={form.delay} onChange={(event) => setForm({ ...form, delay: event.target.value })} placeholder="səbəb və saat" />
               </Field>
             </div>
             <div className="daily-span">
@@ -520,8 +521,8 @@ export default function Reports({ embedded = false, projectId }: { embedded?: bo
             </div>
             {error && <p className="form-error">{error}</p>}
             <div className="form-actions">
-              <button type="button" className="btn ghost" onClick={(event) => submitForm(event, true)}>Təsdiqə göndər</button>
-              <button className="btn" type="submit">Saxla</button>
+              <Button type="button" className="ghost" onClick={(event) => submitForm(event, true)}>Təsdiqə göndər</Button>
+              <Button  type="submit">Saxla</Button>
             </div>
           </form>
         </Modal>
@@ -544,11 +545,11 @@ export default function Reports({ embedded = false, projectId }: { embedded?: bo
               </Field>
             )}
             <Field label="Qeyd">
-              <textarea value={note.text} onChange={(event) => setNote({ ...note, text: event.target.value })} />
+              <Textarea value={note.text} onChange={(event) => setNote({ ...note, text: event.target.value })} />
             </Field>
             {error && <p className="form-error">{error}</p>}
             <div className="form-actions">
-              <button className="btn" type="submit">Saxla</button>
+              <Button  type="submit">Saxla</Button>
             </div>
           </form>
         </Modal>

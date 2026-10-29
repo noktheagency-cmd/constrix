@@ -1,3 +1,4 @@
+import { Button, Disclosure, Input, Panel, SectionHeader, TableContainer, Toolbar } from "../components/primitives"
 import { useState, type FormEvent } from "react"
 import { DateField } from "../DateField"
 import { bills, moneyMoves, periods, type BillRow } from "../domain/financeView"
@@ -55,25 +56,25 @@ export default function FinanceInvoices() {
     <>
       <PageHead kicker={t("page.invoices.kicker")} title={t("page.invoices.title")} text={t("page.invoices.text")}>
         {tab === "satis" && (
-          <button type="button" className="btn" onClick={() => { setError(""); setEditing(""); setForm(emptyInvoice) }}>
+          <Button type="button" onClick={() => { setError(""); setEditing(""); setForm(emptyInvoice) }}>
             <Icon name="plus" /> Satış qaiməsi
-          </button>
+          </Button>
         )}
       </PageHead>
       <div className="grid-2">
-        <section className="panel pad">
-          <div className="panel-head"><h2>Satış və xərc</h2></div>
+        <Disclosure title="Satış və xərc"><Panel className="pad">
+          <SectionHeader><h2>Satış və xərc</h2></SectionHeader>
           <FlowBars rows={flow} />
-        </section>
-        <section className="panel pad">
-          <div className="panel-head"><h2>Satış qaiməsi</h2></div>
+        </Panel></Disclosure>
+        <Disclosure title="Satış qaiməsi"><Panel className="pad">
+          <SectionHeader><h2>Satış qaiməsi</h2></SectionHeader>
           <Columns rows={[{ label: "Açıq", value: sent, tone: "copper" }, { label: "Ödənilib", value: paid, tone: "pine" }]} />
-        </section>
+        </Panel></Disclosure>
       </div>
-      <div className="toolbar">
+      <Toolbar>
         <Tabs value={tab} onChange={setTab} options={[{ id: "satis", label: "Satış" }, { id: "alis", label: "Alış" }]} />
-      </div>
-      <div className="table-wrap">
+      </Toolbar>
+      <TableContainer>
         <table>
           <thead>
             <tr>
@@ -137,7 +138,7 @@ export default function FinanceInvoices() {
           </tbody>
         </table>
         {rows.length === 0 && <Empty title="Qaimə yoxdur" text="Bu tərəfdə sənəd tapılmadı." />}
-      </div>
+      </TableContainer>
 
       {selected && (
         <Drawer title={selected.id} onClose={() => setSelected(null)}>
@@ -150,10 +151,10 @@ export default function FinanceInvoices() {
             <dt>Ödəniləcək</dt><dd>{money(selected.amount)}</dd>
           </dl>
           {selected.status === "qaralama" && !selected.actId && (
-            <button type="button" className="btn" onClick={() => { state.sendInvoice(selected.id); setSelected(null) }}>Göndər</button>
+            <Button type="button" onClick={() => { state.sendInvoice(selected.id); setSelected(null) }}>Göndər</Button>
           )}
           {selected.status !== "odenilib" && selected.status !== "qaralama" && (
-            <button type="button" className="btn" onClick={() => { const message = state.markInvoicePaid(selected.id); if (!message) setSelected({ ...selected, status: "odenilib" }) }}>Banka düşdü</button>
+            <Button type="button" onClick={() => { const message = state.markInvoicePaid(selected.id); if (!message) setSelected({ ...selected, status: "odenilib" }) }}>Banka düşdü</Button>
           )}
         </Drawer>
       )}
@@ -168,7 +169,7 @@ export default function FinanceInvoices() {
             <dt>Məbləğ</dt><dd>{money(bill.amount)}</dd>
           </dl>
           {bill.status === "acik" && (
-            <button type="button" className="btn" onClick={() => { const message = state.payPayable(bill.id); if (!message) setBill({ ...bill, status: "odenilib" }) }}>Ödəndi</button>
+            <Button type="button" onClick={() => { const message = state.payPayable(bill.id); if (!message) setBill({ ...bill, status: "odenilib" }) }}>Ödəndi</Button>
           )}
         </Drawer>
       )}
@@ -183,15 +184,15 @@ export default function FinanceInvoices() {
               <Select value={form.project} onValueChange={(project) => setForm({ ...form, project })} options={state.projects.map((project) => ({ value: project.name, label: project.name }))} />
             </Field>
             <Field label="Məbləğ, ₼">
-              <input type="number" min="1" value={form.amount} onChange={(event) => setForm({ ...form, amount: event.target.value })} />
+              <Input type="number" min="1" value={form.amount} onChange={(event) => setForm({ ...form, amount: event.target.value })} />
             </Field>
             <Field label="Son tarix">
               <DateField value={form.due} onChange={(due) => setForm({ ...form, due })} />
             </Field>
             {error && <p className="form-error">{error}</p>}
             <div className="form-actions">
-              <button type="button" className="btn ghost" onClick={() => setForm(null)}>Ləğv et</button>
-              <button className="btn" type="submit">Saxla</button>
+              <Button type="button" className="ghost" onClick={() => setForm(null)}>Ləğv et</Button>
+              <Button  type="submit">Saxla</Button>
             </div>
           </form>
         </Modal>
@@ -201,18 +202,18 @@ export default function FinanceInvoices() {
         <Modal title="Təchizat borcu" onClose={() => setBillForm(null)}>
           <form className="form" onSubmit={submitBill}>
             <Field label="Təchizatçı">
-              <input value={billForm.supplier} onChange={(event) => setBillForm({ ...billForm, supplier: event.target.value })} />
+              <Input value={billForm.supplier} onChange={(event) => setBillForm({ ...billForm, supplier: event.target.value })} />
             </Field>
             <Field label="Məbləğ, ₼">
-              <input type="number" min="1" value={billForm.amount} onChange={(event) => setBillForm({ ...billForm, amount: event.target.value })} />
+              <Input type="number" min="1" value={billForm.amount} onChange={(event) => setBillForm({ ...billForm, amount: event.target.value })} />
             </Field>
             <Field label="Tarix">
               <DateField value={billForm.date} onChange={(date) => setBillForm({ ...billForm, date })} />
             </Field>
             {error && <p className="form-error">{error}</p>}
             <div className="form-actions">
-              <button type="button" className="btn ghost" onClick={() => setBillForm(null)}>Ləğv et</button>
-              <button className="btn" type="submit">Saxla</button>
+              <Button type="button" className="ghost" onClick={() => setBillForm(null)}>Ləğv et</Button>
+              <Button  type="submit">Saxla</Button>
             </div>
           </form>
         </Modal>

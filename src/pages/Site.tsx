@@ -1,4 +1,6 @@
-import { useEffect, useState, type FormEvent } from "react"
+import { StepNav } from "../components/StepNav"
+import { Button, Disclosure, Input, Metric, Panel, StatGrid, SectionHeader, TableContainer, Textarea, Toolbar } from "../components/primitives"
+import { useEffect, useRef, useState, type FormEvent } from "react"
 import { DateField } from "../DateField"
 import { useSearchParams } from "react-router-dom"
 import { isAway, PERSON_STATUSES } from "../domain/places"
@@ -36,19 +38,23 @@ export default function Site() {
   const [search, setSearch] = useSearchParams()
   const tabParam = search.get("tab")
   const [projectId, setProjectId] = useState(projects.find((item) => item.status === "aktiv")?.id || projects[0]?.id || "")
-  const [tab, setTab] = useState<Tab>(() => (SITE_TABS.includes(tabParam as Tab) ? (tabParam as Tab) : "icmal"))
+  const tab: Tab = SITE_TABS.includes(tabParam as Tab) ? tabParam as Tab : "icmal"
+  const resources: Tab[] = ["hecm", "briqada", "texnika", "material"]
+  const [step, setStep] = useState("general")
+  const dailyRef = useRef<HTMLFormElement>(null)
+  useEffect(() => {
+    const element = dailyRef.current
+    const viewport = element?.closest("main")
+    if(element && viewport && element.getBoundingClientRect().top < viewport.getBoundingClientRect().top) element.scrollIntoView({block:"start",behavior:window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth"})
+  }, [step])
+  const steps = [{id:"general",label:"Ümumi məlumat"},{id:"work",label:"İş və davamiyyət"},{id:"notes",label:"Texnika və qeyd"}]
+  const stepIndex = steps.findIndex((item) => item.id === step)
   const [form, setForm] = useState(blank)
 
-  useEffect(() => {
-    if (SITE_TABS.includes(tabParam as Tab) && tabParam !== tab) setTab(tabParam as Tab)
-  }, [tabParam, tab])
-
   function openSiteTab(next: string) {
-    const value = next as Tab
-    setTab(value)
+    if (!SITE_TABS.includes(next as Tab)) return
     setError("")
-    if (value === "gundelik") setSearch({ tab: "gundelik" })
-    else if (search.get("tab")) setSearch({})
+    setSearch(next === "icmal" ? {} : { tab: next })
   }
   const [ask, setAsk] = useState<{ materialId: string; qty: string } | null>(null)
   const [note, setNote] = useState<string | null>(null)
@@ -84,6 +90,7 @@ export default function Site() {
 
   function pickProject(next: string) {
     setProjectId(next)
+    setStep("general")
     setForm(blank)
     setError("")
   }
@@ -104,108 +111,61 @@ export default function Site() {
       submit: send,
     })
     setError(message)
-    if (!message) setForm(blank)
+    if (!message) { setForm(blank); setStep("general"); openSiteTab("gundelik") }
   }
 
   return (
-    <>
-      <PageHead kicker={t("page.site.kicker")} title={project?.name || t("page.site.title")} text={t("page.site.text")}>
+    <div className="site-workspace">
+      <PageHead title="Sahə idarəetməsi" text="Obyektin gündəlik işi və resursları.">
+        {project && tab !== "hesabat" && <Button onClick={() => { setStep("general"); openSiteTab("hesabat") }}><Icon name="plus" />Yeni gündəlik</Button>}
+        {tab === "hesabat" && <Button className="ghost" onClick={() => openSiteTab("gundelik")}>Gündəliklərə qayıt</Button>}
         {tab === "material" && (
-          <button type="button" className="btn" onClick={() => { setError(""); setAsk({ materialId: materials[0]?.id || "", qty: "" }) }}>
+          <Button type="button" onClick={() => { setError(""); setAsk({ materialId: materials[0]?.id || "", qty: "" }) }}>
             <Icon name="plus" /> Tələbnamə
-          </button>
+          </Button>
         )}
         {tab === "qeyd" && (
-          <button type="button" className="btn" onClick={() => { setError(""); setNote("") }}>
+          <Button type="button" onClick={() => { setError(""); setNote("") }}>
             <Icon name="plus" /> Qeyd
-          </button>
+          </Button>
         )}
         {tab === "briqada" && (
-          <button type="button" className="btn" onClick={() => { setError(""); setPerson(emptyPerson); setAssignId(people.find((item) => item.site !== project?.name && !isAway(item.status))?.id || ""); setAssignCrew(""); setPersonOpen(true) }}>
+          <Button type="button" onClick={() => { setError(""); setPerson(emptyPerson); setAssignId(people.find((item) => item.site !== project?.name && !isAway(item.status))?.id || ""); setAssignCrew(""); setPersonOpen(true) }}>
             <Icon name="plus" /> Təyin et
-          </button>
+          </Button>
         )}
         {tab === "texnika" && (
-          <button type="button" className="btn" onClick={() => { setError(""); setPullId(pool[0]?.id || "") }}>
+          <Button type="button" onClick={() => { setError(""); setPullId(pool[0]?.id || "") }}>
             <Icon name="plus" /> Cəlb et
-          </button>
+          </Button>
         )}
       </PageHead>
-      <div className="toolbar">
-        <Tabs
-          value={tab}
-          onChange={openSiteTab}
-          options={[
-            { id: "icmal", label: "İcmal" },
-            { id: "hesabat", label: "Hesabat" },
-            { id: "gundelik", label: "Gündəliklər" },
-            { id: "hecm", label: "Həcm" },
-            { id: "briqada", label: "Briqada" },
-            { id: "texnika", label: "Texnika" },
-            { id: "material", label: "Material" },
-            { id: "qeyd", label: "Qeydlər" },
-          ]}
-        />
-        <div className="site-pick">
-          <Select value={projectId} onValueChange={pickProject} options={projects.map((item) => ({ value: item.id, label: item.name }))} />
-        </div>
-      </div>
-
+      <Panel className="site-project-picker"><label>Obyekt<Select ariaLabel="Obyekt" value={projectId} onValueChange={pickProject} options={projects.map((item) => ({value:item.id,label:item.name}))} /></label>{project && <div><span>{[project.city, project.phase].filter(Boolean).join(" · ")}</span><Badge status={project.status} /></div>}</Panel>
+      <Toolbar className="site-navigation"><Tabs value={resources.includes(tab) ? "resources" : tab === "hesabat" ? "gundelik" : tab} onChange={(value) => openSiteTab(value === "resources" ? "briqada" : value)} options={[{id:"icmal",label:"İcmal"},{id:"gundelik",label:"Gündəliklər"},{id:"resources",label:"Resurslar"},{id:"qeyd",label:"Qeydlər"}]} /></Toolbar>
+      {resources.includes(tab) && <Toolbar className="site-resource-picker"><label>Resurs növü<Select ariaLabel="Resurs növü" value={tab} onValueChange={openSiteTab} options={[{value:"briqada",label:"Briqada"},{value:"texnika",label:"Texnika"},{value:"material",label:"Material"},{value:"hecm",label:"İş həcmləri"}]} /></label></Toolbar>}
       {!project && <Empty title="Obyekt yoxdur" text="Layihə açıldıqda sahə burada görünür." />}
 
       {project && tab === "icmal" && (
         <>
-          <div className="site-stats">
-            <article className="site-stat">
-              <span>Gedişat</span>
-              <b>{project.progress}%</b>
-              <Meter value={project.progress} />
-            </article>
-            <article className="site-stat">
-              <span>Briqada</span>
-              <b>{crew.length}</b>
-              <span>{project.manager}</span>
-            </article>
-            <article className="site-stat">
-              <span>Texnika</span>
-              <b>{machines.length}</b>
-              <span>{project.phase}</span>
-            </article>
-            <article className="site-stat">
-              <span>Bu gün</span>
-              {today ? <Badge status={today.status} /> : <b>Açıq deyil</b>}
-              <span>{openRequests.length} açıq tələb</span>
-            </article>
-          </div>
-          <div className="site-grid">
-            <section className="panel pad">
-              <div className="panel-head"><h2>Mərhələ</h2><span className="muted">{project.address}, {project.city}</span></div>
-              <PhaseTrack projectId={project.id} phases={project.phases} />
-              <p className="block-title">Açıq həcm</p>
-              <div className="mini-list">
-                {(smeta?.lines || []).filter((line) => line.qty - line.doneQty > 0.05).slice(0, 5).map((line) => (
-                  <article key={line.id}>{line.code} {line.name} · qalıq {num(line.qty - line.doneQty, 1)} {line.unit}</article>
-                ))}
-              </div>
-            </section>
-            <section className="panel pad">
-              <div className="panel-head"><h2>Sənəd və qeyd</h2></div>
-              {papers.length === 0 && notes.length === 0 && <p className="muted">Bu obyektdə sənəd və qeyd yoxdur.</p>}
-              <div className="mini-list">
-                {papers.map((item) => (
-                  <article key={item.id}>{item.title}<div className="muted">{item.kind} · <Badge status={item.status} /></div></article>
-                ))}
-                {notes.slice(0, 4).map((item) => (
-                  <article key={item.id}><span className="mono">{item.time}</span> {item.text}</article>
-                ))}
-              </div>
-            </section>
-          </div>
+          <StatGrid className="site-overview-stats"><Metric><span>İrəliləyiş</span><strong>{project.progress}%</strong><Meter value={project.progress} tone="pine" /></Metric><Metric><span>Briqada</span><strong>{crew.length}</strong><em>{project.manager}</em></Metric><Metric><span>Texnika</span><strong>{machines.length}</strong><em>{openRequests.length} açıq tələb</em></Metric></StatGrid>
+          <Panel className="site-day"><SectionHeader><h2>Günün işi</h2><div><span>{dateAZ(TODAY)}</span>{today ? <Badge status={today.status} /> : <span className="badge gold">Gündəlik yaradılmayıb</span>}</div></SectionHeader>
+            <div className="site-day-columns"><section><SectionHeader><h3>Açıq işlər</h3><Button className="ghost small" onClick={() => openSiteTab("hecm")}>Həcmə bax</Button></SectionHeader>
+              <div className="site-work-list">{(smeta?.lines || []).filter((line) => line.qty - line.doneQty > 0.05).slice(0,5).map((line) => <div key={line.id}><div><strong>{line.name}</strong><span>{line.code}</span></div><b>{num(line.qty - line.doneQty,1)} {line.unit}</b></div>)}</div>
+              {!(smeta?.lines || []).some((line) => line.qty-line.doneQty>0.05) && <p className="muted">Açıq iş həcmi yoxdur.</p>}
+            </section><section><SectionHeader><h3>Son qeydlər</h3><Button className="ghost small" onClick={() => openSiteTab("qeyd")}>Hamısına bax</Button></SectionHeader>
+              <div className="site-note-list">{notes.slice(-3).reverse().map((item) => <article key={item.id}><span>{item.time}</span><p>{item.text}</p></article>)}</div>{notes.length === 0 && <p className="muted">Bu obyekt üçün qeyd yoxdur.</p>}
+              <Disclosure title={"Sənədlər " + papers.length}>{papers.length === 0 && <p className="muted">Sənəd yoxdur.</p>}{papers.map((item) => <div className="site-document" key={item.id}><strong>{item.title}</strong><Badge status={item.status} /></div>)}</Disclosure>
+            </section></div>
+          </Panel>
+          <Disclosure title="Mərhələlər"><PhaseTrack projectId={project.id} phases={project.phases} /><p className="muted">{project.address}, {project.city}</p></Disclosure>
         </>
       )}
 
       {project && tab === "hesabat" && (
-        <form className="panel pad form" onSubmit={(event) => submit(event, false)}>
+        <form ref={dailyRef} className="panel pad form site-daily-form" onSubmit={(event) => { if(step !== "notes") { event.preventDefault(); setStep(steps[stepIndex+1].id) } else submit(event,false) }}>
+          <StepNav label="Gündəlik mərhələləri" value={step} onChange={setStep} steps={steps} />
+          <h2>{steps[stepIndex].label}</h2>
+          {step === "general" && <div>
           <div className="split">
             <Field label="Tarix">
               <DateField value={form.date} onChange={(date) => setForm({ ...form, date })} />
@@ -223,16 +183,18 @@ export default function Site() {
               />
             </Field>
             <Field label="Briqada, nəfər">
-              <input value={form.crew} onChange={(event) => setForm({ ...form, crew: event.target.value })} />
+              <Input value={form.crew} onChange={(event) => setForm({ ...form, crew: event.target.value })} />
             </Field>
           </div>
+          </div>}
+          {step === "work" && <div>
           {crew.length > 0 && (
             <div className="stack">
               <p className="block-title">Tabel</p>
               {crew.map((person) => (
                 <label key={person.id} className="qty-line">
                   <span>{person.name} · {person.role}</span>
-                  <input type="number" min="0" step="0.5" placeholder="Saat" value={form.attendance[person.id] || ""} onChange={(event) => setForm({ ...form, attendance: { ...form.attendance, [person.id]: event.target.value } })} />
+                  <Input type="number" min="0" step="0.5" placeholder="Saat" value={form.attendance[person.id] || ""} onChange={(event) => setForm({ ...form, attendance: { ...form.attendance, [person.id]: event.target.value } })} />
                 </label>
               ))}
             </div>
@@ -243,46 +205,34 @@ export default function Site() {
               {smeta.lines.map((line) => (
                 <label key={line.id} className="qty-line">
                   <span>{line.code} {line.name} · qalıq {num(Math.max(0, line.qty - line.doneQty), 1)} {line.unit}</span>
-                  <input type="number" min="0" step="0.1" placeholder="Həcm" value={form.lines[line.id] || ""} onChange={(event) => setForm({ ...form, lines: { ...form.lines, [line.id]: event.target.value } })} />
+                  <Input type="number" min="0" step="0.1" placeholder="Həcm" value={form.lines[line.id] || ""} onChange={(event) => setForm({ ...form, lines: { ...form.lines, [line.id]: event.target.value } })} />
                 </label>
               ))}
             </div>
           )}
+          </div>}
+          {step === "notes" && <div>
           <div className="split">
             <Field label="Texnika">
               <Select value={form.assetId} onValueChange={(assetId) => setForm({ ...form, assetId })} options={[{ value: "", label: t("none") }, ...siteAssets.map((item) => ({ value: item.id, label: item.name }))]} />
             </Field>
             <Field label="Moto-saat">
-              <input type="number" min="0" step="0.5" value={form.hours} onChange={(event) => setForm({ ...form, hours: event.target.value })} />
+              <Input type="number" min="0" step="0.5" value={form.hours} onChange={(event) => setForm({ ...form, hours: event.target.value })} />
             </Field>
           </div>
           <Field label="Qeyd">
-            <textarea value={form.note} onChange={(event) => setForm({ ...form, note: event.target.value })} />
+            <Textarea value={form.note} onChange={(event) => setForm({ ...form, note: event.target.value })} />
           </Field>
+          </div>}
           {error && <p className="form-error">{error}</p>}
-          <div className="form-actions">
-            <button type="button" className="btn ghost" onClick={(event) => submit(event, true)}>Təsdiqə göndər</button>
-            <button className="btn" type="submit">Saxla</button>
-          </div>
-          {mineReports.length > 0 && (
-            <>
-              <p className="block-title">Bu obyektin gündəlikləri</p>
-              <div className="mini-list">
-                {mineReports.map((item) => (
-                  <button type="button" key={item.id} className="click" onClick={() => openSiteTab("gundelik")}>
-                    {item.id} · {dateAZ(item.date)} · {t(`weather.${item.weather}`)} · {item.author} <Badge status={item.status} />
-                  </button>
-                ))}
-              </div>
-            </>
-          )}
+          <div className="calc-step-footer"><span>{stepIndex + 1} / {steps.length}</span><div>{stepIndex > 0 && <Button className="ghost" onClick={() => setStep(steps[stepIndex-1].id)}>Geri</Button>}{stepIndex < steps.length-1 ? <Button onClick={() => setStep(steps[stepIndex+1].id)}>Davam et</Button> : <><Button className="ghost" type="submit">Qaralama saxla</Button><Button onClick={(event) => submit(event,true)}>Təsdiqə göndər</Button></>}</div></div>
         </form>
       )}
 
       {project && tab === "gundelik" && <Reports embedded projectId={projectId} />}
 
       {project && tab === "hecm" && (
-        <div className="table-wrap">
+        <TableContainer>
           <table>
             <thead>
               <tr>
@@ -304,11 +254,11 @@ export default function Site() {
             </tbody>
           </table>
           {lines.length === 0 && <Empty title="Həcm yoxdur" text="Bu obyektin smetası boşdur." />}
-        </div>
+        </TableContainer>
       )}
 
       {project && tab === "briqada" && (
-        <div className="table-wrap">
+        <TableContainer>
           <table>
             <thead>
               <tr><th>İşçi</th><th>Briqada</th><th>Telefon</th><th>Vəziyyət</th><th></th></tr>
@@ -333,11 +283,11 @@ export default function Site() {
             </tbody>
           </table>
           {crew.length === 0 && <Empty title="Briqada boşdur" text="HRM işçilərindən bu obyektə təyin edin." />}
-        </div>
+        </TableContainer>
       )}
 
       {project && tab === "texnika" && (
-        <div className="table-wrap">
+        <TableContainer>
           <table>
             <thead>
               <tr><th>Texnika</th><th className="num">Moto-saat</th><th>Servis</th><th className="num">Yüklənmə</th><th>Vəziyyət</th><th></th></tr>
@@ -363,13 +313,13 @@ export default function Site() {
             </tbody>
           </table>
           {machines.length === 0 && <Empty title="Texnika yoxdur" text="Bu obyektə bağlanmış maşın yoxdur." />}
-        </div>
+        </TableContainer>
       )}
 
       {project && tab === "material" && (
         <div className="site-grid">
-          <section className="panel pad">
-            <div className="panel-head"><h2>Sahə anbarı</h2><span className="muted">{place?.name || "Anbar yoxdur"}</span></div>
+          <Panel className="pad">
+            <SectionHeader><h2>Sahə anbarı</h2><span className="muted">{place?.name || "Anbar yoxdur"}</span></SectionHeader>
             <div className="mini-list">
               {piles.map((row) => {
                 const material = materials.find((item) => item.id === row.materialId)
@@ -382,21 +332,21 @@ export default function Site() {
               })}
             </div>
             {piles.length === 0 && <p className="muted">Sahə anbarında qalıq yoxdur.</p>}
-          </section>
-          <section className="panel pad">
-            <div className="panel-head"><h2>Tələblər</h2></div>
+          </Panel>
+          <Panel className="pad">
+            <SectionHeader><h2>Tələblər</h2></SectionHeader>
             <div className="mini-list">
               {mineRequests.filter((item) => hit(query, item.material, item.id, item.text)).map((item) => (
                 <article key={item.id}>{item.material} · {num(item.qty, 1)} {item.unit}<div className="muted">{item.id} · <Badge status={item.status} /></div></article>
               ))}
             </div>
             {mineRequests.length === 0 && <p className="muted">Bu obyektin tələbi yoxdur.</p>}
-          </section>
+          </Panel>
         </div>
       )}
 
       {project && tab === "qeyd" && (
-        <div className="table-wrap">
+        <TableContainer>
           <table>
             <thead><tr><th>Vaxt</th><th>Qeyd</th></tr></thead>
             <tbody>
@@ -406,7 +356,7 @@ export default function Site() {
             </tbody>
           </table>
           {notes.length === 0 && <Empty title="Qeyd yoxdur" text="Sahədən qısa qeyd yazın." />}
-        </div>
+        </TableContainer>
       )}
 
       {ask && (
@@ -424,10 +374,10 @@ export default function Site() {
               <Select value={ask.materialId} onValueChange={(materialId) => setAsk({ ...ask, materialId })} options={materials.map((item) => ({ value: item.id, label: item.name }))} />
             </Field>
             <Field label="Miqdar">
-              <input type="number" min="0" step="0.1" value={ask.qty} onChange={(event) => setAsk({ ...ask, qty: event.target.value })} />
+              <Input type="number" min="0" step="0.1" value={ask.qty} onChange={(event) => setAsk({ ...ask, qty: event.target.value })} />
             </Field>
             {error && <p className="form-error">{error}</p>}
-            <div className="form-actions"><button className="btn" type="submit">Aç</button></div>
+            <div className="form-actions"><Button  type="submit">Aç</Button></div>
           </form>
         </Modal>
       )}
@@ -444,10 +394,10 @@ export default function Site() {
             }}
           >
             <Field label="Qeyd">
-              <textarea value={note} onChange={(event) => setNote(event.target.value)} />
+              <Textarea value={note} onChange={(event) => setNote(event.target.value)} />
             </Field>
             {error && <p className="form-error">{error}</p>}
-            <div className="form-actions"><button className="btn" type="submit">Saxla</button></div>
+            <div className="form-actions"><Button  type="submit">Saxla</Button></div>
           </form>
         </Modal>
       )}
@@ -474,11 +424,11 @@ export default function Site() {
               />
             </Field>
             <Field label="Briqada">
-              <input value={assignCrew} onChange={(event) => setAssignCrew(event.target.value)} />
+              <Input value={assignCrew} onChange={(event) => setAssignCrew(event.target.value)} />
             </Field>
             {error && <p className="form-error">{error}</p>}
             <div className="form-actions">
-              <button className="btn" type="submit" disabled={!assignId}>Təyin et</button>
+              <Button  type="submit" disabled={!assignId}>Təyin et</Button>
             </div>
           </form>
         </Modal>
@@ -496,16 +446,16 @@ export default function Site() {
             }}
           >
             <Field label="Ad">
-              <input value={person.name} onChange={(event) => setPerson({ ...person, name: event.target.value })} />
+              <Input value={person.name} onChange={(event) => setPerson({ ...person, name: event.target.value })} />
             </Field>
             <Field label="Vəzifə">
-              <input value={person.role} onChange={(event) => setPerson({ ...person, role: event.target.value })} />
+              <Input value={person.role} onChange={(event) => setPerson({ ...person, role: event.target.value })} />
             </Field>
             <Field label="Briqada">
-              <input value={person.crew} onChange={(event) => setPerson({ ...person, crew: event.target.value })} />
+              <Input value={person.crew} onChange={(event) => setPerson({ ...person, crew: event.target.value })} />
             </Field>
             <Field label="Telefon">
-              <input value={person.phone} onChange={(event) => setPerson({ ...person, phone: event.target.value })} />
+              <Input value={person.phone} onChange={(event) => setPerson({ ...person, phone: event.target.value })} />
             </Field>
             <Field label="Vəziyyət">
               <Select
@@ -515,7 +465,7 @@ export default function Site() {
               />
             </Field>
             {error && <p className="form-error">{error}</p>}
-            <div className="form-actions"><button className="btn" type="submit">Saxla</button></div>
+            <div className="form-actions"><Button  type="submit">Saxla</Button></div>
           </form>
         </Modal>
       )}
@@ -543,7 +493,7 @@ export default function Site() {
             )}
             {error && <p className="form-error">{error}</p>}
             <div className="form-actions">
-              <button className="btn" type="submit" disabled={!pullId}>Cəlb et</button>
+              <Button  type="submit" disabled={!pullId}>Cəlb et</Button>
             </div>
           </form>
         </Modal>
@@ -561,7 +511,7 @@ export default function Site() {
             }}
           >
             <Field label="Ad">
-              <input value={machine.name} onChange={(event) => setMachine({ ...machine, name: event.target.value })} />
+              <Input value={machine.name} onChange={(event) => setMachine({ ...machine, name: event.target.value })} />
             </Field>
             <Field label="Növ">
               <Select
@@ -572,20 +522,20 @@ export default function Site() {
             </Field>
             <div className="split">
               <Field label="Moto-saat">
-                <input type="number" min="0" value={machine.hours} onChange={(event) => setMachine({ ...machine, hours: event.target.value })} />
+                <Input type="number" min="0" value={machine.hours} onChange={(event) => setMachine({ ...machine, hours: event.target.value })} />
               </Field>
               <Field label="Yüklənmə, %">
-                <input type="number" min="0" max="100" value={machine.utilization} onChange={(event) => setMachine({ ...machine, utilization: event.target.value })} />
+                <Input type="number" min="0" max="100" value={machine.utilization} onChange={(event) => setMachine({ ...machine, utilization: event.target.value })} />
               </Field>
             </div>
             <Field label="Növbəti servis">
               <DateField value={machine.nextService} onChange={(nextService) => setMachine({ ...machine, nextService })} />
             </Field>
             {error && <p className="form-error">{error}</p>}
-            <div className="form-actions"><button className="btn" type="submit">Saxla</button></div>
+            <div className="form-actions"><Button  type="submit">Saxla</Button></div>
           </form>
         </Modal>
       )}
-    </>
+    </div>
   )
 }

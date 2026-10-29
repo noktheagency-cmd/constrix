@@ -378,7 +378,7 @@ export function stageLabel(stage: Stage) {
   return STAGES.find((item) => item[0] === stage)?.[1] ?? stage
 }
 
-const PROCURE_PATHS = new Set(["/sirket", "/layihe-fayl", "/kataloq", "/hesablama", "/dasima", "/teklif", "/sifaris-merhele", "/tarif", "/platforma"])
+const PROCURE_PATHS = new Set(["/sirket", "/layihe-fayl", "/kataloq", "/hesablama", "/dasima", "/teklif", "/sifaris", "/tarif", "/platforma"])
 
 function procureBase(path: string) {
   for (const item of PROCURE_PATHS) {
@@ -393,9 +393,9 @@ export function showPath(path: string, kind: CompanyKind | "") {
   if (base === "/platforma") return kind === "admin"
   if (!kind) return base === "/sirket"
   if (kind === "admin" || BUYERS.has(kind)) return true
-  if (MAKERS.has(kind)) return ["/sirket", "/kataloq", "/hesablama", "/teklif", "/sifaris-merhele", "/tarif"].includes(base)
-  if (kind === "montaj") return ["/sirket", "/teklif", "/sifaris-merhele", "/tarif"].includes(base)
-  if (kind === "logistika") return ["/sirket", "/dasima", "/sifaris-merhele", "/tarif"].includes(base)
+  if (MAKERS.has(kind)) return ["/sirket", "/kataloq", "/hesablama", "/teklif", "/sifaris", "/tarif"].includes(base)
+  if (kind === "montaj") return ["/sirket", "/teklif", "/sifaris", "/tarif"].includes(base)
+  if (kind === "logistika") return ["/sirket", "/dasima", "/sifaris", "/tarif"].includes(base)
   return base === "/sirket"
 }
 

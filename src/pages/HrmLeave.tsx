@@ -1,3 +1,4 @@
+import { Button, TableContainer, Textarea, Toolbar } from "../components/primitives"
 import { useState, type FormEvent } from "react"
 import { LEAVE_KINDS } from "../domain/hrm"
 import type { LeaveForm, LeaveKind, LeaveRequest } from "../domain/types"
@@ -42,9 +43,9 @@ export default function HrmLeave() {
   return (
     <>
       <PageHead kicker={t("page.leave.kicker")} title={t("page.leave.title")} text={t("page.leave.text")}>
-        <button type="button" className="btn" onClick={() => openForm()}><Icon name="plus" /> Məzuniyyət</button>
+        <Button type="button" onClick={() => openForm()}><Icon name="plus" /> Məzuniyyət</Button>
       </PageHead>
-      <div className="toolbar">
+      <Toolbar>
         <Tabs
           value={tab}
           onChange={setTab}
@@ -56,9 +57,9 @@ export default function HrmLeave() {
           ]}
         />
         <span className="muted">{store.leaves.filter((item) => item.status === "gozleyir").length} gözləyir</span>
-      </div>
+      </Toolbar>
       {error && !modal && <p className="form-error">{error}</p>}
-      <div className="table-wrap">
+      <TableContainer>
         <table>
           <thead>
             <tr>
@@ -95,7 +96,7 @@ export default function HrmLeave() {
           </tbody>
         </table>
         {rows.length === 0 && <Empty title="Məzuniyyət yoxdur" text="İşçi üçün aralıq yazın." />}
-      </div>
+      </TableContainer>
 
       {modal && (
         <Modal wide title={editing ? "Məzuniyyəti yaz" : "Yeni məzuniyyət"} onClose={() => setModal(false)}>
@@ -113,12 +114,12 @@ export default function HrmLeave() {
               <DateField value={form.to} onChange={(to) => setForm({ ...form, to })} />
             </Field>
             <Field label="Qeyd">
-              <textarea value={form.note} onChange={(event) => setForm({ ...form, note: event.target.value })} />
+              <Textarea value={form.note} onChange={(event) => setForm({ ...form, note: event.target.value })} />
             </Field>
             {error && <p className="form-error">{error}</p>}
             <div className="form-actions">
-              <button type="button" className="btn ghost" onClick={() => setModal(false)}>Ləğv et</button>
-              <button className="btn" type="submit">Saxla</button>
+              <Button type="button" className="ghost" onClick={() => setModal(false)}>Ləğv et</Button>
+              <Button  type="submit">Saxla</Button>
             </div>
           </form>
         </Modal>

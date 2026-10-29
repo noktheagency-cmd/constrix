@@ -1,3 +1,4 @@
+import { Disclosure, Panel, SectionHeader, TableContainer } from "../components/primitives"
 import { assetRows } from "../domain/financeView"
 import { hit, money, moneyShort } from "../format"
 import { usePrefs } from "../i18n"
@@ -15,11 +16,11 @@ export default function FinanceAssets() {
   return (
     <>
       <PageHead kicker={t("page.fixed.kicker")} title={t("page.fixed.title")} text={t("page.fixed.text", { value: moneyShort(nbv), hired })} />
-      <section className="panel pad">
-        <div className="panel-head"><h2>Qalıq dəyər</h2></div>
+      <Disclosure title="Qalıq dəyər"><Panel className="pad">
+        <SectionHeader><h2>Qalıq dəyər</h2></SectionHeader>
         <Columns rows={rows.filter((item) => item.capitalized).map((item) => ({ label: item.name, value: item.nbv, tone: "copper" }))} />
-      </section>
-      <div className="table-wrap" style={{ marginTop: 14 }}>
+      </Panel></Disclosure>
+      <TableContainer  style={{ marginTop: 14 }}>
         <table>
           <thead>
             <tr>
@@ -50,7 +51,7 @@ export default function FinanceAssets() {
           </tbody>
         </table>
         {rows.length === 0 && <Empty title="Vəsait yoxdur" text="Parkda texnika tapılmadı." />}
-      </div>
+      </TableContainer>
     </>
   )
 }

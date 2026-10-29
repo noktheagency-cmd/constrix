@@ -1,3 +1,4 @@
+import { Disclosure, Metric, Panel, SectionHeader, StatGrid, TableContainer, Toolbar } from "../components/primitives"
 import { useState } from "react"
 import { agingRows, cashRows, profitRows, vatRows } from "../domain/financeReports"
 import { money, monthAZ, monthWord } from "../format"
@@ -19,7 +20,7 @@ export default function FinanceReports() {
   return (
     <>
       <PageHead kicker={t("page.reportsFinance.kicker")} title={t("page.reportsFinance.title")} text={t("page.reportsFinance.text")} />
-      <div className="toolbar">
+      <Toolbar>
         <Tabs
           value={tab}
           onChange={setTab}
@@ -30,15 +31,15 @@ export default function FinanceReports() {
             { id: "pul", label: "Pul axını" },
           ]}
         />
-      </div>
+      </Toolbar>
 
       {tab === "edv" && (
         <>
-          <section className="panel pad">
-            <div className="panel-head"><h2>ƏDV</h2></div>
+          <Disclosure title="ƏDV"><Panel className="pad">
+            <SectionHeader><h2>ƏDV</h2></SectionHeader>
             <Columns rows={vat.map((row) => ({ label: monthWord(row.period), value: row.vat, tone: "copper" }))} />
-          </section>
-          <div className="table-wrap" style={{ marginTop: 14 }}>
+          </Panel></Disclosure>
+          <TableContainer  style={{ marginTop: 14 }}>
           <table>
             <thead>
               <tr>
@@ -60,17 +61,17 @@ export default function FinanceReports() {
             </tbody>
           </table>
           {vat.length === 0 && <Empty title="ƏDV bazası yoxdur" text="Təsdiqlənmiş Forma-2-lər burada toplanır." />}
-        </div>
+        </TableContainer>
         </>
       )}
 
       {tab === "menfeet" && (
         <>
-          <section className="panel pad">
-            <div className="panel-head"><h2>Fərq</h2></div>
+          <Disclosure title="Fərq"><Panel className="pad">
+            <SectionHeader><h2>Fərq</h2></SectionHeader>
             <Columns rows={profit.map((row) => ({ label: row.project, value: Math.abs(row.margin), tone: row.margin < 0 ? "rose" : "pine" }))} />
-          </section>
-          <div className="table-wrap" style={{ marginTop: 14 }}>
+          </Panel></Disclosure>
+          <TableContainer  style={{ marginTop: 14 }}>
           <table>
             <thead>
               <tr>
@@ -93,28 +94,28 @@ export default function FinanceReports() {
               ))}
             </tbody>
           </table>
-        </div>
+        </TableContainer>
         </>
       )}
 
       {tab === "debitor" && (
         <div className="stack">
-          <section className="panel pad">
-            <div className="panel-head"><h2>Köhnəlmə</h2></div>
+          <Disclosure title="Köhnəlmə"><Panel className="pad">
+            <SectionHeader><h2>Köhnəlmə</h2></SectionHeader>
             <Columns rows={buckets.map((bucket) => ({ label: bucket, value: aging.filter((row) => row.bucket === bucket).reduce((total, row) => total + row.amount, 0), tone: bucket === "Cari" ? "pine" : "rose" }))} />
-          </section>
-          <div className="statstrip">
+          </Panel></Disclosure>
+          <StatGrid>
             {buckets.map((bucket) => {
               const sum = aging.filter((row) => row.bucket === bucket).reduce((total, row) => total + row.amount, 0)
               return (
-                <article key={bucket}>
+                <Metric key={bucket}>
                   <span>{bucket}</span>
                   <strong>{money(sum)}</strong>
-                </article>
+                </Metric>
               )
             })}
-          </div>
-          <div className="table-wrap">
+          </StatGrid>
+          <TableContainer>
             <table>
               <thead>
                 <tr>
@@ -138,17 +139,17 @@ export default function FinanceReports() {
               </tbody>
             </table>
             {aging.length === 0 && <Empty title="Açıq debitor yoxdur" text="Göndərilmiş və gecikən fakturalar burada görünür." />}
-          </div>
+          </TableContainer>
         </div>
       )}
 
       {tab === "pul" && (
         <>
-          <section className="panel pad">
-            <div className="panel-head"><h2>Pul axını</h2></div>
+          <Disclosure title="Pul axını"><Panel className="pad">
+            <SectionHeader><h2>Pul axını</h2></SectionHeader>
             <FlowBars rows={cash.map((row) => ({ label: monthWord(row.month), inn: row.inflow, out: row.outflow }))} />
-          </section>
-          <div className="table-wrap" style={{ marginTop: 14 }}>
+          </Panel></Disclosure>
+          <TableContainer  style={{ marginTop: 14 }}>
           <table>
             <thead>
               <tr>
@@ -170,7 +171,7 @@ export default function FinanceReports() {
             </tbody>
           </table>
           {cash.length === 0 && <Empty title="Hərəkət yoxdur" text="Ödənilmiş faktura, mənzil ödənişi və xərc aylar üzrə yığılır." />}
-        </div>
+        </TableContainer>
         </>
       )}
     </>

@@ -1,3 +1,4 @@
+import { Panel, Toolbar } from "../components/primitives"
 import { useState } from "react"
 import { Link, useParams } from "react-router-dom"
 import { dateAZ, money, num } from "../format"
@@ -46,7 +47,7 @@ export default function ProjectDetail() {
         <Badge status={project.status} />
       </header>
       {project.note && <p className="callout">{project.note}. Cədvəl yenidən qurulmalıdır.</p>}
-      <div className="toolbar">
+      <Toolbar>
         <Tabs
           value={tab}
           onChange={setTab}
@@ -58,23 +59,23 @@ export default function ProjectDetail() {
             { id: "sened", label: "Sənədlər" },
           ]}
         />
-      </div>
+      </Toolbar>
       {tab === "smeta" && <SmetaPanel project={project} />}
       {tab === "xerc" && <CostPanel project={project} />}
       {tab === "muqavile" && <ContractPanel project={project} />}
       {tab === "sened" && <DocsPanel project={project} />}
       {tab === "icmal" && (
       <>
-      <section className="panel pad">
+      <Panel className="pad">
         <PhaseTrack projectId={project.id} phases={project.phases} />
         <Meter value={project.progress} tone={project.status === "gecikir" ? "rose" : "pine"} />
         <p className="muted" style={{ marginTop: 8 }}>
           Smeta üzrə irəliləyiş {project.progress}%
         </p>
-      </section>
+      </Panel>
 
       <div className="grid-2">
-        <section className="panel pad">
+        <Panel className="pad">
           <h2>Sahə jurnalı</h2>
           <div className="mini-list">
             {project.notes.map((note) => (
@@ -95,9 +96,9 @@ export default function ProjectDetail() {
               <Badge status={order.status} />
             </article>
           ))}
-        </section>
+        </Panel>
         <div className="stack">
-          <section className="panel pad">
+          <Panel className="pad">
             <h2>Büdcə</h2>
             <dl className="kv" style={{ marginTop: 12 }}>
               <dt>Plan</dt>
@@ -110,8 +111,8 @@ export default function ProjectDetail() {
               <dd>{burn}%</dd>
             </dl>
             <Meter value={burn} tone={burn > 90 ? "rose" : "copper"} />
-          </section>
-          <section className="panel pad">
+          </Panel>
+          <Panel className="pad">
             <h2>Pasport</h2>
             <dl className="kv" style={{ marginTop: 12 }}>
               <dt>Rəhbər</dt>
@@ -129,7 +130,7 @@ export default function ProjectDetail() {
               <dt>Texnika</dt>
               <dd>{siteAssets.length ? siteAssets.map((item) => item.name).join(", ") : "Təyin edilməyib"}</dd>
             </dl>
-          </section>
+          </Panel>
         </div>
       </div>
       </>

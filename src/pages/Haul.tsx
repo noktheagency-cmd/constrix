@@ -1,9 +1,11 @@
+import { Button, Disclosure, Input, Metric, Panel, StatGrid, TableContainer } from "../components/primitives"
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react"
 import { ApiError, api, dec } from "../api"
 import { kindLabel, logisticsMath, showPath, type LogisticsInput } from "../procure/engine"
+import { StepNav } from "../components/StepNav"
 import { Icon } from "../icons"
 import { useProcure } from "../procure/store"
-import { PageHead, Select, useTitle, type SelectGroup } from "../ui"
+import { PageHead, Select, Tabs, useTitle, type SelectGroup } from "../ui"
 
 function activeOf(state: ReturnType<typeof useProcure>) {
   return state.companies.find((item) => item.id === state.activeId)
@@ -110,7 +112,7 @@ function azn(value: number | null | undefined) {
 function when(value: string) {
   const date = new Date(value)
   if (Number.isNaN(date.getTime())) return ""
-  return date.toLocaleDateString("az-AZ", { day: "numeric", month: "short", year: "numeric" })
+  return `${String(date.getDate()).padStart(2, "0")}.${String(date.getMonth() + 1).padStart(2, "0")}.${date.getFullYear()}`
 }
 
 function vehicleLabel(vehicle: Vehicle) {
@@ -130,7 +132,7 @@ function HaulHistoryFilters({
 }) {
   return (
     <>
-      <input className="calc-search" value={query} placeholder="Haradan və ya hara" onChange={(event) => onQuery(event.target.value)} />
+      <Input className="calc-search" value={query} placeholder="Haradan və ya hara" onChange={(event) => onQuery(event.target.value)} />
       <div className="haul-filters">
         {([
           ["hami", "Hamısı"],
@@ -218,8 +220,8 @@ function PlacePick({
     return (
       <Field label={label} wide>
         <div className="haul-custom">
-          <input value={value} placeholder="Ünvan yazın" autoFocus onChange={(event) => onType(event.target.value)} />
-          <button type="button" className="btn ghost small" onClick={onList}>Siyahı</button>
+          <Input value={value} placeholder="Ünvan yazın" onChange={(event) => onType(event.target.value)} />
+          <Button type="button" className="ghost small" onClick={onList}>Siyahı</Button>
         </div>
       </Field>
     )
@@ -280,7 +282,10 @@ export function LogisticsPage() {
   const [fromNew, setFromNew] = useState(false)
   const [toNew, setToNew] = useState(false)
   const [large, setLarge] = useState(false)
-  const historyRef = useRef<HTMLElement>(null)
+  const formRef = useRef<HTMLDivElement>(null)
+  const [step, setStep] = useState("route")
+  const steps = [{ id: "route", label: "Marşrut" }, { id: "load", label: "Yük və maşın" }, { id: "price", label: "Qiymət" }]
+  const stepIndex = steps.findIndex((item) => item.id === step)
 
   const preview = logisticsMath({ ...form, id: "", companyId: "", carrierId: "" })
   const started = Boolean(form.from.trim() || form.to.trim() || form.km.trim() || form.tariff.trim())
@@ -342,9 +347,12 @@ export function LogisticsPage() {
   }, [])
 
   useEffect(() => {
-    if (!large) return
-    historyRef.current?.scrollIntoView({ block: "start" })
-  }, [large])
+    const element = formRef.current
+    const viewport = element?.closest("main")
+    if (element && viewport && element.getBoundingClientRect().top < viewport.getBoundingClientRect().top) {
+      element.scrollIntoView({ block: "start", behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth" })
+    }
+  }, [step, large])
 
   useEffect(() => {
     setFromNew((current) => form.from ? !knownPlace(form.from, groups) : current)
@@ -352,6 +360,8 @@ export function LogisticsPage() {
   }, [form.from, form.to, groups])
 
   function fresh() {
+    setStep("route")
+    setLarge(false)
     setForm(emptyHaul)
     setOpenId("")
     setNote("")
@@ -360,6 +370,8 @@ export function LogisticsPage() {
   }
 
   function openHaul(row: SavedHaul) {
+    setStep("route")
+    setLarge(false)
     const next = asForm(row)
     setOpenId(row.id)
     setForm(next)
@@ -412,22 +424,24 @@ export function LogisticsPage() {
         <PageHead
           kicker="Logistika"
           title="Daşınma"
-          text="Marşrut, yük və maşın bir hesaba yığılır. Əvvəlki daşımalar bazada qalır və buradan açılır."
+          text="Marşrutdan xərcə — üç sadə addım."
         />
 
-        <div className="calc-stats">
-          <article><span>Daşıma</span><strong>{rows.length}</strong></article>
-          <article><span>Son xərc</span><strong>{rows[0] ? azn(num(rows[0].cost)) : "—"}</strong></article>
-          <article><span>Xərc cəmi</span><strong>{costs.length ? azn(costSum) : "—"}</strong></article>
-          <article><span>Orta məsafə</span><strong>{distances.length ? `${Math.round(distanceSum / distances.length)} km` : "—"}</strong></article>
-        </div>
+        <Tabs value={large ? "history" : "new"} onChange={(value) => setLarge(value === "history")} options={[{ id: "new", label: "Yeni daşıma" }, { id: "history", label: `Əvvəlki daşımalar ${rows.length}` }]} />
+
+        {large && <StatGrid className="calc-stats">
+          <Metric><span>Daşıma</span><strong>{rows.length}</strong></Metric>
+          <Metric><span>Son xərc</span><strong>{rows[0] ? azn(num(rows[0].cost)) : "—"}</strong></Metric>
+          <Metric><span>Xərc cəmi</span><strong>{costs.length ? azn(costSum) : "—"}</strong></Metric>
+          <Metric><span>Orta məsafə</span><strong>{distances.length ? `${Math.round(distanceSum / distances.length)} km` : "—"}</strong></Metric>
+        </StatGrid>}
 
         {large && (
-          <section className="panel pad calc-card calc-history-wide" ref={historyRef}>
+          <Panel className="pad calc-card calc-history-wide">
             <div className="calc-card-head">
               <h2>Əvvəlki daşımalar</h2>
               <div className="haul-history-tools">
-                <button type="button" className="icon-btn" aria-label="Daralt" onClick={() => setLarge(false)}><Icon name="narrow" /></button>
+                <Button className="ghost small" onClick={() => setLarge(false)}>Formaya qayıt</Button>
                 <span>{shown.length}{blocked ? ` · ${blocked} sığmır` : ""}</span>
               </div>
             </div>
@@ -435,7 +449,7 @@ export function LogisticsPage() {
             {loadError && <p className="calc-meta">{loadError}</p>}
             {loaded && !loadError && rows.length === 0 && <p className="calc-meta">Bazada saxlanmış daşıma yoxdur.</p>}
             {loaded && !loadError && rows.length > 0 && shown.length === 0 && <p className="calc-meta">Bu axtarışa uyğun daşıma yoxdur.</p>}
-            <div className="calc-table-wrap">
+            <TableContainer className="calc-table-wrap">
               <table className="calc-table">
                 <thead>
                   <tr>
@@ -462,38 +476,17 @@ export function LogisticsPage() {
                   ))}
                 </tbody>
               </table>
-            </div>
-          </section>
+            </TableContainer>
+          </Panel>
         )}
 
-        <div className="calc-board">
-          <div className="calc-form">
-            <section className="panel pad calc-card">
+        {!large && <div className="calc-board">
+          <div className="calc-form" ref={formRef}>
+            <StepNav value={step} onChange={setStep} steps={steps} label="Daşınma mərhələləri" />
+            {step === "route" && (<Panel className="pad calc-card">
               <div className="calc-card-head">
-                <h2>Marşrut</h2>
-                <button type="button" className="btn ghost small" onClick={fresh}>Yeni daşıma</button>
+                <h2>Marşrut məlumatları</h2>
               </div>
-              <div className="haul-route">
-                <div className="haul-place">
-                  <span>Haradan</span>
-                  <b>{form.from.trim() || "Başlanğıc"}</b>
-                </div>
-                <div className="haul-leg">
-                  <b>{preview.km == null ? "—" : `${preview.km} km`}</b>
-                  <span>{form.roundTrip ? "gediş-gəliş" : "bir tərəf"}</span>
-                </div>
-                <div className="haul-place">
-                  <span>Hara</span>
-                  <b>{form.to.trim() || "Təyinat"}</b>
-                </div>
-              </div>
-              <button type="button" className={form.roundTrip ? "calc-toggle haul-round on" : "calc-toggle haul-round"} aria-pressed={form.roundTrip} onClick={() => set("roundTrip", !form.roundTrip)}>
-                <span className="calc-toggle-copy">
-                  <b>Gediş-gəliş</b>
-                  <small>{form.roundTrip ? "Açıqdır. Yazılan məsafə ikiqat sayılır." : "Bağlıdır. Yalnız bir tərəf hesablanır."}</small>
-                </span>
-                <span className="calc-toggle-ui" aria-hidden="true"><span /></span>
-              </button>
               <div className="calc-grid">
                 <PlacePick
                   label="Haradan"
@@ -515,26 +508,27 @@ export function LogisticsPage() {
                   onNew={() => { setToNew(true); set("to", "") }}
                   onList={() => { setToNew(false); set("to", "") }}
                 />
-                <Field label="Məsafə, km"><input value={form.km} inputMode="decimal" placeholder="42" onChange={(event) => set("km", event.target.value)} /></Field>
-                <Field label="Tarif, ₼/km"><input value={form.tariff} inputMode="decimal" placeholder="1.85" onChange={(event) => set("tariff", event.target.value)} /></Field>
-                <Field label="Günlük yol, km"><input value={form.speed} inputMode="decimal" placeholder="280" onChange={(event) => set("speed", event.target.value)} /></Field>
-                <Field label="Müddət, gün"><input value={form.days} inputMode="decimal" placeholder="1" onChange={(event) => set("days", event.target.value)} /></Field>
+                <Field label="Məsafə, km"><Input value={form.km} inputMode="decimal" placeholder="42" onChange={(event) => set("km", event.target.value)} /></Field>
               </div>
-            </section>
-
-            <section className="panel pad calc-card">
-              <h2>Yük</h2>
+              <button type="button" className={form.roundTrip ? "calc-toggle haul-round on" : "calc-toggle haul-round"} aria-pressed={form.roundTrip} onClick={() => set("roundTrip", !form.roundTrip)}>
+                <span className="calc-toggle-copy">
+                  <b>Gediş-gəliş</b>
+                  <small>{form.roundTrip ? "Açıqdır. Yazılan məsafə ikiqat sayılır." : "Bağlıdır. Yalnız bir tərəf hesablanır."}</small>
+                </span>
+                <span className="calc-toggle-ui" aria-hidden="true"><span /></span>
+              </button>
+              <Disclosure title="Müddət parametrləri"><div className="calc-grid">
+                <Field label="Günlük yol, km"><Input value={form.speed} inputMode="decimal" placeholder="280" onChange={(event) => set("speed", event.target.value)} /></Field>
+                <Field label="Müddət, gün"><Input value={form.days} inputMode="decimal" placeholder="1" onChange={(event) => set("days", event.target.value)} /></Field>
+              </div></Disclosure>
+            </Panel>)}
+            {step === "load" && (<Panel className="pad calc-card">
+              <h2>Yük və maşın</h2>
               <div className="calc-grid">
-                <Field label="Çəki, kq"><input value={form.weight} inputMode="decimal" placeholder="1860" onChange={(event) => set("weight", event.target.value)} /></Field>
-                <Field label="Həcm, m³"><input value={form.volume} inputMode="decimal" placeholder="6.4" onChange={(event) => set("volume", event.target.value)} /></Field>
-                <Field label="Şüşə eni, mm"><input value={form.glassWidth} inputMode="decimal" placeholder="2400" onChange={(event) => set("glassWidth", event.target.value)} /></Field>
-                <Field label="Şüşə hündürlüyü, mm"><input value={form.glassHeight} inputMode="decimal" placeholder="1800" onChange={(event) => set("glassHeight", event.target.value)} /></Field>
-              </div>
-            </section>
-
-            <section className="panel pad calc-card">
-              <h2>Maşın və əlavələr</h2>
-              <div className="calc-grid">
+                <Field label="Çəki, kq"><Input value={form.weight} inputMode="decimal" placeholder="1860" onChange={(event) => set("weight", event.target.value)} /></Field>
+                <Field label="Həcm, m³"><Input value={form.volume} inputMode="decimal" placeholder="6.4" onChange={(event) => set("volume", event.target.value)} /></Field>
+                <Field label="Şüşə eni, mm"><Input value={form.glassWidth} inputMode="decimal" placeholder="2400" onChange={(event) => set("glassWidth", event.target.value)} /></Field>
+                <Field label="Şüşə hündürlüyü, mm"><Input value={form.glassHeight} inputMode="decimal" placeholder="1800" onChange={(event) => set("glassHeight", event.target.value)} /></Field>
                 <Field label="Maşın" wide>
                   <Select
                     value={form.vehicle}
@@ -542,23 +536,30 @@ export function LogisticsPage() {
                     options={[{ value: "standart", label: "Standart yük" }, { value: "suse", label: "Şüşədaşıyan" }]}
                   />
                 </Field>
-                <Field label="Tutum, kq"><input value={form.capacityKg} inputMode="decimal" placeholder="3500" onChange={(event) => set("capacityKg", event.target.value)} /></Field>
-                <Field label="Maksimum şüşə, mm"><input value={form.maxGlassMm} inputMode="decimal" placeholder="3200" onChange={(event) => set("maxGlassMm", event.target.value)} /></Field>
-                <Field label="Yükləmə, ₼"><input value={form.loadCost} inputMode="decimal" placeholder="80" onChange={(event) => set("loadCost", event.target.value)} /></Field>
-                <Field label="Dayanma, ₼"><input value={form.waitCost} inputMode="decimal" placeholder="45" onChange={(event) => set("waitCost", event.target.value)} /></Field>
-                <Field label="Əlavə, ₼" wide><input value={form.extra} inputMode="decimal" placeholder="0" onChange={(event) => set("extra", event.target.value)} /></Field>
+                <Field label="Tutum, kq"><Input value={form.capacityKg} inputMode="decimal" placeholder="3500" onChange={(event) => set("capacityKg", event.target.value)} /></Field>
+                <Field label="Maksimum şüşə, mm"><Input value={form.maxGlassMm} inputMode="decimal" placeholder="3200" onChange={(event) => set("maxGlassMm", event.target.value)} /></Field>
               </div>
-            </section>
+            </Panel>)}
+            {step === "price" && (<Panel className="pad calc-card">
+              <h2>Tarif və əlavə xərclər</h2>
+              <div className="calc-grid">
+                <Field label="Tarif, ₼/km"><Input value={form.tariff} inputMode="decimal" placeholder="1.85" onChange={(event) => set("tariff", event.target.value)} /></Field>
+                <Field label="Yükləmə, ₼"><Input value={form.loadCost} inputMode="decimal" placeholder="80" onChange={(event) => set("loadCost", event.target.value)} /></Field>
+                <Field label="Dayanma, ₼"><Input value={form.waitCost} inputMode="decimal" placeholder="45" onChange={(event) => set("waitCost", event.target.value)} /></Field>
+                <Field label="Əlavə, ₼" wide><Input value={form.extra} inputMode="decimal" placeholder="0" onChange={(event) => set("extra", event.target.value)} /></Field>
+              </div>
+            </Panel>)}
+            <div className="calc-step-footer"><span>{stepIndex + 1} / {steps.length}</span><div>{stepIndex > 0 && <Button className="ghost" onClick={() => setStep(steps[stepIndex - 1].id)}>Geri</Button>}{stepIndex < steps.length - 1 && <Button onClick={() => setStep(steps[stepIndex + 1].id)}>Davam et<Icon name="chevron" /></Button>}</div></div>
           </div>
 
           <aside className="calc-side">
-            <section className="calc-quote">
-              <p>Canlı xərc</p>
+            <Panel className="calc-quote overview-panel">
+              <p>Daşınma xərci</p>
               <strong>{!started ? "Marşrut yazın" : preview.cost == null ? "Bağlanmayıb" : azn(preview.cost)}</strong>
               <div className="calc-metrics">
-                <div><span>Yol</span><b>{preview.km == null ? "—" : `${preview.km} km`}</b></div>
-                <div><span>Müddət</span><b>{preview.days == null ? "—" : `${preview.days} gün`}</b></div>
-                <div><span>Uyğunluq</span><b>{FIT[preview.fit]}</b></div>
+                <div><span>Məsafə</span><b>{!form.km.trim() || preview.km == null ? "—" : `${preview.km} km`}</b></div>
+                <div><span>Müddət</span><b>{!started || preview.days == null ? "—" : `${preview.days} gün`}</b></div>
+                <div><span>Uyğunluq</span><b>{form.weight.trim() || form.glassWidth.trim() || form.glassHeight.trim() ? FIT[preview.fit] : "Yük yazın"}</b></div>
               </div>
               <div className="calc-kpis">
                 <span>{vehicleLabel(form.vehicle)}</span>
@@ -566,14 +567,15 @@ export function LogisticsPage() {
                 {form.volume.trim() && <span>{form.volume} m³</span>}
               </div>
               {started && preview.notes.map((item) => <p className="calc-warn" key={item}>{item}</p>)}
-              <button type="button" className="btn calc-save" onClick={() => void save()} disabled={!form.from.trim() || !form.to.trim() || saving}>
+              <Button type="button" className="calc-save" onClick={() => void save()} disabled={!form.from.trim() || !form.to.trim() || saving}>
                 {saving ? "Yazılır…" : "Daşımanı saxla"}
-              </button>
+              </Button>
+              <Button className="ghost calc-fresh" onClick={fresh}>Yeni daşıma</Button>
               {note && <p className="calc-note">{note}</p>}
-            </section>
+            </Panel>
 
             {open && (
-              <section className="panel pad calc-card">
+              <Disclosure title="Saxlanmış daşımanın məlumatları"><Panel className="pad calc-card">
                 <div className="calc-card-head">
                   <h2>Saxlanmış daşıma</h2>
                   <span className={`haul-fit ${open.fit}`}>{FIT[open.fit]}</span>
@@ -585,34 +587,12 @@ export function LogisticsPage() {
                 <div className="calc-saved-row"><span>Həcm</span><b>{plain(open.volumeM3) ? `${plain(open.volumeM3)} m³` : "—"}</b></div>
                 <div className="calc-saved-row"><span>Şüşə</span><b>{num(open.glassWidthMm) || num(open.glassHeightMm) ? `${plain(open.glassWidthMm) || "—"}×${plain(open.glassHeightMm) || "—"} mm` : "—"}</b></div>
                 <div className="calc-saved-row"><span>Müddət</span><b>{open.days == null ? "—" : `${open.days} gün`}</b></div>
-              </section>
+              </Panel></Disclosure>
             )}
 
-            {!large && <section className="panel pad calc-card calc-history">
-              <div className="calc-card-head">
-                <h2>Əvvəlki daşımalar</h2>
-                <div className="haul-history-tools">
-                  <button type="button" className="icon-btn" aria-label="Genişləndir" onClick={() => setLarge(true)}><Icon name="widen" /></button>
-                  <span>{shown.length}{blocked ? ` · ${blocked} sığmır` : ""}</span>
-                </div>
-              </div>
-              <HaulHistoryFilters query={query} onQuery={setQuery} fit={fit} onFit={setFit} />
-              {loadError && <p className="calc-meta">{loadError}</p>}
-              {loaded && !loadError && rows.length === 0 && <p className="calc-meta">Bazada saxlanmış daşıma yoxdur.</p>}
-              {loaded && !loadError && rows.length > 0 && shown.length === 0 && <p className="calc-meta">Bu axtarışa uyğun daşıma yoxdur.</p>}
-              <div className="calc-list haul-list">
-                {shown.map((row) => (
-                  <button key={row.id} type="button" className={row.id === openId ? "calc-hit on" : row.fit === "uygun" ? "calc-hit" : "calc-hit haul-miss"} onClick={() => openHaul(row)}>
-                    <b>{row.fromPlace || "—"} → {row.toPlace || "—"}</b>
-                    <span>{vehicleLabel(row.vehicle)} · {plain(row.km) || "—"} km · {row.days == null ? "müddət yoxdur" : `${row.days} gün`}</span>
-                    <span>{when(row.createdAt)} · {FIT[row.fit]}</span>
-                    <em>{azn(num(row.cost))}</em>
-                  </button>
-                ))}
-              </div>
-            </section>}
+
           </aside>
-        </div>
+        </div>}
       </div>
     </Guard>
   )

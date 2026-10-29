@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react"
 import { createPortal } from "react-dom"
+import { PageTransition } from "./components/PageTransition"
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom"
 import { can } from "./domain/access"
 import { TODAY } from "./domain/ops"
@@ -48,11 +49,14 @@ export default function Shell() {
     setLangs(false)
     setOrgOpen(false)
     setFlyout(null)
-    if (narrow) setNavOpen(false)
     const next = moduleFromPath(location.pathname, moduleId)
     if (next !== moduleId) setModuleId(next)
     setOpenId(next)
   }
+
+  useEffect(() => {
+    if (narrow) setNavOpen(false)
+  }, [location.pathname, narrow, setNavOpen])
 
   const docHorizon = addDays(TODAY, 14)
   const alerts = [
@@ -224,10 +228,9 @@ export default function Shell() {
     function measure() {
       const railNow = !navOpen && !narrow
       if (railNow) return
-      const active = root.querySelector<HTMLElement>(".nav-pages.open .nav-link.active")
+      const active = root.querySelector<HTMLElement>(".nav-mod.page-active, .nav-pages.open .nav-link.active")
       const box = active?.getBoundingClientRect()
       if (!active || !box || box.height < 8) {
-        setPill(null)
         return
       }
       const navBox = root.getBoundingClientRect()
@@ -308,6 +311,11 @@ export default function Shell() {
   }
 
   function activate(mod: (typeof tree)[number], open: boolean) {
+    if (mod.accordionOnly) {
+      if (rail) armFly(mod.id)
+      else setOpenId(open ? null : mod.id)
+      return
+    }
     if (!rail && open && mod.id !== "tender" && mod.id !== "techizat") {
       setOpenId(null)
       return
@@ -320,6 +328,7 @@ export default function Shell() {
 
   return (
     <div className={navOpen ? "app" : "app nav-shut"}>
+      <a className="skip-link" href="#main-content">Məzmuna keç</a>
       {narrow && navOpen && <button type="button" className="scrim" aria-label={t("shell.closeMenu")} onClick={() => setNavOpen(false)} />}
       <aside className={navOpen ? "sidebar open" : "sidebar"}>
         <button type="button" className="nav-toggle" aria-label={navOpen ? t("shell.closeMenu") : t("shell.menu")} aria-expanded={navOpen} onClick={toggleNav}>
@@ -333,9 +342,9 @@ export default function Shell() {
               <small>Connected construction</small>
             </div>
           </div>
-          <nav ref={navRef} className={pill ? "has-pill" : ""}>
-            {pill && openId === moduleId && (
-              <span className={glide ? "nav-pill glide" : "nav-pill"} style={{ width: pill.w, height: pill.h, transform: `translate(${pill.x}px, ${pill.y}px)` }} />
+          <nav ref={navRef} className={pill && openId === moduleId && !rail ? "has-pill" : ""}>
+            {pill && (
+              <span aria-hidden="true" className={glide ? "nav-pill glide" : "nav-pill"} style={{ width: pill.w, height: pill.h, transform: `translate(${pill.x}px, ${pill.y}px)`, opacity: openId === moduleId && !rail ? 1 : 0 }} />
             )}
             {tree.length === 0 && <p className="nav-empty">{t("shell.navEmpty")}</p>}
             {tree.map((mod) => {
@@ -343,8 +352,9 @@ export default function Shell() {
               return (
                 <div key={mod.id} className={open ? "nav-module open" : "nav-module"}>
                   <div
-                    className={mod.id === moduleId ? "nav-mod on" : "nav-mod"}
-                    role="link"
+                    className={`nav-mod${mod.id === moduleId ? " on" : ""}${!mod.accordionOnly && location.pathname === mod.to ? " page-active" : ""}`}
+                    role={mod.accordionOnly ? "button" : "link"}
+                    aria-current={!mod.accordionOnly && location.pathname === mod.to ? "page" : undefined}
                     tabIndex={0}
                     aria-expanded={open}
                     onClick={() => activate(mod, open)}
@@ -363,7 +373,7 @@ export default function Shell() {
                   >
                     <Icon name={mod.icon} />
                     <span>{t(mod.label)}</span>
-                    <button
+                    {mod.accordionOnly ? <span className="nav-chev" aria-hidden="true"><Icon name="chevron" /></span> : <button
                       type="button"
                       className="nav-chev"
                       aria-label={open ? "Bağla" : "Aç"}
@@ -374,7 +384,7 @@ export default function Shell() {
                       }}
                     >
                       <Icon name="chevron" />
-                    </button>
+                    </button>}
                   </div>
                   <div className={!rail && openId === mod.id ? "nav-pages open" : "nav-pages"}>
                     <div className="nav-pages-clip">
@@ -524,13 +534,13 @@ export default function Shell() {
               </div>
             </div>
           </header>
-          <div className="content">
+          <PageTransition transitionKey={`${location.pathname}:${new URLSearchParams(location.search).get("offer") ?? ""}:${new URLSearchParams(location.search).get("order") ?? ""}`}>
             {locked.includes(moduleId) ? (
               <p className="form-error">Bu modul abunə ödənilənə qədər bağlıdır. Abunə səhifəsindən paket seçib ödəniş sənədini qeyd edin.</p>
             ) : (
               <Outlet key={orgs.activeId || "none"} />
             )}
-          </div>
+          </PageTransition>
         </div>
       </div>
       {notice && (

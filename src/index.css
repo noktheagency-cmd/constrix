@@ -1,87 +1,4 @@
-:root {
-  --bg: #e7eef2;
-  --rail: #0e2a43;
-  --surface: #ffffff;
-  --ink: #10263c;
-  --muted: #5c7080;
-  --faint: #7d909e;
-  --line: #d5e2e8;
-  --line-strong: #c3d4dc;
-  --row-rule: #e8f0f3;
-  --copper: #0e2a43;
-  --copper-ink: #0e2a43;
-  --copper-hover: #163e5c;
-  --copper-soft: #e5f7f5;
-  --pine: #0f8f84;
-  --pine-soft: #e5f7f5;
-  --gold: #b36b00;
-  --gold-soft: #fff4dc;
-  --rose: #c4233a;
-  --rose-ink: #9f1d30;
-  --rose-soft: #fdecef;
-  --stone: #5c7080;
-  --stone-soft: #e8eef2;
-  --sidebar: var(--rail);
-  --raised: #ffffff;
-  --cream: #ffffff;
-  --accent-light: #2ec4b6;
-  --track: #d7e4ea;
-  --track-strong: #c3d4dc;
-  --bar: #2ec4b6;
-  --hover: #f3f8f8;
-  --drawer: #ffffff;
-  --field: #eef5f6;
-  --focus: rgba(46, 196, 182, 0.28);
-  --toast: #0e2a43;
-  --toast-ink: #ffffff;
-  --overlay: rgba(14, 42, 67, 0.42);
-  --shadow: 0 4px 6px -1px rgba(14, 42, 67, 0.08), 0 12px 32px -8px rgba(14, 42, 67, 0.16);
-  --card-shadow: 0 1px 2px rgba(14, 42, 67, 0.04), 0 2px 6px -2px rgba(14, 42, 67, 0.06), 0 8px 20px -8px rgba(14, 42, 67, 0.1);
-  --serif: Inter, "Segoe UI", sans-serif;
-  --mono: "IBM Plex Mono", ui-monospace, monospace;
-  color-scheme: light;
-}
-
-[data-theme="dark"] {
-  color-scheme: dark;
-  --bg: #071820;
-  --rail: #0e2a43;
-  --surface: #10283d;
-  --ink: #f4fbfa;
-  --muted: #b7c9d0;
-  --faint: #8aa3ad;
-  --line: #1d415c;
-  --line-strong: #27526f;
-  --row-rule: #16364d;
-  --copper: #2ec4b6;
-  --copper-ink: #062028;
-  --copper-hover: #5ad8cc;
-  --copper-soft: #123f45;
-  --pine: #3ddecb;
-  --pine-soft: #123f45;
-  --gold: #e3a84a;
-  --gold-soft: #3a2c12;
-  --rose: #f07a8a;
-  --rose-ink: #ffc4cc;
-  --rose-soft: #3a1d24;
-  --stone: #b7c9d0;
-  --stone-soft: #16364d;
-  --raised: #123049;
-  --cream: #123049;
-  --track: #1d415c;
-  --track-strong: #27526f;
-  --bar: #2ec4b6;
-  --hover: #16364d;
-  --drawer: #123049;
-  --field: #0c2236;
-  --focus: rgba(46, 196, 182, 0.32);
-  --overlay: rgba(0, 0, 0, 0.62);
-  --shadow: 0 8px 28px rgba(0, 0, 0, 0.45);
-  --card-shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 8px 24px -12px rgba(0, 0, 0, 0.6);
-  --toast: #f3f7fa;
-  --toast-ink: #0e2a43;
-}
-
+/* Domain-specific layouts. Shared tokens and components live in styles/system.css. */
 * { box-sizing: border-box; }
 html, body, #root { height: 100%; overflow: hidden; }
 body {
@@ -588,7 +505,6 @@ a { color: inherit; }
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: 0;
-  border-top-left-radius: 12px !important;
   padding-left: 12px;
   overflow: hidden;
 }

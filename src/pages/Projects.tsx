@@ -1,3 +1,4 @@
+import { Button, Input, Metric, SearchInput, StatGrid, TableContainer, Textarea, Toolbar } from "../components/primitives"
 import { useState, type FormEvent } from "react"
 import { DateField } from "../DateField"
 import { Link } from "react-router-dom"
@@ -63,7 +64,7 @@ export default function Projects() {
   useTitle(t("page.projects.title"))
   const store = useStore()
   const { query, projects, clients, smetas, documents, actor } = store
-  const [tab, setTab] = useState("kart")
+  const [tab, setTab] = useState("reyestr")
   const [filter, setFilter] = useState("hamisi")
   const [openId, setOpenId] = useState<string | null>(null)
   const [form, setForm] = useState<NewProjectForm | null>(null)
@@ -127,37 +128,44 @@ export default function Projects() {
   return (
     <>
       <PageHead kicker={t("page.projects.kicker")} title={t("page.projects.title")} text={t("page.projects.text")}>
-        <button type="button" className="btn" onClick={create}>
-          <Icon name="plus" /> Layihə
-        </button>
+        <Button type="button" onClick={create}>
+          <Icon name="plus" /> Yeni layihə
+        </Button>
       </PageHead>
-      <div className="toolbar">
+      <StatGrid>
+        <Metric><span>Bütün layihələr</span><strong>{projects.length}</strong></Metric>
+        <Metric><span>Aktiv</span><strong>{projects.filter((project) => project.status === "aktiv").length}</strong></Metric>
+        <Metric><span>Gecikir</span><strong>{projects.filter((project) => project.status === "gecikir").length}</strong></Metric>
+        <Metric><span>Təhvilə yaxın</span><strong>{projects.filter((project) => project.status === "tehvil").length}</strong></Metric>
+      </StatGrid>
+      <Toolbar>
         <Tabs
           value={tab}
           onChange={setTab}
           options={[
-            { id: "kart", label: "Kartlar" },
             { id: "reyestr", label: "Reyestr" },
+            { id: "kart", label: "Kartlar" },
             { id: "hecm", label: "Həcm" },
             { id: "sened", label: "Sənədlər" },
             { id: "jurnal", label: "Jurnal" },
           ]}
         />
+        <SearchInput value={query} onChange={(event) => store.setQuery(event.target.value)} placeholder="Layihə axtar..." />
         {(tab === "kart" || tab === "reyestr") && (
           <Select value={filter} onValueChange={setFilter} options={STATUSES.map((item) => ({ value: item.id, label: item.label }))} ariaLabel="Status" compact />
         )}
         {tab === "sened" && (
-          <button type="button" className="btn" onClick={() => { setError(""); setPaper({ ...emptyPaper, id: "", projectId: projects[0]?.id || "" }) }}>
+          <Button type="button" onClick={() => { setError(""); setPaper({ ...emptyPaper, id: "", projectId: projects[0]?.id || "" }) }}>
             Sənəd
-          </button>
+          </Button>
         )}
         {tab === "jurnal" && (
-          <button type="button" className="btn" onClick={() => { setError(""); setNote({ projectId: projects[0]?.id || "", id: "", text: "" }) }}>
+          <Button type="button" onClick={() => { setError(""); setNote({ projectId: projects[0]?.id || "", id: "", text: "" }) }}>
             Qeyd
-          </button>
+          </Button>
         )}
         <span className="muted">{tab === "sened" ? papers.length : tab === "jurnal" ? notes.length : rows.length} sətir</span>
-      </div>
+      </Toolbar>
 
       {tab === "kart" && rows.length === 0 && <Empty title="Layihə tapılmadı" text="Yeni layihə açın və ya filtri dəyişin." />}
       {tab === "kart" && (
@@ -206,7 +214,7 @@ export default function Projects() {
       )}
 
       {tab === "reyestr" && (
-        <div className="table-wrap">
+        <TableContainer>
           <table>
             <thead>
               <tr>
@@ -247,11 +255,11 @@ export default function Projects() {
             </tbody>
           </table>
           {rows.length === 0 && <Empty title="Layihə tapılmadı" text="Yeni layihə açın və ya filtri dəyişin." />}
-        </div>
+        </TableContainer>
       )}
 
       {tab === "hecm" && (
-        <div className="table-wrap">
+        <TableContainer>
           <table>
             <thead>
               <tr>
@@ -286,11 +294,11 @@ export default function Projects() {
               })}
             </tbody>
           </table>
-        </div>
+        </TableContainer>
       )}
 
       {tab === "sened" && (
-        <div className="table-wrap">
+        <TableContainer>
           <table>
             <thead>
               <tr>
@@ -318,9 +326,9 @@ export default function Projects() {
                       <span className="deal-actions">
                         <Badge status={doc.status} />
                         {doc.status === "gozleyir" && canSign && (
-                          <button type="button" className="btn small" onClick={() => store.decideDocument(doc.id, "tesdiq")}>
+                          <Button type="button" className="small" onClick={() => store.decideDocument(doc.id, "tesdiq")}>
                             Təsdiqlə
-                          </button>
+                          </Button>
                         )}
                       </span>
                     </td>
@@ -338,11 +346,11 @@ export default function Projects() {
             </tbody>
           </table>
           {papers.length === 0 && <Empty title="Sənəd yoxdur" text="Yeni sənəd gözləyən statusu ilə açılır." />}
-        </div>
+        </TableContainer>
       )}
 
       {tab === "jurnal" && (
-        <div className="table-wrap">
+        <TableContainer>
           <table>
             <thead>
               <tr>
@@ -371,19 +379,19 @@ export default function Projects() {
             </tbody>
           </table>
           {notes.length === 0 && <Empty title="Qeyd yoxdur" text="Layihə jurnalına qeyd yazın." />}
-        </div>
+        </TableContainer>
       )}
 
       {open && (
         <Drawer title={open.name} onClose={() => setOpenId(null)}>
           <div className="form-actions" style={{ justifyContent: "flex-start" }}>
             <Badge status={open.status} />
-            <button type="button" className="btn small" onClick={() => edit(open)}>
+            <Button type="button" className="small" onClick={() => edit(open)}>
               <Icon name="edit" /> Redaktə
-            </button>
-            <button type="button" className="btn small ghost" onClick={() => store.removeProject(open.id)}>
+            </Button>
+            <Button type="button" className="small ghost" onClick={() => store.removeProject(open.id)}>
               <Icon name="trash" /> Sil
-            </button>
+            </Button>
             <Link to={`/layiheler/${open.id}`} className="btn small ghost">Layihəni aç</Link>
           </div>
           <dl className="kv" style={{ marginTop: 16 }}>
@@ -417,7 +425,7 @@ export default function Projects() {
         <Modal title={formId ? "Layihəni yaz" : "Yeni layihə"} onClose={() => setForm(null)} className={formId ? "sheet" : "sheet project-modal"}>
           <form className="form" onSubmit={saveProject}>
             <Field label="Ad">
-              <input value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} />
+              <Input value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} />
             </Field>
             {!formId && (
               <Field label="Sifarişçi">
@@ -429,43 +437,43 @@ export default function Projects() {
                     placeholder="Sifarişçi seçin"
                   />
                 ) : (
-                  <input value={form.client} onChange={(event) => setForm({ ...form, client: event.target.value })} />
+                  <Input value={form.client} onChange={(event) => setForm({ ...form, client: event.target.value })} />
                 )}
               </Field>
             )}
             <Field label="Ünvan">
-              <input value={form.address} onChange={(event) => setForm({ ...form, address: event.target.value })} />
+              <Input value={form.address} onChange={(event) => setForm({ ...form, address: event.target.value })} />
             </Field>
             <Field label="Rəhbər">
-              <input value={form.manager} onChange={(event) => setForm({ ...form, manager: event.target.value })} />
+              <Input value={form.manager} onChange={(event) => setForm({ ...form, manager: event.target.value })} />
             </Field>
             <div className="split">
               <Field label="Rayon">
-                <input value={form.district} onChange={(event) => setForm({ ...form, district: event.target.value })} />
+                <Input value={form.district} onChange={(event) => setForm({ ...form, district: event.target.value })} />
               </Field>
               <Field label="Şəhər">
-                <input value={form.city} onChange={(event) => setForm({ ...form, city: event.target.value })} />
+                <Input value={form.city} onChange={(event) => setForm({ ...form, city: event.target.value })} />
               </Field>
             </div>
             <div className="split">
               <Field label="Növ">
-                <input value={form.type} onChange={(event) => setForm({ ...form, type: event.target.value })} />
+                <Input value={form.type} onChange={(event) => setForm({ ...form, type: event.target.value })} />
               </Field>
               <Field label="Mərhələ">
-                <input value={form.phase} onChange={(event) => setForm({ ...form, phase: event.target.value })} />
+                <Input value={form.phase} onChange={(event) => setForm({ ...form, phase: event.target.value })} />
               </Field>
             </div>
             <div className="split">
               <Field label="Mərtəbə">
-                <input type="number" min="0" value={form.floors} onChange={(event) => setForm({ ...form, floors: event.target.value })} />
+                <Input type="number" min="0" value={form.floors} onChange={(event) => setForm({ ...form, floors: event.target.value })} />
               </Field>
               <Field label="Sahə, m²">
-                <input type="number" min="0" value={form.area} onChange={(event) => setForm({ ...form, area: event.target.value })} />
+                <Input type="number" min="0" value={form.area} onChange={(event) => setForm({ ...form, area: event.target.value })} />
               </Field>
             </div>
             {!formId && (
               <Field label="Büdcə, ₼">
-                <input type="number" min="0" value={form.budget} onChange={(event) => setForm({ ...form, budget: event.target.value })} />
+                <Input type="number" min="0" value={form.budget} onChange={(event) => setForm({ ...form, budget: event.target.value })} />
               </Field>
             )}
             <Field label="Status">
@@ -490,8 +498,8 @@ export default function Projects() {
             </div>
             {error && <p className="form-error">{error}</p>}
             <div className="form-actions">
-              <button type="button" className="btn ghost" onClick={() => setForm(null)}>Bağla</button>
-              <button className="btn" type="submit" disabled={saving}>{saving ? "Yazılır" : "Saxla"}</button>
+              <Button type="button" className="ghost" onClick={() => setForm(null)}>Bağla</Button>
+              <Button  type="submit" disabled={saving}>{saving ? "Yazılır" : "Saxla"}</Button>
             </div>
           </form>
         </Modal>
@@ -509,12 +517,12 @@ export default function Projects() {
               />
             </Field>
             <Field label="Mətn">
-              <textarea value={note.text} onChange={(event) => setNote({ ...note, text: event.target.value })} />
+              <Textarea value={note.text} onChange={(event) => setNote({ ...note, text: event.target.value })} />
             </Field>
             {error && <p className="form-error">{error}</p>}
             <div className="form-actions">
-              <button type="button" className="btn ghost" onClick={() => setNote(null)}>Bağla</button>
-              <button className="btn" type="submit">Saxla</button>
+              <Button type="button" className="ghost" onClick={() => setNote(null)}>Bağla</Button>
+              <Button  type="submit">Saxla</Button>
             </div>
           </form>
         </Modal>
@@ -527,7 +535,7 @@ export default function Projects() {
               <Select value={paper.projectId} onValueChange={(value) => setPaper({ ...paper, projectId: value })} options={projects.map((item) => ({ value: item.id, label: item.name }))} />
             </Field>
             <Field label="Başlıq">
-              <input value={paper.title} onChange={(event) => setPaper({ ...paper, title: event.target.value })} />
+              <Input value={paper.title} onChange={(event) => setPaper({ ...paper, title: event.target.value })} />
             </Field>
             <div className="split">
               <Field label="Növ">
@@ -543,8 +551,8 @@ export default function Projects() {
             </div>
             {error && <p className="form-error">{error}</p>}
             <div className="form-actions">
-              <button type="button" className="btn ghost" onClick={() => setPaper(null)}>Bağla</button>
-              <button className="btn" type="submit">Saxla</button>
+              <Button type="button" className="ghost" onClick={() => setPaper(null)}>Bağla</Button>
+              <Button  type="submit">Saxla</Button>
             </div>
           </form>
         </Modal>

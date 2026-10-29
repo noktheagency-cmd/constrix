@@ -1386,6 +1386,20 @@ export class PlatformService {
     });
   }
 
+  async marketRfqs(ctx: TenantCtx) {
+    const organizationId = this.tenant.requireOrg(ctx);
+    return this.prisma.priceInquiry.findMany({
+      where: { organizationId },
+      include: {
+        lines: true,
+        supplier: { select: { name: true } },
+        bids: { include: { organization: { select: { name: true } } } },
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 100,
+    });
+  }
+
   async placeBid(ctx: TenantCtx, inquiryId: string, body: Record<string, unknown>) {
     this.tenant.allow(ctx, 'inquiry');
     const inquiry = await this.prisma.priceInquiry.findFirst({

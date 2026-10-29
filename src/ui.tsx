@@ -1,3 +1,4 @@
+import { ToneBadge } from "./components/ToneBadge"
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react"
 import { createPortal } from "react-dom"
 import * as SelectPrimitive from "@radix-ui/react-select"
@@ -239,7 +240,7 @@ export function Badge({ status }: { status: string }) {
   const { t } = usePrefs()
   const key = `status.${status}`
   const label = labels[status] ? t(key) : status
-  return <span className={`badge ${tones[status] || "stone"}`}>{label}</span>
+  return <ToneBadge tone={tones[status] || "stone"}>{label}</ToneBadge>
 }
 
 const EMPTY = "\u0000"
@@ -325,7 +326,6 @@ export function Select({
 }
 
 export function PageHead({
-  kicker,
   title,
   text,
   children,
@@ -338,7 +338,6 @@ export function PageHead({
   return (
     <header className="page-head">
       <div>
-        {kicker && <p className="eyebrow">{kicker}</p>}
         <h1>{title}</h1>
         {text && <p className="lede">{text}</p>}
       </div>
@@ -374,57 +373,50 @@ export function Empty({ title, text }: { title: string; text: string }) {
   )
 }
 
-export function Tabs({
-  value,
-  onChange,
-  options,
-}: {
+export function Tabs({ value, onChange, options }: {
   value: string
   onChange: (id: string) => void
   options: { id: string; label: string }[]
 }) {
   const listRef = useRef<HTMLDivElement>(null)
-  const [pill, setPill] = useState<{ x: number; y: number; w: number; h: number } | null>(null)
-  const [glide, setGlide] = useState(false)
-  const signature = options.map((option) => option.id).join("\n")
+  const indicatorRef = useRef<HTMLSpanElement>(null)
+  const optionKey = JSON.stringify(options)
 
   useLayoutEffect(() => {
-    const root = listRef.current
-    const active = root?.querySelector<HTMLElement>("button.on")
-    if (!root || !active) {
-      setPill(null)
-      return
+    const list = listRef.current
+    const indicator = indicatorRef.current
+    if (!list || !indicator) return
+    let live = true
+    const measure = () => {
+      if (!live) return
+      const selected = list.querySelector<HTMLButtonElement>('[aria-selected="true"]')
+      indicator.style.visibility = selected ? "visible" : "hidden"
+      if (!selected) return
+      indicator.style.width = `${selected.offsetWidth}px`
+      indicator.style.transform = `translateX(${selected.offsetLeft}px)`
     }
-    setPill({ x: active.offsetLeft, y: active.offsetTop, w: active.offsetWidth, h: active.offsetHeight })
-  }, [value, signature])
-
-  useEffect(() => {
-    const root = listRef.current
-    if (!root) return
-    const frame = requestAnimationFrame(() => setGlide(true))
-    const observer = new ResizeObserver(() => {
-      const active = root.querySelector<HTMLElement>("button.on")
-      if (!active) return
-      setPill({ x: active.offsetLeft, y: active.offsetTop, w: active.offsetWidth, h: active.offsetHeight })
-    })
-    observer.observe(root)
-    return () => {
-      cancelAnimationFrame(frame)
-      observer.disconnect()
-    }
-  }, [])
+    measure()
+    const observer = new ResizeObserver(measure)
+    observer.observe(list)
+    list.querySelectorAll("button").forEach((button) => observer.observe(button))
+    void document.fonts.ready.then(measure)
+    return () => { live = false; observer.disconnect() }
+  }, [value, optionKey])
 
   return (
-    <div className="tabs" role="tablist" ref={listRef}>
-      {pill && (
-        <span
-          className={glide ? "tabs-pill glide" : "tabs-pill"}
-          style={{ width: pill.w, height: pill.h, transform: `translate(${pill.x}px, ${pill.y}px)` }}
-          aria-hidden="true"
-        />
-      )}
+    <div className="tabs" role="tablist" ref={listRef} onKeyDown={(event) => {
+      if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return
+      event.preventDefault()
+      const current = options.findIndex((option) => option.id === value)
+      const next = event.key === "Home" ? 0 : event.key === "End" ? options.length - 1 : (current + (event.key === "ArrowRight" ? 1 : -1) + options.length) % options.length
+      const option = options[next]
+      if (!option) return
+      onChange(option.id)
+      listRef.current?.querySelectorAll<HTMLButtonElement>("button")[next]?.focus()
+    }}>
+      <span className="tabs-indicator" aria-hidden="true" ref={indicatorRef} />
       {options.map((option) => (
-        <button key={option.id} type="button" role="tab" aria-selected={value === option.id} className={value === option.id ? "on" : ""} onClick={() => onChange(option.id)}>
+        <button key={option.id} type="button" role="tab" aria-selected={value === option.id} tabIndex={value === option.id ? 0 : -1} className={value === option.id ? "on" : ""} onClick={() => onChange(option.id)}>
           {option.label}
         </button>
       ))}
@@ -554,8 +546,37 @@ export function RowMenu({ label = "Əməliyyat", items }: { label?: string; item
   )
 }
 
+function useDialogFocus<T extends HTMLElement>() {
+  const ref = useRef<T>(null)
+  useEffect(() => {
+    const dialog = ref.current
+    if (!dialog) return
+    const previous = document.activeElement instanceof HTMLElement ? document.activeElement : null
+    const focusable = () => [...dialog.querySelectorAll<HTMLElement>('button, a[href], input, select, textarea, [tabindex]')]
+      .filter((element) => element.tabIndex >= 0 && !element.hasAttribute("disabled") && element.getClientRects().length > 0)
+    const frame = requestAnimationFrame(() => (focusable()[0] ?? dialog).focus({ preventScroll: true }))
+    function trap(event: KeyboardEvent) {
+      if (event.key !== "Tab" || [...document.querySelectorAll('[aria-modal="true"]')].at(-1) !== dialog) return
+      const elements = focusable()
+      const first = elements[0]
+      const last = elements.at(-1)
+      if (!first || !last) { event.preventDefault(); dialog?.focus(); return }
+      if (event.shiftKey && (document.activeElement === first || document.activeElement === dialog)) { event.preventDefault(); last.focus() }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus() }
+    }
+    dialog.addEventListener("keydown", trap)
+    return () => {
+      cancelAnimationFrame(frame)
+      dialog.removeEventListener("keydown", trap)
+      if (previous?.isConnected) previous.focus()
+    }
+  }, [])
+  return ref
+}
+
 export function Modal({ title, onClose, children, className = "", wide = false }: { title: string; onClose: () => void; children: ReactNode; className?: string; wide?: boolean }) {
   const { t } = usePrefs()
+  const dialogRef = useDialogFocus<HTMLDivElement>()
   useEffect(() => {
     function onKey(event: KeyboardEvent) {
       if (event.key === "Escape") onClose()
@@ -566,7 +587,7 @@ export function Modal({ title, onClose, children, className = "", wide = false }
 
   return (
     <div className="overlay center" onClick={onClose}>
-      <div className={`modal ${wide ? "wide" : ""} ${className}`.trim()} role="dialog" aria-modal="true" aria-label={title} onClick={(event) => event.stopPropagation()}>
+      <div ref={dialogRef} tabIndex={-1} className={`modal ${wide ? "wide" : ""} ${className}`.trim()} role="dialog" aria-modal="true" aria-label={title} onClick={(event) => event.stopPropagation()}>
         <div className="dialog-head">
           <h2>{title}</h2>
           <button type="button" className="icon-btn" onClick={onClose} aria-label={t("close")}>
@@ -579,13 +600,23 @@ export function Modal({ title, onClose, children, className = "", wide = false }
   )
 }
 
-export function Drawer({ title, onClose, children }: { title: string; onClose: () => void; children: ReactNode }) {
+export function Drawer({ title, onClose, children, className = "" }: { title: string; onClose: () => void; children: ReactNode; className?: string }) {
   const { t } = usePrefs()
+  const dialogRef = useDialogFocus<HTMLElement>()
   const closeRef = useRef(onClose)
   const leaveTimer = useRef(0)
   const leaving = useRef(false)
   const [closing, setClosing] = useState(false)
+  const [entered, setEntered] = useState(false)
   closeRef.current = onClose
+
+  useLayoutEffect(() => {
+    let nextFrame = 0
+    const firstFrame = requestAnimationFrame(() => {
+      nextFrame = requestAnimationFrame(() => setEntered(true))
+    })
+    return () => { cancelAnimationFrame(firstFrame); cancelAnimationFrame(nextFrame) }
+  }, [])
 
   function requestClose() {
     if (leaving.current) return
@@ -593,7 +624,7 @@ export function Drawer({ title, onClose, children }: { title: string; onClose: (
     setClosing(true)
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches
     window.clearTimeout(leaveTimer.current)
-    leaveTimer.current = window.setTimeout(() => closeRef.current(), reduce ? 0 : 320)
+    leaveTimer.current = window.setTimeout(() => closeRef.current(), reduce ? 0 : 520)
   }
 
   const requestRef = useRef(requestClose)
@@ -610,8 +641,8 @@ export function Drawer({ title, onClose, children }: { title: string; onClose: (
   useEffect(() => () => window.clearTimeout(leaveTimer.current), [])
 
   return (
-    <div className={`overlay drawer-overlay${closing ? " out" : ""}`} onClick={requestClose}>
-      <aside className="drawer" role="dialog" aria-modal="true" aria-label={title} onClick={(event) => event.stopPropagation()}>
+    <div className={`overlay drawer-overlay${entered ? " entered" : ""}${closing ? " out" : ""}`} onClick={requestClose}>
+      <aside ref={dialogRef} tabIndex={-1} className={`drawer ${className}`.trim()} role="dialog" aria-modal="true" aria-label={title} onClick={(event) => event.stopPropagation()}>
         <div className="dialog-head">
           <h2>{title}</h2>
           <button type="button" className="icon-btn" onClick={requestClose} aria-label={t("close")}>

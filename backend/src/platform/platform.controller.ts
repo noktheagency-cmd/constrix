@@ -119,6 +119,11 @@ export class PlatformController {
     return this.platform.market(await this.ctx(request), category);
   }
 
+  @Get('market/rfqs')
+  async marketRfqs(@Req() request: RequestUser) {
+    return this.platform.marketRfqs(await this.ctx(request));
+  }
+
   @Post('market/products/:id/price')
   async quote(
     @Req() request: RequestUser,

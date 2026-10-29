@@ -1,3 +1,4 @@
+import { Button, Input, TableContainer, Toolbar } from "../components/primitives"
 import { useMemo, useState, type FormEvent } from "react"
 import { Link } from "react-router-dom"
 import { DateField } from "../DateField"
@@ -61,11 +62,11 @@ export default function PurchaseActs() {
     <div className="forma-page">
       <PageHead kicker={t("page.purchaseActs.kicker")} title={t("page.purchaseActs.title")} text={t("page.purchaseActs.text")}>
         <Link className="btn ghost" to="/anbar">Anbar</Link>
-        <button type="button" className="btn" onClick={() => { setError(""); setReading({ kind: "new" }) }}>
+        <Button type="button" onClick={() => { setError(""); setReading({ kind: "new" }) }}>
           <Icon name="plus" /> Alış aktı
-        </button>
+        </Button>
       </PageHead>
-      <div className="toolbar">
+      <Toolbar>
         <Tabs
           value={tab}
           onChange={(next) => { setTab(next as Tab); setReading(null); setError("") }}
@@ -76,10 +77,10 @@ export default function PurchaseActs() {
           ]}
         />
         <span className="muted">{rows.filter((item) => item.status === "qaralama").length} qaralama · {money(rows.reduce((sum, item) => sum + item.net, 0))}</span>
-      </div>
+      </Toolbar>
 
       {tab === "aktlar" && (
-        <div className="table-wrap wide">
+        <TableContainer className="wide">
           <table>
             <thead>
               <tr>
@@ -119,11 +120,11 @@ export default function PurchaseActs() {
             </tbody>
           </table>
           {rows.length === 0 && <Empty title="Alış aktı yoxdur" text="Sahəyə alınan malı bu sənədlə yazın." />}
-        </div>
+        </TableContainer>
       )}
 
       {tab === "umumi" && (
-        <div className="table-wrap wide">
+        <TableContainer className="wide">
           <table>
             <thead>
               <tr>
@@ -153,11 +154,11 @@ export default function PurchaseActs() {
             </tbody>
           </table>
           {ledger.length === 0 && <Empty title="Reyestr boşdur" text="Təsdiqlənmiş aktların sətirləri burada toplanır." />}
-        </div>
+        </TableContainer>
       )}
 
       {tab === "elave" && (
-        <div className="table-wrap wide">
+        <TableContainer className="wide">
           <table>
             <thead>
               <tr>
@@ -185,7 +186,7 @@ export default function PurchaseActs() {
             </tbody>
           </table>
           {adjusts.length === 0 && <Empty title="Əlavə yoxdur" text="Qiymət fərqi olan aktlar burada görünür." />}
-        </div>
+        </TableContainer>
       )}
 
       {act && (
@@ -260,7 +261,7 @@ function ActComposer({
     <Drawer title="Yeni alış aktı" onClose={onClose}>
       <form className="form" onSubmit={submit}>
         <Field label="Obyekt">
-          <input value={form.objectName} onChange={(event) => setForm({ ...form, objectName: event.target.value })} placeholder="Xocalı evlər (45 Ev)" required />
+          <Input value={form.objectName} onChange={(event) => setForm({ ...form, objectName: event.target.value })} placeholder="Xocalı evlər (45 Ev)" required />
         </Field>
         <Field label="Layihə">
           <Select
@@ -270,12 +271,12 @@ function ActComposer({
           />
         </Field>
         <Field label="Məsul">
-          <input value={form.person} onChange={(event) => setForm({ ...form, person: event.target.value })} placeholder="Tapdıq / Sakit" />
+          <Input value={form.person} onChange={(event) => setForm({ ...form, person: event.target.value })} placeholder="Tapdıq / Sakit" />
         </Field>
         <Field label="Tarix">
           <DateField value={form.date} onChange={(value) => setForm({ ...form, date: value })} />
         </Field>
-        <div className="table-wrap">
+        <TableContainer>
           <table>
             <thead>
               <tr>
@@ -289,21 +290,21 @@ function ActComposer({
             <tbody>
               {form.lines.map((line, index) => (
                 <tr key={index}>
-                  <td><input value={line.materialName} onChange={(event) => setForm({ ...form, lines: form.lines.map((row, i) => i === index ? { ...row, materialName: event.target.value } : row) })} /></td>
-                  <td><input value={line.unit} onChange={(event) => setForm({ ...form, lines: form.lines.map((row, i) => i === index ? { ...row, unit: event.target.value } : row) })} /></td>
-                  <td><input value={line.qty} inputMode="decimal" onChange={(event) => setForm({ ...form, lines: form.lines.map((row, i) => i === index ? { ...row, qty: event.target.value } : row) })} /></td>
-                  <td><input value={line.unitPrice} inputMode="decimal" onChange={(event) => setForm({ ...form, lines: form.lines.map((row, i) => i === index ? { ...row, unitPrice: event.target.value } : row) })} /></td>
-                  <td><input value={line.firmName} onChange={(event) => setForm({ ...form, lines: form.lines.map((row, i) => i === index ? { ...row, firmName: event.target.value } : row) })} /></td>
+                  <td><Input value={line.materialName} onChange={(event) => setForm({ ...form, lines: form.lines.map((row, i) => i === index ? { ...row, materialName: event.target.value } : row) })} /></td>
+                  <td><Input value={line.unit} onChange={(event) => setForm({ ...form, lines: form.lines.map((row, i) => i === index ? { ...row, unit: event.target.value } : row) })} /></td>
+                  <td><Input value={line.qty} inputMode="decimal" onChange={(event) => setForm({ ...form, lines: form.lines.map((row, i) => i === index ? { ...row, qty: event.target.value } : row) })} /></td>
+                  <td><Input value={line.unitPrice} inputMode="decimal" onChange={(event) => setForm({ ...form, lines: form.lines.map((row, i) => i === index ? { ...row, unitPrice: event.target.value } : row) })} /></td>
+                  <td><Input value={line.firmName} onChange={(event) => setForm({ ...form, lines: form.lines.map((row, i) => i === index ? { ...row, firmName: event.target.value } : row) })} /></td>
                 </tr>
               ))}
             </tbody>
           </table>
-        </div>
-        <button type="button" className="btn ghost" onClick={() => setForm({ ...form, lines: [...form.lines, emptyLine()] })}>Sətir əlavə et</button>
+        </TableContainer>
+        <Button type="button" className="ghost" onClick={() => setForm({ ...form, lines: [...form.lines, emptyLine()] })}>Sətir əlavə et</Button>
         {error && <p className="form-error">{error}</p>}
         <div className="form-actions">
-          <button type="button" className="btn ghost" onClick={onClose}>Ləğv et</button>
-          <button type="submit" className="btn">Yaz</button>
+          <Button type="button" className="ghost" onClick={onClose}>Ləğv et</Button>
+          <Button type="submit" >Yaz</Button>
         </div>
       </form>
     </Drawer>
@@ -369,7 +370,7 @@ function ActDrawer({
         <p><Badge status={act.status} /></p>
         {editing ? (
           <>
-            <Field label="Obyekt"><input value={form.objectName} onChange={(event) => setForm({ ...form, objectName: event.target.value })} /></Field>
+            <Field label="Obyekt"><Input value={form.objectName} onChange={(event) => setForm({ ...form, objectName: event.target.value })} /></Field>
             <Field label="Layihə">
               <Select
                 value={form.projectId}
@@ -377,19 +378,19 @@ function ActDrawer({
                 options={[{ value: "", label: "Layihəsiz" }, ...projects.map((project) => ({ value: project.id, label: project.name }))]}
               />
             </Field>
-            <Field label="Məsul"><input value={form.person} onChange={(event) => setForm({ ...form, person: event.target.value })} /></Field>
+            <Field label="Məsul"><Input value={form.person} onChange={(event) => setForm({ ...form, person: event.target.value })} /></Field>
             <Field label="Tarix"><DateField value={form.date} onChange={(value) => setForm({ ...form, date: value })} /></Field>
             {form.lines.map((line, index) => (
               <div className="recipe-line" key={index}>
-                <input aria-label="Material" placeholder="Material" value={line.materialName} onChange={(event) => setForm({ ...form, lines: form.lines.map((row, i) => i === index ? { ...row, materialName: event.target.value } : row) })} />
+                <Input aria-label="Material" placeholder="Material" value={line.materialName} onChange={(event) => setForm({ ...form, lines: form.lines.map((row, i) => i === index ? { ...row, materialName: event.target.value } : row) })} />
                 <div className="recipe-line-qty">
-                  <input aria-label="Miqdar" value={line.qty} onChange={(event) => setForm({ ...form, lines: form.lines.map((row, i) => i === index ? { ...row, qty: event.target.value } : row) })} />
-                  <input aria-label="Qiymət" value={line.unitPrice} onChange={(event) => setForm({ ...form, lines: form.lines.map((row, i) => i === index ? { ...row, unitPrice: event.target.value } : row) })} />
-                  <input aria-label="Firma" placeholder="Firma" value={line.firmName} onChange={(event) => setForm({ ...form, lines: form.lines.map((row, i) => i === index ? { ...row, firmName: event.target.value } : row) })} />
+                  <Input aria-label="Miqdar" value={line.qty} onChange={(event) => setForm({ ...form, lines: form.lines.map((row, i) => i === index ? { ...row, qty: event.target.value } : row) })} />
+                  <Input aria-label="Qiymət" value={line.unitPrice} onChange={(event) => setForm({ ...form, lines: form.lines.map((row, i) => i === index ? { ...row, unitPrice: event.target.value } : row) })} />
+                  <Input aria-label="Firma" placeholder="Firma" value={line.firmName} onChange={(event) => setForm({ ...form, lines: form.lines.map((row, i) => i === index ? { ...row, firmName: event.target.value } : row) })} />
                 </div>
               </div>
             ))}
-            <button type="button" className="btn ghost" onClick={() => setForm({ ...form, lines: [...form.lines, emptyLine()] })}>Sətir əlavə et</button>
+            <Button type="button" className="ghost" onClick={() => setForm({ ...form, lines: [...form.lines, emptyLine()] })}>Sətir əlavə et</Button>
           </>
         ) : (
           <>
@@ -429,12 +430,12 @@ function ActDrawer({
         )}
         {error && <p className="form-error">{error}</p>}
         <div className="form-actions">
-          {act.status === "qaralama" && !editing && <button type="button" className="btn ghost" onClick={() => setEditing(true)}><Icon name="edit" /> Redaktə</button>}
-          {act.status === "qaralama" && !editing && <button type="button" className="btn ghost" onClick={onDelete}><Icon name="trash" /> Sil</button>}
-          {editing && <button type="button" className="btn ghost" onClick={() => setEditing(false)}>Ləğv et</button>}
-          {editing && <button type="button" className="btn" onClick={save}>Yaz</button>}
-          {act.status === "qaralama" && !editing && <button type="button" className="btn" onClick={onApprove}>Təsdiqlə və anbara yaz</button>}
-          {act.status === "tesdiq" && <button type="button" className="btn ghost" onClick={onReturn}>Qaralamaya qaytar</button>}
+          {act.status === "qaralama" && !editing && <Button type="button" className="ghost" onClick={() => setEditing(true)}><Icon name="edit" /> Redaktə</Button>}
+          {act.status === "qaralama" && !editing && <Button type="button" className="ghost" onClick={onDelete}><Icon name="trash" /> Sil</Button>}
+          {editing && <Button type="button" className="ghost" onClick={() => setEditing(false)}>Ləğv et</Button>}
+          {editing && <Button type="button" onClick={save}>Yaz</Button>}
+          {act.status === "qaralama" && !editing && <Button type="button" onClick={onApprove}>Təsdiqlə və anbara yaz</Button>}
+          {act.status === "tesdiq" && <Button type="button" className="ghost" onClick={onReturn}>Qaralamaya qaytar</Button>}
         </div>
       </div>
     </Drawer>

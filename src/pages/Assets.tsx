@@ -1,3 +1,4 @@
+import { Button, Input, Metric, Panel, SectionHeader, StatGrid, TableContainer, Toolbar } from "../components/primitives"
 import { useEffect, useState, type FormEvent } from "react"
 import { DateField } from "../DateField"
 import { onHand, TODAY } from "../domain/ops"
@@ -59,7 +60,7 @@ export default function Assets() {
     query, assets, drivers, trips, fuels, fleetDocs, materials, services, projects, plants, stocks, reload,
     saveVehicle, assignVehicle, saveDriver, openTrip, departTrip, arriveTrip, cancelTrip, logFuel, saveFleetDoc, openService, closeService,
   } = useStore()
-  const [tab, setTab] = useState<Tab>("icmal")
+  const [tab, setTab] = useState<Tab>("texnika")
   const [filter, setFilter] = useState("hamisi")
   const [modal, setModal] = useState<ModalKind>("")
   const [focus, setFocus] = useState("")
@@ -184,9 +185,9 @@ export default function Assets() {
   return (
     <>
       <PageHead kicker={t("page.assets.kicker")} title={t("page.assets.title")} text={t("page.assets.text", { util })}>
-        {addLabel[tab] && <button type="button" className="btn" onClick={add}>{addLabel[tab]}</button>}
+        {addLabel[tab] && <Button type="button" onClick={add}>{addLabel[tab]}</Button>}
       </PageHead>
-      <div className="toolbar">
+      <Toolbar>
         <Tabs
           value={tab}
           onChange={(id) => setTab(id as Tab)}
@@ -201,52 +202,52 @@ export default function Assets() {
             { id: "icare", label: "İcarə elanı" },
           ]}
         />
-      </div>
+      </Toolbar>
 
       {tab === "icare" && (
-        <section className="panel pad">
+        <Panel className="pad">
           <h2 className="block-title">İcarə elanı</h2>
           <p className="lede">Elan boşdur. Texnika, qiymət, yer və operator yazılanda siyahıya düşür.</p>
           <div className="form-row wide">
-            <label>Texnika<input value={rental.name} onChange={(event) => setRental({ ...rental, name: event.target.value })} /></label>
-            <label>Qiymət<input value={rental.rate} onChange={(event) => setRental({ ...rental, rate: event.target.value })} placeholder="boş" /></label>
+            <label>Texnika<Input value={rental.name} onChange={(event) => setRental({ ...rental, name: event.target.value })} /></label>
+            <label>Qiymət<Input value={rental.rate} onChange={(event) => setRental({ ...rental, rate: event.target.value })} placeholder="boş" /></label>
             <label>Vahid<Select value={rental.unit} onValueChange={(unit) => setRental({ ...rental, unit })} options={[{ value: "gün", label: "Gün" }, { value: "saat", label: "Saat" }]} /></label>
-            <label>Yer<input value={rental.place} onChange={(event) => setRental({ ...rental, place: event.target.value })} placeholder="boş" /></label>
-            <label>Operator<input value={rental.operator} onChange={(event) => setRental({ ...rental, operator: event.target.value })} placeholder="boş" /></label>
-            <button type="button" className="btn" onClick={() => { if (!rental.name.trim()) return; patch((state) => ({ ...state, rentals: [...state.rentals, { ...rental, id: uid() }] })); setRental({ name: "", rate: "", unit: "gün", place: "", operator: "" }) }}>Elan aç</button>
+            <label>Yer<Input value={rental.place} onChange={(event) => setRental({ ...rental, place: event.target.value })} placeholder="boş" /></label>
+            <label>Operator<Input value={rental.operator} onChange={(event) => setRental({ ...rental, operator: event.target.value })} placeholder="boş" /></label>
+            <Button type="button" onClick={() => { if (!rental.name.trim()) return; patch((state) => ({ ...state, rentals: [...state.rentals, { ...rental, id: uid() }] })); setRental({ name: "", rate: "", unit: "gün", place: "", operator: "" }) }}>Elan aç</Button>
           </div>
           {rentals.length === 0 && <p className="lede">Elan yoxdur.</p>}
           {rentals.map((row) => <div className="step-row" key={row.id}><span>{row.name} · {row.place.trim() || "yer yoxdur"} · {row.operator.trim() || "operator yoxdur"}</span><strong>{row.rate.trim() ? `${row.rate} AZN/${row.unit}` : "Qiymət yoxdur"}</strong></div>)}
-        </section>
+        </Panel>
       )}
 
       {tab === "icmal" && (
         <>
-          <section className="statstrip">
-            <article>
+          <StatGrid>
+            <Metric>
               <span>Aktivlər</span>
               <strong>{assets.length}</strong>
               <em>{busy.length} işlək vahid</em>
-            </article>
-            <article>
+            </Metric>
+            <Metric>
               <span>Reys</span>
               <strong>{moving.length}</strong>
               <em>{planned.length} plan gözləyir</em>
-            </article>
-            <article>
+            </Metric>
+            <Metric>
               <span>Yanacaq</span>
               <strong>{money(fuelSpend)}</strong>
               <em>{num(liters)} litr bu ay</em>
-            </article>
-            <article>
+            </Metric>
+            <Metric>
               <span>Sənəd</span>
               <strong>{dueDocs.length}</strong>
               <em className={dueDocs.length ? "warn" : ""}>14 günün içində</em>
-            </article>
-          </section>
+            </Metric>
+          </StatGrid>
           <div className="grid-2">
-            <section className="panel pad">
-              <div className="panel-head"><h2>Diqqət</h2></div>
+            <Panel className="pad">
+              <SectionHeader><h2>Diqqət</h2></SectionHeader>
               {attention === 0 && <p className="muted">Vaxtı çatan sənəd və servis yoxdur.</p>}
               <div className="mini-list">
                 {dueDocs.map((item) => (
@@ -274,9 +275,9 @@ export default function Assets() {
                   </article>
                 ))}
               </div>
-            </section>
-            <section className="panel pad">
-              <div className="panel-head"><h2>Açıq reys</h2><button type="button" className="btn small" onClick={() => startTrip()}>Reys aç</button></div>
+            </Panel>
+            <Panel className="pad">
+              <SectionHeader><h2>Açıq reys</h2><Button type="button" className="small" onClick={() => startTrip()}>Reys aç</Button></SectionHeader>
               {moving.length + planned.length === 0 && <p className="muted">Yolda və ya planda reys yoxdur.</p>}
               <div className="mini-list">
                 {[...moving, ...planned].map((item) => (
@@ -289,14 +290,14 @@ export default function Assets() {
                   </article>
                 ))}
               </div>
-            </section>
+            </Panel>
           </div>
         </>
       )}
 
       {tab === "texnika" && (
         <>
-          <div className="toolbar">
+          <Toolbar>
             <Tabs
               value={filter}
               onChange={setFilter}
@@ -309,8 +310,8 @@ export default function Assets() {
               ]}
             />
             <span className="muted">{machines.length} vahid</span>
-          </div>
-          <div className="table-wrap wide">
+          </Toolbar>
+          <TableContainer className="wide">
             <table>
               <thead>
                 <tr>
@@ -354,12 +355,12 @@ export default function Assets() {
               </tbody>
             </table>
             {machines.length === 0 && <Empty title="Texnika tapılmadı" text="Filtri və ya axtarışı dəyişin." />}
-          </div>
+          </TableContainer>
         </>
       )}
 
       {tab === "surucu" && (
-        <div className="table-wrap wide">
+        <TableContainer className="wide">
           <table>
             <thead>
               <tr>
@@ -409,11 +410,11 @@ export default function Assets() {
             </tbody>
           </table>
           {driverRows.length === 0 && <Empty title="Sürücü tapılmadı" text="Axtarışı dəyişin və ya yeni sürücü açın." />}
-        </div>
+        </TableContainer>
       )}
 
       {tab === "reys" && (
-        <div className="table-wrap wide">
+        <TableContainer className="wide">
           <table>
             <thead>
               <tr>
@@ -450,13 +451,13 @@ export default function Assets() {
             </tbody>
           </table>
           {tripRows.length === 0 && <Empty title="Reys yoxdur" text="Yol vərəqəsi açanda marşrut burada durur." />}
-        </div>
+        </TableContainer>
       )}
 
       {tab === "yanacaq" && (
         <>
           <p className="muted" style={{ marginBottom: 12 }}>Dizel anbarı {num(diesel)} litr. Yazılan dizel anbardan silinir və layihə xərcinə düşür.</p>
-          <div className="table-wrap wide">
+          <TableContainer className="wide">
             <table>
               <thead>
                 <tr>
@@ -482,12 +483,12 @@ export default function Assets() {
               </tbody>
             </table>
             {fuelRows.length === 0 && <Empty title="Yanacaq yoxdur" text="Doldurma yazılanda burada və anbar hərəkətində görünür." />}
-          </div>
+          </TableContainer>
         </>
       )}
 
       {tab === "sened" && (
-        <div className="table-wrap wide">
+        <TableContainer className="wide">
           <table>
             <thead>
               <tr>
@@ -511,11 +512,11 @@ export default function Assets() {
             </tbody>
           </table>
           {docRows.length === 0 && <Empty title="Sənəd yoxdur" text="Sığorta, texniki baxış və qeydiyyat buraya yazılır." />}
-        </div>
+        </TableContainer>
       )}
 
       {tab === "servis" && (
-        <div className="table-wrap wide">
+        <TableContainer className="wide">
           <table>
             <thead>
               <tr>
@@ -540,7 +541,7 @@ export default function Assets() {
                   <td><Badge status={item.status} /></td>
                   <td>
                     {item.status === "acik" && (
-                      <button type="button" className="btn small" onClick={() => closeService(item.assetId)}>Bağla</button>
+                      <Button type="button" className="small" onClick={() => closeService(item.assetId)}>Bağla</Button>
                     )}
                   </td>
                 </tr>
@@ -548,7 +549,7 @@ export default function Assets() {
             </tbody>
           </table>
           {services.length === 0 && <Empty title="Servis yoxdur" text="Texnika sətirindən servis açılır. Ehtiyat hissə anbardan silinir." />}
-        </div>
+        </TableContainer>
       )}
 
       {focused && (
@@ -567,15 +568,15 @@ export default function Assets() {
           <Meter value={focused.status === "servis" || focused.status === "bos" ? 0 : focused.utilization} tone={focused.status === "servis" ? "rose" : "pine"} />
           <p className="muted">Növbəti servis {dateAZ(focused.nextService)} · {money(focused.rate || 0)} / saat</p>
           <div className="deal-actions" style={{ marginTop: 12 }}>
-            <button type="button" className="btn small" onClick={() => startVehicle(focused)}>Redaktə</button>
-            <button type="button" className="btn ghost small" onClick={() => startAssign(focused)}>Təyin et</button>
-            <button type="button" className="btn ghost small" onClick={() => startTrip(focused)}>Reys</button>
-            <button type="button" className="btn ghost small" onClick={() => startFuel(focused)}>Yanacaq</button>
-            <button type="button" className="btn ghost small" onClick={() => startDoc(focused)}>Sənəd</button>
+            <Button type="button" className="small" onClick={() => startVehicle(focused)}>Redaktə</Button>
+            <Button type="button" className="ghost small" onClick={() => startAssign(focused)}>Təyin et</Button>
+            <Button type="button" className="ghost small" onClick={() => startTrip(focused)}>Reys</Button>
+            <Button type="button" className="ghost small" onClick={() => startFuel(focused)}>Yanacaq</Button>
+            <Button type="button" className="ghost small" onClick={() => startDoc(focused)}>Sənəd</Button>
             {focused.status === "servis" ? (
-              <button type="button" className="btn ghost small" onClick={() => closeService(focused.id)}>Sahəyə qaytar</button>
+              <Button type="button" className="ghost small" onClick={() => closeService(focused.id)}>Sahəyə qaytar</Button>
             ) : (
-              <button type="button" className="btn ghost small" onClick={() => startService(focused)}>Servisə al</button>
+              <Button type="button" className="ghost small" onClick={() => startService(focused)}>Servisə al</Button>
             )}
           </div>
           <div className="mini-list" style={{ marginTop: 16 }}>
@@ -593,12 +594,12 @@ export default function Assets() {
         <Modal className="sheet" title={vehicle.id ? "Texnikanı yaz" : "Texnika əlavə et"} onClose={() => setModal("")}>
           <form className="form" onSubmit={(event: FormEvent) => { event.preventDefault(); const message = saveVehicle(vehicle); setError(message); if (!message) setModal("") }}>
             <div className="split">
-              <Field label="Ad"><input value={vehicle.name} onChange={(event) => setVehicle({ ...vehicle, name: event.target.value })} /></Field>
-              <Field label="Dövlət nömrəsi"><input value={vehicle.plate} onChange={(event) => setVehicle({ ...vehicle, plate: event.target.value })} /></Field>
+              <Field label="Ad"><Input value={vehicle.name} onChange={(event) => setVehicle({ ...vehicle, name: event.target.value })} /></Field>
+              <Field label="Dövlət nömrəsi"><Input value={vehicle.plate} onChange={(event) => setVehicle({ ...vehicle, plate: event.target.value })} /></Field>
             </div>
             <div className="split">
               <Field label="Növ"><Select value={vehicle.type} onValueChange={(type) => setVehicle({ ...vehicle, type })} options={TYPES.map((item) => ({ value: item, label: item }))} /></Field>
-              <Field label="İl"><input type="number" value={vehicle.year} onChange={(event) => setVehicle({ ...vehicle, year: event.target.value })} /></Field>
+              <Field label="İl"><Input type="number" value={vehicle.year} onChange={(event) => setVehicle({ ...vehicle, year: event.target.value })} /></Field>
             </div>
             <Field label="Yer"><Select value={vehicle.site} onValueChange={(site) => setVehicle({ ...vehicle, site })} options={places.map((item) => ({ value: item, label: item }))} /></Field>
             <div className="split">
@@ -610,18 +611,18 @@ export default function Assets() {
               <Field label="Sürücü"><Select value={vehicle.driverId} onValueChange={(driverId) => setVehicle({ ...vehicle, driverId })} options={driverOptions} /></Field>
             </div>
             <div className="split">
-              <Field label="Yürüş, km"><input type="number" min="0" step="1" value={vehicle.odometer} onChange={(event) => setVehicle({ ...vehicle, odometer: event.target.value })} /></Field>
-              <Field label="Moto-saat"><input type="number" min="0" step="1" value={vehicle.hours} onChange={(event) => setVehicle({ ...vehicle, hours: event.target.value })} /></Field>
+              <Field label="Yürüş, km"><Input type="number" min="0" step="1" value={vehicle.odometer} onChange={(event) => setVehicle({ ...vehicle, odometer: event.target.value })} /></Field>
+              <Field label="Moto-saat"><Input type="number" min="0" step="1" value={vehicle.hours} onChange={(event) => setVehicle({ ...vehicle, hours: event.target.value })} /></Field>
             </div>
             <div className="split">
-              <Field label="Saat haqqı"><input type="number" min="0" step="1" value={vehicle.rate} onChange={(event) => setVehicle({ ...vehicle, rate: event.target.value })} /></Field>
-              <Field label="Litr / saat"><input type="number" min="0" step="0.1" value={vehicle.fuelPerHour} onChange={(event) => setVehicle({ ...vehicle, fuelPerHour: event.target.value })} /></Field>
+              <Field label="Saat haqqı"><Input type="number" min="0" step="1" value={vehicle.rate} onChange={(event) => setVehicle({ ...vehicle, rate: event.target.value })} /></Field>
+              <Field label="Litr / saat"><Input type="number" min="0" step="0.1" value={vehicle.fuelPerHour} onChange={(event) => setVehicle({ ...vehicle, fuelPerHour: event.target.value })} /></Field>
             </div>
             <Field label="Növbəti servis"><DateField value={vehicle.nextService} onChange={(nextService) => setVehicle({ ...vehicle, nextService })} /></Field>
             {error && <p className="form-error">{error}</p>}
             <div className="form-actions">
-              <button type="button" className="btn ghost" onClick={() => setModal("")}>Ləğv et</button>
-              <button className="btn" type="submit">Saxla</button>
+              <Button type="button" className="ghost" onClick={() => setModal("")}>Ləğv et</Button>
+              <Button  type="submit">Saxla</Button>
             </div>
           </form>
         </Modal>
@@ -637,8 +638,8 @@ export default function Assets() {
             <Field label="Sürücü"><Select value={assign.driverId} onValueChange={(driverId) => setAssign({ ...assign, driverId })} options={driverOptions} /></Field>
             {error && <p className="form-error">{error}</p>}
             <div className="form-actions">
-              <button type="button" className="btn ghost" onClick={() => setModal("")}>Ləğv et</button>
-              <button className="btn" type="submit">Təyin et</button>
+              <Button type="button" className="ghost" onClick={() => setModal("")}>Ləğv et</Button>
+              <Button  type="submit">Təyin et</Button>
             </div>
           </form>
         </Modal>
@@ -647,10 +648,10 @@ export default function Assets() {
       {modal === "driver" && (
         <Modal title={driver.id ? "Sürücünü yaz" : "Sürücü aç"} onClose={() => setModal("")}>
           <form className="form" onSubmit={(event: FormEvent) => { event.preventDefault(); const message = saveDriver(driver); setError(message); if (!message) setModal("") }}>
-            <Field label="Ad"><input value={driver.name} onChange={(event) => setDriver({ ...driver, name: event.target.value })} /></Field>
-            <Field label="Telefon"><input value={driver.phone} onChange={(event) => setDriver({ ...driver, phone: event.target.value })} /></Field>
+            <Field label="Ad"><Input value={driver.name} onChange={(event) => setDriver({ ...driver, name: event.target.value })} /></Field>
+            <Field label="Telefon"><Input value={driver.phone} onChange={(event) => setDriver({ ...driver, phone: event.target.value })} /></Field>
             <div className="split">
-              <Field label="Vəsiqə"><input value={driver.license} onChange={(event) => setDriver({ ...driver, license: event.target.value })} /></Field>
+              <Field label="Vəsiqə"><Input value={driver.license} onChange={(event) => setDriver({ ...driver, license: event.target.value })} /></Field>
               <Field label="Kateqoriya">
                 <Select value={driver.category} onValueChange={(category) => setDriver({ ...driver, category })} options={["B", "C", "CE", "D"].map((item) => ({ value: item, label: item }))} />
               </Field>
@@ -663,8 +664,8 @@ export default function Assets() {
             </div>
             {error && <p className="form-error">{error}</p>}
             <div className="form-actions">
-              <button type="button" className="btn ghost" onClick={() => setModal("")}>Ləğv et</button>
-              <button className="btn" type="submit">Saxla</button>
+              <Button type="button" className="ghost" onClick={() => setModal("")}>Ləğv et</Button>
+              <Button  type="submit">Saxla</Button>
             </div>
           </form>
         </Modal>
@@ -681,14 +682,14 @@ export default function Assets() {
               <Field label="Haraya"><Select value={trip.to} onValueChange={(to) => setTrip({ ...trip, to })} options={places.map((item) => ({ value: item, label: item }))} /></Field>
             </div>
             <div className="split">
-              <Field label="Yük"><input value={trip.cargo} onChange={(event) => setTrip({ ...trip, cargo: event.target.value })} /></Field>
-              <Field label="Yürüş, km"><input type="number" min="0" step="1" value={trip.km} onChange={(event) => setTrip({ ...trip, km: event.target.value })} /></Field>
+              <Field label="Yük"><Input value={trip.cargo} onChange={(event) => setTrip({ ...trip, cargo: event.target.value })} /></Field>
+              <Field label="Yürüş, km"><Input type="number" min="0" step="1" value={trip.km} onChange={(event) => setTrip({ ...trip, km: event.target.value })} /></Field>
             </div>
-            <Field label="Qeyd"><input value={trip.note} onChange={(event) => setTrip({ ...trip, note: event.target.value })} /></Field>
+            <Field label="Qeyd"><Input value={trip.note} onChange={(event) => setTrip({ ...trip, note: event.target.value })} /></Field>
             {error && <p className="form-error">{error}</p>}
             <div className="form-actions">
-              <button type="button" className="btn ghost" onClick={() => setModal("")}>Ləğv et</button>
-              <button className="btn" type="submit">Aç</button>
+              <Button type="button" className="ghost" onClick={() => setModal("")}>Ləğv et</Button>
+              <Button  type="submit">Aç</Button>
             </div>
           </form>
         </Modal>
@@ -700,14 +701,14 @@ export default function Assets() {
             <Field label="Texnika"><Select value={fuel.assetId} onValueChange={(assetId) => setFuel({ ...fuel, assetId })} options={assetOptions} /></Field>
             <Field label="Layihə"><Select value={fuel.project} onValueChange={(project) => setFuel({ ...fuel, project })} options={projectOptions} /></Field>
             <div className="split">
-              <Field label="Litr"><input type="number" min="0" step="0.1" value={fuel.liters} onChange={(event) => setFuel({ ...fuel, liters: event.target.value })} /></Field>
-              <Field label="Sayğac"><input type="number" min="0" step="1" value={fuel.reading} onChange={(event) => setFuel({ ...fuel, reading: event.target.value })} /></Field>
+              <Field label="Litr"><Input type="number" min="0" step="0.1" value={fuel.liters} onChange={(event) => setFuel({ ...fuel, liters: event.target.value })} /></Field>
+              <Field label="Sayğac"><Input type="number" min="0" step="1" value={fuel.reading} onChange={(event) => setFuel({ ...fuel, reading: event.target.value })} /></Field>
             </div>
-            <Field label="Qeyd"><input value={fuel.note} onChange={(event) => setFuel({ ...fuel, note: event.target.value })} /></Field>
+            <Field label="Qeyd"><Input value={fuel.note} onChange={(event) => setFuel({ ...fuel, note: event.target.value })} /></Field>
             {error && <p className="form-error">{error}</p>}
             <div className="form-actions">
-              <button type="button" className="btn ghost" onClick={() => setModal("")}>Ləğv et</button>
-              <button className="btn" type="submit">Yaz</button>
+              <Button type="button" className="ghost" onClick={() => setModal("")}>Ləğv et</Button>
+              <Button  type="submit">Yaz</Button>
             </div>
           </form>
         </Modal>
@@ -720,13 +721,13 @@ export default function Assets() {
             <Field label="Növ">
               <Select value={doc.kind} onValueChange={(kind) => setDoc({ ...doc, kind: kind as FleetDocForm["kind"] })} options={[{ value: "sigorta", label: "Sığorta" }, { value: "baxis", label: "Texniki baxış" }, { value: "qeydiyyat", label: "Qeydiyyat" }, { value: "icaze", label: "İcazə" }]} />
             </Field>
-            <Field label="Nömrə"><input value={doc.number} onChange={(event) => setDoc({ ...doc, number: event.target.value })} /></Field>
-            <Field label="Verən"><input value={doc.issuer} onChange={(event) => setDoc({ ...doc, issuer: event.target.value })} /></Field>
+            <Field label="Nömrə"><Input value={doc.number} onChange={(event) => setDoc({ ...doc, number: event.target.value })} /></Field>
+            <Field label="Verən"><Input value={doc.issuer} onChange={(event) => setDoc({ ...doc, issuer: event.target.value })} /></Field>
             <Field label="Bitmə"><DateField value={doc.expires} onChange={(expires) => setDoc({ ...doc, expires })} /></Field>
             {error && <p className="form-error">{error}</p>}
             <div className="form-actions">
-              <button type="button" className="btn ghost" onClick={() => setModal("")}>Ləğv et</button>
-              <button className="btn" type="submit">Yaz</button>
+              <Button type="button" className="ghost" onClick={() => setModal("")}>Ləğv et</Button>
+              <Button  type="submit">Yaz</Button>
             </div>
           </form>
         </Modal>
@@ -735,15 +736,15 @@ export default function Assets() {
       {modal === "service" && (
         <Modal title="Servisə al" onClose={() => setModal("")}>
           <form className="form" onSubmit={(event: FormEvent) => { event.preventDefault(); const message = openService(service); setError(message); if (!message) setModal("") }}>
-            <Field label="Qeyd"><input value={service.note} onChange={(event) => setService({ ...service, note: event.target.value })} /></Field>
+            <Field label="Qeyd"><Input value={service.note} onChange={(event) => setService({ ...service, note: event.target.value })} /></Field>
             <Field label="Ehtiyat hissə">
               <Select value={service.materialId} onValueChange={(materialId) => setService({ ...service, materialId })} options={[{ value: "", label: t("none") }, ...materials.map((item) => ({ value: item.id, label: item.name }))]} />
             </Field>
-            <Field label="Miqdar"><input type="number" min="0" step="0.1" value={service.qty} onChange={(event) => setService({ ...service, qty: event.target.value })} /></Field>
+            <Field label="Miqdar"><Input type="number" min="0" step="0.1" value={service.qty} onChange={(event) => setService({ ...service, qty: event.target.value })} /></Field>
             {error && <p className="form-error">{error}</p>}
             <div className="form-actions">
-              <button type="button" className="btn ghost" onClick={() => setModal("")}>Ləğv et</button>
-              <button className="btn" type="submit">Aç</button>
+              <Button type="button" className="ghost" onClick={() => setModal("")}>Ləğv et</Button>
+              <Button  type="submit">Aç</Button>
             </div>
           </form>
         </Modal>

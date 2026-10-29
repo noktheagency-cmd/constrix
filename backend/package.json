@@ -10,6 +10,7 @@
     "build": "prisma generate && node scripts/migrate-deploy.mjs && node scripts/seed-demo.mjs && nest build && node scripts/bundle-vercel.mjs",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
+    "prestart:dev": "node scripts/check-dev-port.mjs",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",

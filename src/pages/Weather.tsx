@@ -1,3 +1,4 @@
+import { Button, Disclosure, Input, Metric, Panel, SectionHeader, StatGrid, TableContainer } from "../components/primitives"
 import { useState } from "react"
 import { ApiError, api } from "../api"
 import { dateAZ } from "../format"
@@ -115,7 +116,7 @@ function fromLog(item: WeatherLog): Proof {
 }
 
 /** İcmal panelində göstərilən qısa hava kartı (xarici proqnoz API yoxdur — əl ilə / nümunə). */
-export function WeatherSummary() {
+export function WeatherSummary({ compact = false }: { compact?: boolean }) {
   const { weather } = useWorkspace()
   const [siteId, setSiteId] = useState(SITES[0].id)
   const [officer, setOfficer] = useState(weather.officer || "")
@@ -179,12 +180,30 @@ export function WeatherSummary() {
     }
   }
 
+  const recordForm = <>
+<Field label="Obyekt">
+        <Select value={siteId} onValueChange={setSiteId} options={SITES.map((item) => ({ value: item.id, label: item.short }))} />
+      </Field>
+      <Field label="Səlahiyyətli">
+        <Input value={officer} onChange={(event) => setOfficer(event.target.value)} placeholder="Sahə rəisi / SƏTƏM" />
+      </Field>
+      <Field label="Qeyd">
+        <Input value={note} onChange={(event) => setNote(event.target.value)} placeholder="Müddət, səbəb" />
+      </Field>
+      {error && <p className="form-error">{error}</p>}
+      <div className="form-actions">
+        <Button type="button" className="ghost" disabled={busy} onClick={() => void recordStop()}>
+          {busy ? "Yazılır" : risk.length ? "Dayanmanı yaz" : "Şəraiti jurnalə yaz"}
+        </Button>
+      </div>
+  </>
+
   return (
-    <section className="panel pad">
-      <div className="panel-head">
+    <Panel className="pad">
+      <SectionHeader>
         <h2>Hava</h2>
         <span className="muted">{dateAZ(OBSERVED)}</span>
-      </div>
+      </SectionHeader>
       <p>
         <b>{site.temp}°</b> · {site.sky} · yağış {site.rain}% · külək {site.wind} m/s
       </p>
@@ -194,25 +213,11 @@ export function WeatherSummary() {
         {held.length ? `${held.length} obyektdə açıq iş dayanma riski` : "Açıq işlər üçün hədd keçilməyib"}
       </p>
       <p className="muted">İş dayanması yalnız səlahiyyətli əməkdaşın qeydi ilə yazılır; hava avtomatik status dəyişmir.</p>
-      <Field label="Obyekt">
-        <Select value={siteId} onValueChange={setSiteId} options={SITES.map((item) => ({ value: item.id, label: item.short }))} />
-      </Field>
-      <Field label="Səlahiyyətli">
-        <input value={officer} onChange={(event) => setOfficer(event.target.value)} placeholder="Sahə rəisi / SƏTƏM" />
-      </Field>
-      <Field label="Qeyd">
-        <input value={note} onChange={(event) => setNote(event.target.value)} placeholder="Müddət, səbəb" />
-      </Field>
-      {error && <p className="form-error">{error}</p>}
-      <div className="form-actions">
-        <button type="button" className="btn ghost" disabled={busy} onClick={() => void recordStop()}>
-          {busy ? "Yazılır" : risk.length ? "Dayanmanı yaz" : "Şəraiti jurnalə yaz"}
-        </button>
-      </div>
+      {compact ? <Disclosure title="Sahə qeydi əlavə et">{recordForm}</Disclosure> : recordForm}
       {weather.log[0] && (
         <p className="muted">Son qeyd: {weather.log[weather.log.length - 1]?.site} · {weather.log[weather.log.length - 1]?.stop}</p>
       )}
-    </section>
+    </Panel>
   )
 }
 
@@ -289,30 +294,30 @@ export function WeatherPage() {
         text="Beş obyektin səhər ölçüsü. Dayanma qrafiki uzadır, sübut kimi qalır və növbəti növbəyə xəbərdarlıqdır."
       />
 
-      <div className="statstrip">
-        <article>
+      <StatGrid>
+        <Metric>
           <span>Obyekt</span>
           <strong>{SITES.length}</strong>
           <em>{SITES.reduce((sum, item) => sum + item.crew, 0)} nəfər sahədə</em>
-        </article>
-        <article>
+        </Metric>
+        <Metric>
           <span>Bu gün dayanır</span>
           <strong>{held.length}</strong>
           <em className={held.length ? "warn" : undefined}>{held.length ? held.map((item) => item.short).join(", ") : "Hamısı açıqdır"}</em>
-        </article>
-        <article>
+        </Metric>
+        <Metric>
           <span>Sübut</span>
           <strong>{journal.length}</strong>
           <em>{PROOFS.length} arxiv · {weather.log.length} yeni</em>
-        </article>
-        <article>
+        </Metric>
+        <Metric>
           <span>Dayanma günü</span>
           <strong>{reserve}</strong>
           <em>Jurnaldakı sübutlardan</em>
-        </article>
-      </div>
+        </Metric>
+      </StatGrid>
 
-      <section className="hava-now">
+      <Panel className="hava-now overview-panel">
         <div className="hava-now-top">
           <div className="hava-mark" aria-hidden="true">
             <Icon name={site.sky === "Günəşli" ? "sun" : "cloud"} />
@@ -336,7 +341,7 @@ export function WeatherPage() {
         <p className={stops.length ? "hava-alert" : "hava-ok"}>
           {stops.length ? `Dayanır: ${stops.join("; ")}. Yazılanda qrafikə 1 ehtiyat gün düşür.` : "Bu şəraitdə dayanma yoxdur. Açıq işlər gedir."}
         </p>
-      </section>
+      </Panel>
 
       <section className="hava-sites" aria-label="Obyektlər">
         {SITES.map((item) => {
@@ -364,11 +369,11 @@ export function WeatherPage() {
         })}
       </section>
 
-      <section className="panel pad">
-        <div className="panel-head">
+      <Panel className="pad">
+        <SectionHeader>
           <h2>Bakı, növbəti günlər</h2>
           <span className="muted">Yağış 80% və külək 12 m/s həddi</span>
-        </div>
+        </SectionHeader>
         <div className="hava-week">
           {WEEK.map((day) => {
             const dayStops = verdict(day.rain, day.wind, day.pouring)
@@ -383,13 +388,13 @@ export function WeatherPage() {
             )
           })}
         </div>
-      </section>
+      </Panel>
 
       <div className="hava-split">
-        <section className="panel pad">
-          <div className="panel-head">
+        <Panel className="pad">
+          <SectionHeader>
             <h2>Dayanma qaydası</h2>
-          </div>
+          </SectionHeader>
           <p className="lede">Qayda bütün obyektlərdə eynidir.</p>
           {WEATHER_RULES.map((rule) => (
             <div className="step-row" key={rule.when}>
@@ -398,22 +403,22 @@ export function WeatherPage() {
             </div>
           ))}
           <p className="hava-note">{site.note}</p>
-        </section>
+        </Panel>
 
-        <section className="panel pad">
-          <div className="panel-head">
+        <Panel className="pad">
+          <SectionHeader>
             <h2>Günü yaz</h2>
             <span className="muted">{site.name}</span>
-          </div>
+          </SectionHeader>
           <div className="form-row wide">
             <label>Obyekt
               <Select value={site.id} onValueChange={choose} options={SITES.map((item) => ({ value: item.id, label: item.name }))} />
             </label>
             <label>Yağış ehtimalı, %
-              <input value={weather.rain} onChange={(event) => patch((state) => ({ ...state, weather: { ...state.weather, rain: event.target.value } }))} />
+              <Input value={weather.rain} onChange={(event) => patch((state) => ({ ...state, weather: { ...state.weather, rain: event.target.value } }))} />
             </label>
             <label>Külək, m/s
-              <input value={weather.wind} onChange={(event) => patch((state) => ({ ...state, weather: { ...state.weather, wind: event.target.value } }))} />
+              <Input value={weather.wind} onChange={(event) => patch((state) => ({ ...state, weather: { ...state.weather, wind: event.target.value } }))} />
             </label>
             <label>Yağış yağır
               <Select
@@ -423,21 +428,21 @@ export function WeatherPage() {
               />
             </label>
             <label>SƏTƏM məsulu
-              <input value={weather.officer} onChange={(event) => patch((state) => ({ ...state, weather: { ...state.weather, officer: event.target.value } }))} />
+              <Input value={weather.officer} onChange={(event) => patch((state) => ({ ...state, weather: { ...state.weather, officer: event.target.value } }))} />
             </label>
-            <button type="button" className="btn" onClick={() => void save()}>Günü yaz</button>
+            <Button type="button" onClick={() => void save()}>Günü yaz</Button>
           </div>
           {error && <p className="form-error">{error}</p>}
           <p className="lede">{stops.length ? `Dayanır: ${stops.join("; ")}.` : "Bu rəqəmlərlə dayanma yoxdur."}</p>
-        </section>
+        </Panel>
       </div>
 
-      <section className="panel pad">
-        <div className="panel-head">
+      <Panel className="pad">
+        <SectionHeader>
           <h2>Sübut jurnalı</h2>
           <span className="muted">{journal.length} yazı</span>
-        </div>
-        <div className="table-wrap flat">
+        </SectionHeader>
+        <TableContainer className="flat">
           <table className="hava-table">
             <thead>
               <tr>
@@ -468,8 +473,8 @@ export function WeatherPage() {
               })}
             </tbody>
           </table>
-        </div>
-      </section>
+        </TableContainer>
+      </Panel>
     </div>
   )
 }

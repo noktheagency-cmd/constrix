@@ -48,7 +48,7 @@ import { CalcPage } from "./pages/Calc"
 import { OfferPage } from "./pages/Offer"
 import { LogisticsPage } from "./pages/Haul"
 import { FlowPage } from "./pages/Flow"
-import { CompanyPage, FilesPage, PlatformPage, TariffPage } from "./pages/Procure"
+import { CompanyPage, FileDetailPage, FilesPage, PlatformPage, TariffPage } from "./pages/Procure"
 
 function Gate({ area, children }: { area: Area; children: ReactNode }) {
   const { allowed } = useStore()
@@ -89,12 +89,14 @@ export default function App() {
             <Route path="sirket" element={<Gate area="procure"><CompanyPage /></Gate>} />
             <Route path="sirket/yeni" element={<Gate area="procure"><CompanyCreatePage /></Gate>} />
             <Route path="layihe-fayl" element={<Gate area="procure"><FilesPage /></Gate>} />
+            <Route path="layihe-fayl/:fileId" element={<Gate area="procure"><FileDetailPage /></Gate>} />
             <Route path="kataloq" element={<Gate area="procure"><CatalogPage /></Gate>} />
             <Route path="kataloq/:id" element={<Gate area="procure"><CatalogDetail /></Gate>} />
             <Route path="hesablama" element={<Gate area="procure"><CalcPage /></Gate>} />
             <Route path="dasima" element={<Gate area="procure"><LogisticsPage /></Gate>} />
             <Route path="teklif" element={<Gate area="procure"><OfferPage /></Gate>} />
-            <Route path="sifaris-merhele" element={<Gate area="procure"><FlowPage /></Gate>} />
+            <Route path="sifaris" element={<Gate area="procure"><FlowPage /></Gate>} />
+            <Route path="sifaris-merhele" element={<Navigate to="/sifaris" replace />} />
             <Route path="tarif" element={<Gate area="procure"><TariffPage /></Gate>} />
             <Route path="platforma" element={<Gate area="procure"><PlatformPage /></Gate>} />
             <Route path="pul-axini" element={<Gate area="finance"><CashflowPage /></Gate>} />

@@ -1,5 +1,7 @@
+import { StageBadge } from "../components/StageBadge"
+import { Button, Disclosure, Panel, SearchInput, TableContainer, Toolbar } from "../components/primitives"
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react"
-import { Link } from "react-router-dom"
+import { Link, useNavigate, useSearchParams } from "react-router-dom"
 import { ApiError, api, dec } from "../api"
 import { Icon } from "../icons"
 import { PageHead, Tabs, useTitle } from "../ui"
@@ -8,7 +10,6 @@ import {
   framePieces,
   kindLabel,
   showPath,
-  stageLabel,
   windowMath,
   type Opening,
   type ProfileRule,
@@ -121,7 +122,7 @@ function when(value: string | null | undefined) {
   if (!value) return ""
   const date = new Date(value)
   if (Number.isNaN(date.getTime())) return ""
-  return date.toLocaleDateString("az-AZ", { day: "numeric", month: "short", year: "numeric" })
+  return [date.getDate(), date.getMonth() + 1, date.getFullYear()].map((part) => String(part).padStart(2, "0")).join(".")
 }
 
 function unitLabel(unit: string) {
@@ -208,7 +209,9 @@ export function OfferPage() {
   const [jobs, setJobs] = useState<OfferJob[]>([])
   const [market, setMarket] = useState<MarketProduct[]>([])
   const [rules, setRules] = useState<ProfileRule[]>([])
-  const [jobId, setJobId] = useState("")
+  const navigate = useNavigate()
+  const [params] = useSearchParams()
+  const jobId = params.get("offer") || ""
   const [query, setQuery] = useState("")
   const [tab, setTab] = useState("sened")
   const [loadError, setLoadError] = useState("")
@@ -217,6 +220,26 @@ export function OfferPage() {
   const [excel, setExcel] = useState(true)
   const [pdf, setPdf] = useState(true)
   const downloadRef = useRef<HTMLDivElement>(null)
+  const sheetRef = useRef<HTMLElement>(null)
+  const pageRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    setDownloadOpen(false)
+    setTab("sened")
+    pageRef.current?.closest("main")?.scrollTo({ top: 0, behavior: "instant" })
+  }, [jobId])
+
+  useEffect(() => {
+    let closed: HTMLDetailsElement[] = []
+    const prepare = () => {
+      closed = Array.from(sheetRef.current?.querySelectorAll<HTMLDetailsElement>("details:not([open])") ?? [])
+      closed.forEach((element) => { element.open = true })
+    }
+    const restore = () => { closed.forEach((element) => { element.open = false }); closed = [] }
+    window.addEventListener("beforeprint", prepare)
+    window.addEventListener("afterprint", restore)
+    return () => { window.removeEventListener("beforeprint", prepare); window.removeEventListener("afterprint", restore) }
+  }, [])
 
   useEffect(() => {
     if (!downloadOpen) return
@@ -244,7 +267,6 @@ export function OfferPage() {
       if (!live) return
       if (jobRows.status === "fulfilled") {
         setJobs(jobRows.value)
-        setJobId((current) => current || jobRows.value[0]?.id || "")
         setLoadError("")
       } else {
         setLoadError(jobRows.reason instanceof ApiError ? jobRows.reason.message : "Təkliflər açılmadı")
@@ -266,9 +288,7 @@ export function OfferPage() {
     return jobs.filter((job) => `${job.title} ${job.address} ${job.color} ${job.project?.name ?? ""} ${job.rule?.system ?? ""}`.toLocaleLowerCase("az").includes(needle))
   }, [jobs, query])
 
-  const job = jobs.find((item) => item.id === jobId) ?? shown[0] ?? null
-  const sales = jobs.map((item) => num(item.gross)).filter((value): value is number => value != null)
-  const saleSum = sales.reduce((sum, value) => sum + value, 0)
+  const job = jobs.find((item) => item.id === jobId) ?? null
   const rule = job ? rules.find((item) => item.id === job.ruleId) ?? asRule(job.rule) : undefined
   const input = job ? asInput(job) : null
   const math = input ? windowMath(input, rule) : null
@@ -310,9 +330,11 @@ export function OfferPage() {
 
   return (
     <Guard>
-      <div className="offer-page">
-        <PageHead kicker="Sənəd" title="Kommersiya təklifi" text="Saxlanmış hesabdan material siyahısı, maya, təchizatçı müqayisəsi və iş əmri açılır.">
-          <div className="offer-download no-print" ref={downloadRef}>
+      <div className="offer-page" ref={pageRef}>
+        {jobId && <Link className="offer-back no-print" to="/teklif"><Icon name="chevronLeft" />Təkliflərə qayıt</Link>}
+        <PageHead title={jobId ? "Kommersiya təklifi" : "Kommersiya təklifləri"} text={jobId ? "Təklif sənədi, materiallar və iş məlumatları." : "Saxlanmış hesabları seçin və təklif sənədini açın."}>
+          {!jobId && <Link to="/hesablama" className="btn">Yeni hesab</Link>}
+          {job && <div className="offer-download no-print" ref={downloadRef}>
             <button type="button" className={downloadOpen ? "offer-dl on" : "offer-dl"} disabled={!job} aria-expanded={downloadOpen} onClick={() => setDownloadOpen((open) => !open)}>
               <Icon name="download" />
               Yüklə
@@ -323,73 +345,62 @@ export function OfferPage() {
                 <label className={excel ? "on" : ""}>
                   <input type="checkbox" checked={excel} onChange={(event) => setExcel(event.target.checked)} />
                   <span className="offer-check" aria-hidden="true" />
-                  <span><b>Excel</b><small>Cədvəl faylı</small></span>
+                  <span><b>CSV</b><small>Excel-də açılan cədvəl</small></span>
                 </label>
                 <label className={pdf ? "on" : ""}>
                   <input type="checkbox" checked={pdf} onChange={(event) => setPdf(event.target.checked)} />
                   <span className="offer-check" aria-hidden="true" />
                   <span><b>PDF</b><small>Çap sənədi</small></span>
                 </label>
-                <button type="button" className="btn small" disabled={!excel && !pdf} onClick={runDownload}>Yüklə</button>
+                <Button type="button" className="small" disabled={!excel && !pdf} onClick={runDownload}>Yüklə</Button>
               </div>
             )}
-          </div>
+          </div>}
         </PageHead>
 
-        <div className="calc-stats no-print">
-          <article><span>Təklif</span><strong>{loading ? "…" : jobs.length}</strong></article>
-          <article><span>Bağlanmış satış</span><strong>{sales.length}</strong></article>
-          <article><span>Satış cəmi</span><strong>{sales.length ? azn(saleSum) : "—"}</strong></article>
-          <article><span>Seçilmiş</span><strong>{job ? azn(num(job.gross)) : "—"}</strong></article>
-        </div>
-
-        <div className="offer-board">
-          <aside className="panel pad offer-aside no-print">
-            <div className="calc-card-head">
-              <h2>Sənədlər</h2>
-              <span>{shown.length}</span>
-            </div>
-            <Link to="/hesablama" className="btn ghost small">Yeni hesab</Link>
-            <input className="calc-search" value={query} placeholder="Ad, ünvan, layihə" onChange={(event) => setQuery(event.target.value)} />
-            {loadError && <p className="calc-meta">{loadError}</p>}
-            {loading && <p className="calc-meta">Təkliflər açılır…</p>}
-            {!loading && !loadError && jobs.length === 0 && <p className="calc-meta">Bazada kommersiya təklifi yoxdur. Əvvəl hesablamanı saxlayın.</p>}
-            {!loading && jobs.length > 0 && shown.length === 0 && <p className="calc-meta">Bu axtarışa uyğun təklif yoxdur.</p>}
-            <div className="offer-list">
-              {shown.map((item) => (
-                <button key={item.id} type="button" className={item.id === job?.id ? "offer-hit on" : "offer-hit"} onClick={() => { setJobId(item.id); setTab("sened") }}>
-                  <b>{item.title}</b>
-                  <span>{[item.project?.name, item.address, when(item.createdAt)].filter(Boolean).join(" · ")}</span>
-                  <em>{azn(num(item.gross))}</em>
-                  {item.flow && <i>{stageLabel(item.flow.stage)}</i>}
-                </button>
-              ))}
-            </div>
-          </aside>
-
-          {!job && (
-            <section className="panel pad offer-empty">
-              <h2>Sənəd seçilməyib</h2>
-              <p>Soldakı siyahıdan təklif açın və ya hesablamada yeni iş saxlayın.</p>
-            </section>
+        {!jobId && <>
+          <Toolbar className="offer-list-toolbar">
+            <SearchInput aria-label="Təklif axtar" value={query} placeholder="Təklif axtar — ad, ünvan, layihə" onChange={(event) => setQuery(event.target.value)} />
+            <span>{shown.length} təklif</span>
+          </Toolbar>
+          {loadError && <p className="calc-meta" role="alert">{loadError}</p>}
+          {loading && <p className="calc-meta" role="status">Təkliflər açılır…</p>}
+          {!loading && !loadError && shown.length === 0 && <Panel className="pad offer-empty"><h2>{jobs.length ? "Təklif tapılmadı" : "Hələ təklif yoxdur"}</h2><p>{jobs.length ? "Başqa ad və ya ünvanla axtarın." : "Hesablamada yeni iş saxlayın. Təklif burada görünəcək."}</p></Panel>}
+          {shown.length > 0 && <TableContainer className="offer-library"><table className="offer-table">
+            <thead><tr><th>Təklif</th><th>Layihə və ünvan</th><th>Tarix</th><th>Mərhələ</th><th className="num">Məbləğ</th><th><span className="sr-only">Aç</span></th></tr></thead>
+            <tbody>{shown.map((item) => <tr key={item.id} tabIndex={0} aria-label={item.title + " təklifini aç"} onClick={(event) => { if ((event.target as HTMLElement).closest("a")) return; setTab("sened"); navigate("?offer=" + encodeURIComponent(item.id)) }} onKeyDown={(event) => { if (event.target !== event.currentTarget) return; if (event.key === "Enter" || event.key === " ") { event.preventDefault(); setTab("sened"); navigate("?offer=" + encodeURIComponent(item.id)) } }}>
+              <td><Link to={"?offer=" + encodeURIComponent(item.id)} onClick={() => setTab("sened")}>{item.title}</Link></td>
+              <td><strong>{item.project?.name || "—"}</strong><span>{item.address || "Ünvan yazılmayıb"}</span></td>
+              <td>{when(item.createdAt)}</td><td>{item.flow ? <StageBadge stage={item.flow.stage} /> : "—"}</td><td className="num">{azn(num(item.gross))}</td>
+              <td><Link className="offer-open" aria-label={item.title + " təklifini aç"} to={"?offer=" + encodeURIComponent(item.id)} onClick={() => setTab("sened")}><Icon name="chevron" /></Link></td>
+            </tr>)}</tbody>
+          </table></TableContainer>}
+          <p className="calc-meta">Hesablamada saxlanmış işlər burada görünür.</p>
+        </>}
+        <div className="offer-detail">
+          {jobId && !job && (
+            <Panel className="pad offer-empty">
+              <h2>{loading ? "Təklif açılır…" : "Təklif tapılmadı"}</h2>
+              <p>{loadError || "Təkliflər siyahısına qayıdıb sənədi yenidən seçin."}</p>
+            </Panel>
           )}
 
           {job && (
-            <section className="panel offer-sheet">
+            <Panel className="offer-sheet" ref={sheetRef}>
               <header className="doc-head">
                 <div>
                   <p>Kommersiya təklifi · {when(job.createdAt)}</p>
-                  <h1>{job.title}</h1>
+                  <h2>{job.title}</h2>
                   <span>{[job.project?.name, job.address || "Ünvan yazılmayıb"].filter(Boolean).join(" · ")}</span>
                 </div>
                 <div className="doc-price">
-                  {job.flow && <em className="offer-pill">{stageLabel(job.flow.stage)}</em>}
+                  {job.flow && <StageBadge stage={job.flow.stage} />}
                   <strong>{azn(num(job.gross))}</strong>
                   <span>ƏDV daxil satış</span>
                 </div>
               </header>
 
-              <dl className="doc-spec">
+              <Disclosure title="Ölçü və material məlumatları" className="offer-spec-details">              <dl className="doc-spec">
                 <div><dt>Ölçü</dt><dd>{width && height ? `${qty(width)} × ${qty(height)} mm` : "—"}</dd></div>
                 <div><dt>Say</dt><dd>{count == null ? "—" : `${qty(count)} ədəd · ${job.sections || 1} bölmə`}</dd></div>
                 <div><dt>Açılış</dt><dd>{OPENING_LABEL[job.opening] || job.opening || "—"}</dd></div>
@@ -398,14 +409,8 @@ export function OfferPage() {
                 <div><dt>Şüşə</dt><dd>{[job.glassKind, job.glassThickness ? `${job.glassThickness} mm` : ""].filter(Boolean).join(" · ") || "—"}</dd></div>
                 <div><dt>Furnitur</dt><dd>{job.hardware || "—"}</dd></div>
                 <div><dt>Montaj</dt><dd>{job.installKind || "—"}</dd></div>
-              </dl>
+              </dl></Disclosure>
 
-              <div className="offer-metrics">
-                <div><span>Maya</span><b>{azn(num(job.cost))}</b></div>
-                <div><span>Mənfəət {dec(job.profitPercent) ? `· ${dec(job.profitPercent)}%` : ""}</span><b>{azn(num(job.profitAmount))}</b></div>
-                <div><span>ƏDV {dec(job.vatPercent) ? `· ${dec(job.vatPercent)}%` : ""}</span><b>{azn(num(job.vatAmount))}</b></div>
-                <div><span>Satış, ƏDV-siz</span><b>{azn(num(job.sale))}</b></div>
-              </div>
 
               <div className="offer-tabs no-print">
                 <Tabs
@@ -425,7 +430,7 @@ export function OfferPage() {
                 <p className="offer-letter">
                   {job.address || "Göstərilən ünvan"} üzrə {job.title.toLocaleLowerCase("az")} işinin kommersiya təklifi. Yekun məbləğ saxlanmış maya, mənfəət və ƏDV-dən yığılır.
                 </p>
-                <table className="offer-table">
+                <TableContainer><table className="offer-table">
                   <tbody>
                     <tr><td>Maya dəyəri</td><td className="num">{azn(num(job.cost))}</td></tr>
                     <tr><td>Mənfəət {job.profitMode === "marja" ? "(marja)" : "(faiz)"}</td><td className="num">{azn(num(job.profitAmount))}</td></tr>
@@ -433,21 +438,21 @@ export function OfferPage() {
                     <tr><td>ƏDV</td><td className="num">{azn(num(job.vatAmount))}</td></tr>
                     <tr className="offer-total"><td>Ödəniləcək məbləğ</td><td className="num">{azn(num(job.gross))}</td></tr>
                   </tbody>
-                </table>
+                </table></TableContainer>
                 {math && !math.ready && <p className="offer-note">{math.blocked.join(" ")}</p>}
               </div>
 
               <div className={tab === "material" ? "offer-pane on" : "offer-pane"}>
                 {pieces.length === 0 && <p className="offer-note">Ölçü yazılmayıb, kəsim siyahısı açılmır.</p>}
                 {pieces.length > 0 && (
-                  <table className="offer-table">
+                  <TableContainer><table className="offer-table">
                     <thead><tr><th>Parça</th><th className="num">Uzunluq</th><th className="num">Say</th></tr></thead>
                     <tbody>
                       {pieces.map((piece) => (
                         <tr key={piece.name}><td>{piece.name}</td><td className="num">{qty(piece.lengthMm)} mm</td><td className="num">{qty(piece.qty)}</td></tr>
                       ))}
                     </tbody>
-                  </table>
+                  </table></TableContainer>
                 )}
                 <dl className="doc-spec">
                   <div><dt>Profil</dt><dd>{job.lengthM == null ? "—" : `${qty(job.lengthM)} m`}</dd></div>
@@ -460,7 +465,7 @@ export function OfferPage() {
               <div className={tab === "boq" ? "offer-pane on" : "offer-pane"}>
                 {job.lines.length === 0 && <p className="offer-note">Bu hesabın xərc sətirləri yazılmayıb.</p>}
                 {job.lines.length > 0 && (
-                  <table className="offer-table">
+                  <TableContainer><table className="offer-table">
                     <thead>
                       <tr><th>Ad</th><th>Vahid</th><th className="num">Miqdar</th><th className="num">Qiymət</th><th className="num">Məbləğ</th></tr>
                     </thead>
@@ -476,7 +481,7 @@ export function OfferPage() {
                       ))}
                       <tr className="offer-total"><td colSpan={4}>Maya cəmi</td><td className="num">{azn(num(job.cost))}</td></tr>
                     </tbody>
-                  </table>
+                  </table></TableContainer>
                 )}
               </div>
 
@@ -509,7 +514,7 @@ export function OfferPage() {
                 {related.length > 0 && (
                   <>
                     <h3 className="offer-sub">Kataloqdan digər qiymətlər</h3>
-                    <table className="offer-table">
+                    <TableContainer><table className="offer-table">
                       <thead><tr><th>Məhsul</th><th>Təchizatçı</th><th className="num">Qiymət</th></tr></thead>
                       <tbody>
                         {related.map((item) => (
@@ -520,7 +525,7 @@ export function OfferPage() {
                           </tr>
                         ))}
                       </tbody>
-                    </table>
+                    </table></TableContainer>
                   </>
                 )}
               </div>
@@ -554,7 +559,7 @@ export function OfferPage() {
                   </p>
                 )}
               </div>
-            </section>
+            </Panel>
           )}
         </div>
       </div>

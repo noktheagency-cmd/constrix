@@ -1,3 +1,5 @@
+import { DocumentSummary } from "../components/DocumentSummary"
+import { Button, TableContainer, Toolbar } from "../components/primitives"
 import { useState } from "react"
 import { company } from "../data"
 import { roundMoney, roundQty } from "../domain/ops"
@@ -85,12 +87,12 @@ export default function Forma3Page() {
     <div className="forma-page">
       <PageHead kicker={t("page.forma3.kicker")} title={t("page.forma3.title")} text={t("page.forma3.text")}>
         {tab !== "odenis" && (
-          <button type="button" className="btn" onClick={() => openNew(tab === "yekun" ? "yekun" : "araliq")}>
+          <Button type="button" onClick={() => openNew(tab === "yekun" ? "yekun" : "araliq")}>
             <Icon name="plus" /> Forma-3
-          </button>
+          </Button>
         )}
       </PageHead>
-      <div className="toolbar">
+      <Toolbar>
         <Tabs
           value={tab}
           onChange={openTab}
@@ -104,10 +106,10 @@ export default function Forma3Page() {
         <span className="muted">
           {tab === "araliq" ? `${interims.filter((item) => !item.existing).length} layihə icmalsız` : tab === "yekun" ? `${finals.filter((item) => item.ready).length} layihə bağlana bilər` : tab === "odenis" ? `${rows.length} icmal` : `${rows.filter((item) => item.status === "qaralama").length} qaralama`}
         </span>
-      </div>
+      </Toolbar>
 
       {tab === "icmallar" && (
-        <div className="table-wrap wide">
+        <TableContainer className="wide">
           <table>
             <thead>
               <tr>
@@ -149,11 +151,11 @@ export default function Forma3Page() {
             </tbody>
           </table>
           {rows.length === 0 && <Empty title="Forma-3 yoxdur" text="Təsdiqlənmiş Forma-2-dən aralıq və ya yekun icmal açın." />}
-        </div>
+        </TableContainer>
       )}
 
       {tab === "araliq" && (
-        <div className="table-wrap">
+        <TableContainer>
           <table>
             <thead>
               <tr>
@@ -177,11 +179,11 @@ export default function Forma3Page() {
             </tbody>
           </table>
           {interims.length === 0 && <Empty title="Aralıq üçün akt yoxdur" text="Təsdiqlənmiş və ya fakturalanmış Forma-2 olan layihə burada durur." />}
-        </div>
+        </TableContainer>
       )}
 
       {tab === "yekun" && (
-        <div className="table-wrap">
+        <TableContainer>
           <table>
             <thead>
               <tr>
@@ -200,11 +202,11 @@ export default function Forma3Page() {
               ))}
             </tbody>
           </table>
-        </div>
+        </TableContainer>
       )}
 
       {tab === "odenis" && (
-        <div className="table-wrap wide">
+        <TableContainer className="wide">
           <table>
             <thead>
               <tr>
@@ -230,7 +232,7 @@ export default function Forma3Page() {
             </tbody>
           </table>
           {rows.length === 0 && <Empty title="Ödəniş yoxdur" text="İcmal açıldıqda avans, saxlanc və ödəniləcək məbləğ burada durur." />}
-        </div>
+        </TableContainer>
       )}
 
       {doc && reading?.kind === "doc" && (
@@ -249,19 +251,16 @@ export default function Forma3Page() {
       )}
 
       {doc && reading?.kind === "pay" && (
-        <Drawer title={doc.number} onClose={() => setReading(null)}>
+        <Drawer className="financial-drawer" title={doc.number} onClose={() => setReading(null)}>
           <div className="form">
             <p><b>{doc.project}</b> · {doc.kind === "yekun" ? "Yekun" : "Aralıq"} · {monthAZ(doc.period)}</p>
-            <p>Smeta {money(doc.smetaValue)}. Əvvəlki dövrlər {money(doc.priorValue)}. Bu dövr {money(doc.periodValue)}.</p>
-            <p>Əvvəldən {money(doc.cumulativeValue)}. Qalıq {money(doc.remainValue)}.</p>
-            <p>Avans qalığı {money(doc.advanceBalance)}. Saxlanc {money(doc.retention)}. ƏDV {money(doc.vat)}.</p>
-            <p><b>Ödənilməli {money(doc.payable)}</b></p>
+            <DocumentSummary rows={[{label:"Smeta",value:money(doc.smetaValue)},{label:"Əvvəlki dövrlər",value:money(doc.priorValue)},{label:"Cari dövr",value:money(doc.periodValue)},{label:"Əvvəlindən",value:money(doc.cumulativeValue)},{label:"Qalıq",value:money(doc.remainValue)},{label:"Avans qalığı",value:money(doc.advanceBalance)},{label:"Saxlanc",value:money(doc.retention)},{label:"ƏDV",value:money(doc.vat)}]} totalLabel="Ödənilməli" total={money(doc.payable)} />
           </div>
         </Drawer>
       )}
 
       {interim && (
-        <Drawer title={interim.project.name} onClose={() => setReading(null)}>
+        <Drawer className="financial-drawer" title={interim.project.name} onClose={() => setReading(null)}>
           <div className="form">
             <p className="muted">{interim.project.client}. Son dövr {interim.period ? monthAZ(interim.period) : "—"}.</p>
             {interim.periodActs.map((act) => (
@@ -272,7 +271,7 @@ export default function Forma3Page() {
             {error && <p className="form-error">{error}</p>}
             <div className="form-actions">
               {!interim.existing && (
-                <button type="button" className="btn" onClick={() => { const message = makeForma3(interim.project.id, "araliq"); setError(message); if (!message) { setReading(null); setTab("icmallar") } }}>İcmal aç</button>
+                <Button type="button" onClick={() => { const message = makeForma3(interim.project.id, "araliq"); setError(message); if (!message) { setReading(null); setTab("icmallar") } }}>İcmal aç</Button>
               )}
             </div>
           </div>
@@ -280,7 +279,7 @@ export default function Forma3Page() {
       )}
 
       {finalRow && (
-        <Drawer title={finalRow.project.name} onClose={() => setReading(null)}>
+        <Drawer className="financial-drawer" title={finalRow.project.name} onClose={() => setReading(null)}>
           <div className="form">
             <p>Təsdiqli akt {finalRow.approved.length}. Smeta qalığı {money(finalRow.remain)}.</p>
             {finalRow.reason ? <p>{finalRow.reason}</p> : <p>Smeta bağlanıb. Yekun icmal açıla bilər.</p>}
@@ -288,7 +287,7 @@ export default function Forma3Page() {
             {error && <p className="form-error">{error}</p>}
             {finalRow.ready && (
               <div className="form-actions">
-                <button type="button" className="btn" onClick={() => { const message = makeForma3(finalRow.project.id, "yekun"); setError(message); if (!message) { setReading(null); setTab("icmallar") } }}>Yekun aç</button>
+                <Button type="button" onClick={() => { const message = makeForma3(finalRow.project.id, "yekun"); setError(message); if (!message) { setReading(null); setTab("icmallar") } }}>Yekun aç</Button>
               </div>
             )}
           </div>
@@ -296,7 +295,7 @@ export default function Forma3Page() {
       )}
 
       {reading?.kind === "new" && chosen && (
-        <Drawer title="Forma-3" onClose={() => setReading(null)}>
+        <Drawer className="financial-drawer" title="Forma-3" onClose={() => setReading(null)}>
           <div className="form">
             <Field label="Layihə">
               <Select value={chosen.id} onValueChange={setProjectId} options={projects.map((project) => ({ value: project.id, label: project.name }))} />
@@ -314,8 +313,8 @@ export default function Forma3Page() {
             <p className="muted">{kind === "yekun" ? "Yekun smeta tam bağlananda açılır." : "Aralıq təsdiqlənmiş Forma-2-lərin son dövrünü yığır."}</p>
             {error && <p className="form-error">{error}</p>}
             <div className="form-actions">
-              <button type="button" className="btn ghost" onClick={() => setReading(null)}>Ləğv et</button>
-              <button type="button" className="btn" onClick={() => { const message = makeForma3(chosen.id, kind); setError(message); if (!message) { setReading(null); setTab("icmallar") } }}>İcmal aç</button>
+              <Button type="button" className="ghost" onClick={() => setReading(null)}>Ləğv et</Button>
+              <Button type="button" onClick={() => { const message = makeForma3(chosen.id, kind); setError(message); if (!message) { setReading(null); setTab("icmallar") } }}>İcmal aç</Button>
             </div>
           </div>
         </Drawer>
@@ -340,30 +339,24 @@ function DocRead({
 }) {
   const sheetRef = useOfficialSheet()
   return (
-    <Drawer title={doc.number} onClose={onClose}>
+    <Drawer className="financial-drawer" title={doc.number} onClose={onClose}>
       <div className="form act-sheet">
         <Track status={doc.status} />
         <p className="muted">{doc.kind === "yekun" ? "Yekun icra və qiymətləndirmə aktı" : "Aralıq icra və qiymətləndirmə aktı"} · {monthAZ(doc.period)} · {dateAZ(doc.date)}</p>
         <p><b>{doc.project}</b> · <Badge status={doc.kind} /> <Badge status={doc.status} /></p>
         <p className="muted">Sifarişçi {doc.client}. Podratçı {company.legal}. Müqavilə {doc.contractNumber || "—"}.</p>
         {error && <p className="form-error">{error}</p>}
-        <div className="form-actions no-print">
-          <button type="button" className="btn ghost" onClick={() => window.print()}>Çap</button>
-          <button type="button" className="btn ghost" onClick={() => downloadWord(doc.number, sheetRef.current)}>Word</button>
-          {doc.status === "qaralama" && <button type="button" className="btn ghost" onClick={onRefresh}>Yenilə</button>}
-          {doc.status === "qaralama" && <button type="button" className="btn" onClick={onApprove}>Təsdiqlə</button>}
-          {doc.status === "tesdiq" && <button type="button" className="btn ghost" onClick={onReturn}>Qaralamaya qaytar</button>}
+        <div className="document-export no-print"><span>Sənədi yüklə</span>
+          <Button type="button" className="ghost" onClick={() => window.print()}>Çap</Button>
+          <Button type="button" className="ghost" onClick={() => downloadWord(doc.number, sheetRef.current)}>Word</Button>
         </div>
-        <p>Smeta {money(doc.smetaValue)} · əvvəl {money(doc.priorValue)} · bu dövr {money(doc.periodValue)}</p>
-        <p>Əvvəldən {money(doc.cumulativeValue)} · qalıq {money(doc.remainValue)}</p>
-        <p>Avans qalığı {money(doc.advanceBalance)} · saxlanc {money(doc.retention)} · ƏDV {money(doc.vat)}</p>
-        <p><b>Ödənilməli {money(roundMoney(doc.payable))}</b></p>
-        {doc.lines.map((line) => (
-          <p key={line.smetaLineId}>
-            <b>{line.code} {line.name}</b> · bu dövr {num(line.periodQty, 1)} {line.unit} · cəmi {num(line.cumulativeQty, 1)} · qalıq {num(line.remainQty, 1)}
-            <span className="muted"> · {money(line.periodValue)}</span>
-          </p>
-        ))}
+        <div className="form-actions document-actions no-print">
+          {doc.status === "qaralama" && <Button type="button" className="ghost" onClick={onRefresh}>Yenilə</Button>}
+          {doc.status === "qaralama" && <Button type="button" onClick={onApprove}>Təsdiqlə</Button>}
+          {doc.status === "tesdiq" && <Button type="button" className="ghost" onClick={onReturn}>Qaralamaya qaytar</Button>}
+        </div>
+        <DocumentSummary rows={[{label:"Smeta",value:money(doc.smetaValue)},{label:"Əvvəlki dövrlər",value:money(doc.priorValue)},{label:"Cari dövr",value:money(doc.periodValue)},{label:"Əvvəlindən",value:money(doc.cumulativeValue)},{label:"Qalıq",value:money(doc.remainValue)},{label:"Avans qalığı",value:money(doc.advanceBalance)},{label:"Saxlanc",value:money(doc.retention)},{label:"ƏDV",value:money(doc.vat)}]} totalLabel="Ödənilməli məbləğ" total={money(roundMoney(doc.payable))} />
+        <TableContainer className="document-lines"><table><thead><tr><th>İş</th><th>Vahid</th><th className="num">Bu dövr</th><th className="num">Əvvəlindən</th><th className="num">Qalıq</th><th className="num">Məbləğ</th></tr></thead><tbody>{doc.lines.map((line) => <tr key={line.smetaLineId}><td><strong>{line.name}</strong><span className="document-line-code">{line.code}</span></td><td>{line.unit}</td><td className="num">{num(line.periodQty,1)}</td><td className="num">{num(line.cumulativeQty,1)}</td><td className="num">{num(line.remainQty,1)}</td><td className="num">{money(line.periodValue)}</td></tr>)}</tbody></table></TableContainer>
         <div className="sign-row">
           <div>Sifarişçi<span>{doc.client}</span></div>
           <div>Podratçı<span>{company.legal}</span></div>
