@@ -43,15 +43,47 @@
       "value": 58
     },
     {
-      "metric": "unsupported_movement_type",
+      "metric": "legacy_alias_movement_rows",
       "label": "cixis",
       "value": 1
     },
     {
-      "metric": "unsupported_movement_type",
+      "metric": "legacy_alias_movement_rows",
       "label": "qebul",
       "value": 2
     }
   ],
-  "checkedAt": "2026-10-31T20:16:40.2728655Z"
+  "checkedAt": "2026-10-31T20:16:40.2728655Z",
+  "aliasMappingRefresh": {
+    "checkedAt": "2026-10-31T20:33:20Z",
+    "source": "same verified backup dump; pg_restore data-only export of PurchaseAct, Payable, Material, Stock, StockLot and Movement",
+    "method": "read-only table export and equivalent aggregate checks for preflight sections A-F; warehouse report net movement rules used for residuals",
+    "readOnly": true,
+    "fullDatabaseRestoreRepeated": false,
+    "recomputedPreflightMetrics": {
+      "purchaseActStatus": { "qaralama": 58 },
+      "payableActMatches": 0,
+      "materialStockLotMismatches": 12,
+      "supplierAliasGroups": 0,
+      "unlinkedMovementRows": 0,
+      "unlinkedMovementLocations": 0
+    },
+    "movementTypeCounts": {
+      "medaxil": 5,
+      "mexaric": 3,
+      "transfer": 2,
+      "qebul": 2,
+      "cixis": 1
+    },
+    "aliasRule": {
+      "qebul": "inbound (+qty)",
+      "cixis": "outbound (-qty)"
+    },
+    "residualCountsAfterAliasMapping": {
+      "nonzero": 15,
+      "positive": 13,
+      "negative": 2
+    },
+    "resultMatchesPriorFullPreflightCounts": true
+  }
 }
