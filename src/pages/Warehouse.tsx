@@ -13,7 +13,7 @@ import { Badge, Drawer, Empty, Field, Modal, PageHead, Select, StockBar, Tabs, u
 import { patch, uid, useWorkspace } from "../workspace"
 import { PassportPage } from "./platform"
 
-type Tab = "qaliq" | "kritik" | "pasport" | "transfer" | "hereket" | "anbarlar" | "partiyalar"
+type Tab = "qaliq" | "kritik" | "pasport" | "transfer" | "hereket" | "anbarlar" | "partiyalar" | "uzlasdirma" | "rezerv"
 type Read =
   | { kind: "material"; id: string }
   | { kind: "move"; id: string }
@@ -27,20 +27,33 @@ const KIND: Record<string, string> = { merkez: "Mərkəz", zavod: "Zavod", sex: 
 const KINDS = Object.keys(KIND) as LocationKind[]
 const emptyMove = { materialId: "", type: "mexaric", qty: "", project: "", locationId: "LOC-MERKEZ", smetaLineId: "", note: "" }
 
-const WAREHOUSE_TABS: Tab[] = ["qaliq", "kritik", "pasport", "transfer", "hereket", "anbarlar", "partiyalar"]
+const WAREHOUSE_TABS: Tab[] = ["qaliq", "kritik", "pasport", "transfer", "hereket", "anbarlar", "partiyalar", "uzlasdirma", "rezerv"]
+
+type ReconciliationReport = {
+  generatedAt: string
+  summary: { materialCount: number; stockRowCount: number; lotRowCount: number; movementRowCount: number; unsupportedMovementCount:number; mismatchCount: number; unlinkedStockQty: number; unlinkedLotQty: number; unlinkedMovementCount: number }
+  items: {
+    materialId: string; materialName: string; unit: string; materialQty: number; stockQty: number; lotQty: number;knownNetMovementQty:number;inferredOpeningResidualQty:number;unsupportedMovementCount:number
+    stockDifference: number; lotDifference: number; hasDifference: boolean
+    places: { locationId: string | null; locationName: string; stockQty: number; lotQty: number; difference: number; movementCount: number; lastMovement: string | null;knownNetMovementQty:number;inferredOpeningResidualQty:number;unsupportedMovementCount:number }[]
+  }[]
+}
 
 export default function Warehouse() {
-  const { t } = usePrefs()
+  const { t, session } = usePrefs()
   useTitle(t("page.warehouse.title"))
-  const { query, materials, movements, projects, smetas, locations, stocks, shipments, stockMove, createShipment, advanceShipment, addLocation, editLocation, removeLocation } = useStore()
+  const { query, materials, movements, projects, smetas, locations, stocks, reservations, requests, shipments, stockMove, createShipment, advanceShipment, cancelShipment, addLocation, editLocation, removeLocation, actor } = useStore()
+  const receiverOnly = actor.role === "site" || actor.role === "pm"
+  const visibleTabs: Tab[] = receiverOnly ? ["transfer"] : WAREHOUSE_TABS
   const [search, setSearch] = useSearchParams()
   const tabParam = search.get("tab")
-  const [tab, setTab] = useState<Tab>(() => (WAREHOUSE_TABS.includes(tabParam as Tab) ? (tabParam as Tab) : "qaliq"))
+  const [tab, setTab] = useState<Tab>(() => receiverOnly ? "transfer" : WAREHOUSE_TABS.includes(tabParam as Tab) ? (tabParam as Tab) : "qaliq")
   const [reading, setReading] = useState<Read | null>(null)
 
   useEffect(() => {
-    if (WAREHOUSE_TABS.includes(tabParam as Tab) && tabParam !== tab) setTab(tabParam as Tab)
-  }, [tabParam, tab])
+    if (receiverOnly && tab !== "transfer") setTab("transfer")
+    else if (WAREHOUSE_TABS.includes(tabParam as Tab) && (!receiverOnly || tabParam === "transfer") && tabParam !== tab) setTab(tabParam as Tab)
+  }, [tabParam, tab, receiverOnly])
 
   function openTab(next: string) {
     const value = next as Tab
@@ -57,6 +70,7 @@ export default function Warehouse() {
   const [lines, setLines] = useState([{ key: 1, materialId: "", qty: "", price: "" }])
   const [lineKey, setLineKey] = useState(2)
   const [purpose, setPurpose] = useState("")
+  const [cancelReason, setCancelReason] = useState("")
   const [house, setHouse] = useState<{ name: string; kind: LocationKind }>({ name: "", kind: "merkez" })
   const [error, setError] = useState("")
   const { lots } = useWorkspace()
@@ -68,6 +82,17 @@ export default function Warehouse() {
   const [lotBusy, setLotBusy] = useState(false)
   const [serverLots, setServerLots] = useState<{ id: string; code: string; qty: unknown; unitCost: unknown; qr: string; batch: string; locationId: string | null }[]>([])
   const [platformProjects, setPlatformProjects] = useState<{ id: string; name: string }[]>([])
+  const [reconciliation, setReconciliation] = useState<ReconciliationReport | null>(null)
+  const [reconciliationError, setReconciliationError] = useState("")
+  const [reconciliationBusy, setReconciliationBusy] = useState(false)
+
+  async function reloadReconciliation() {
+    setReconciliationBusy(true)
+    setReconciliationError("")
+    try { setReconciliation(await api<ReconciliationReport>("/api/warehouse-reconciliation")) }
+    catch (reason) { setReconciliationError(reason instanceof ApiError ? reason.message : "Uzlaşdırma hesabatı yüklənmədi") }
+    finally { setReconciliationBusy(false) }
+  }
 
   function reloadLots() {
     return api<{ method: string; lots: typeof serverLots }>("/api/platform/lots").then((row) => {
@@ -80,6 +105,8 @@ export default function Warehouse() {
     reloadLots().catch(() => undefined)
     api<{ id: string; name: string }[]>("/api/platform/projects").then(setPlatformProjects).catch(() => setPlatformProjects([]))
   }, [])
+
+  useEffect(() => { if (tab === "uzlasdirma") void reloadReconciliation() }, [tab])
 
   async function saveMethod(next: string) {
     setMethod(next)
@@ -142,6 +169,13 @@ export default function Warehouse() {
     return stocks.filter((row) => row.materialId === materialId && row.qty > 0)
   }
 
+  function reservationBalance(materialId: string) {
+    const shared = new Set(locations.filter((location) => !location.projectId).map((location) => location.id))
+    const physical = stocks.filter((row) => row.materialId === materialId && shared.has(row.locationId)).reduce((sum, row) => sum + row.qty, 0)
+    const reserved = reservations.filter((row) => row.materialId === materialId && shared.has(row.locationId) && row.status === "active").reduce((sum, row) => sum + row.qty, 0)
+    return { physical, reserved, free: Math.max(0, physical - reserved) }
+  }
+
   function openIntake(materialId = materials[0]?.id || "", locationId = "LOC-MERKEZ", type = "mexaric") {
     setError("")
     setForm({ ...emptyMove, materialId, locationId, type })
@@ -159,6 +193,7 @@ export default function Warehouse() {
     setError("")
     setOrigin("LOC-MERKEZ")
     setStops([])
+    setCancelReason("")
     setPick(locations.find((item) => item.id !== "LOC-MERKEZ")?.id || "")
     setLines([{ key: lineKey, materialId: "", qty: "", price: "" }])
     setLineKey(lineKey + 1)
@@ -175,7 +210,7 @@ export default function Warehouse() {
 
   function submitRoute() {
     const message = createShipment({
-      stops: [origin, ...stops],
+      stops: [origin, ...stops.slice(0, 1)],
       lines: lines.filter((line) => line.materialId).map((line) => ({ materialId: line.materialId, qty: line.qty, price: line.price })),
       note: purpose.trim(),
     })
@@ -189,24 +224,30 @@ export default function Warehouse() {
   const materialCard = reading?.kind === "material" ? materials.find((item) => item.id === reading.id) : undefined
   const moveCard = reading?.kind === "move" ? movements.find((item) => item.id === reading.id) : undefined
   const routeCard = reading?.kind === "shipment" ? shipments.find((item) => item.id === reading.id) : undefined
+  const canSignRoute = routeCard ? !session
+    ? routeCard.step < routeCard.stops.length - 1
+    : (routeCard.status === "waiting_sender" && routeCard.canDispatch === true) || (routeCard.status === "sent" && routeCard.canReceive === true)
+    : false
   const placeCard = reading?.kind === "place" ? houses.find((item) => item.id === reading.id) : undefined
   const hint =
     tab === "partiyalar" ? `${serverLots.filter((item) => Number(item.qty) > 0).length} partiya` :
     tab === "transfer" ? `${routes.filter((item) => item.step < item.stops.length - 1).length} sənəd yoldadır` :
     tab === "anbarlar" ? `${houses.length} anbar` :
     tab === "hereket" ? `${moves.length} hərəkət` :
+    tab === "uzlasdirma" ? (reconciliation ? `${reconciliation.summary.mismatchCount} uyğunsuz material` : "Uzlaşdırma hesabatı") :
+    tab === "rezerv" ? `${reservations.length} aktiv rezerv` :
     `${short} material minimumdan aşağı`
 
   return (
     <>
-      <PageHead kicker={t("page.warehouse.kicker")} title={t("page.warehouse.title")} text={t("page.warehouse.text", { value: money(value) })}>
-        {tab === "transfer" ? (
+      <PageHead kicker={t("page.warehouse.kicker")} title={t("page.warehouse.title")} text={receiverOnly ? "Layihələrə göndərilən transferləri qəbul imzası ilə təsdiqləyin." : t("page.warehouse.text", { value: money(value) })}>
+        {tab === "transfer" && !receiverOnly ? (
           <Button type="button" onClick={openRoute}><Icon name="plus" /> Transfer</Button>
         ) : tab === "anbarlar" ? (
           <Button type="button" onClick={() => openHouse()}><Icon name="plus" /> Anbar</Button>
         ) : tab === "partiyalar" ? (
           <Button onClick={() => {setLotNote(""); setLotOpen(true)}}><Icon name="plus" />Partiya hərəkəti</Button>
-        ) : tab === "pasport" ? null : (
+        ) : tab === "pasport" || tab === "uzlasdirma" || tab === "rezerv" ? null : (
           <Button type="button" onClick={() => openIntake()}><Icon name="plus" /> Hərəkət</Button>
         )}
       </PageHead>
@@ -222,11 +263,23 @@ export default function Warehouse() {
             { id: "transfer", label: "Transfer" },
             { id: "hereket", label: "Hərəkət" },
             { id: "anbarlar", label: "Anbarlar" },
-          ]}
+            { id: "uzlasdirma", label: "Uzlaşdırma" },
+            { id: "rezerv", label: "Rezerv" },
+          ].filter((option) => visibleTabs.includes(option.id as Tab))}
         />
         <span className="muted">{hint}</span>
       </Toolbar>
       {tab === "pasport" && <PassportPage embedded materialFilter={materialCard?.name || ""} />}
+      {tab === "uzlasdirma" && <>
+        <Toolbar><span className="muted">Yalnız oxu · Material, Stock, lot və tanınan hərəkət cəmi müqayisə olunur.</span><Button type="button" className="ghost" disabled={reconciliationBusy} onClick={() => void reloadReconciliation()}>{reconciliationBusy ? "Yenilənir…" : "Yenilə"}</Button></Toolbar>
+        {reconciliationError && <p className="form-error" role="alert">{reconciliationError}</p>}
+        {reconciliation && <>
+          <div className="summary-strip"><span>{reconciliation.summary.materialCount} material</span><span>{reconciliation.summary.stockRowCount} stok sətri</span><span>{reconciliation.summary.lotRowCount} partiya sətri</span><span>{reconciliation.summary.movementRowCount} hərəkət qeydi</span><strong>{reconciliation.summary.mismatchCount} Stock/lot uyğunsuzluğu</strong>{reconciliation.summary.unsupportedMovementCount>0&&<strong className="form-error">İstiqaməti tanınmayan hərəkət: {reconciliation.summary.unsupportedMovementCount}</strong>}{(reconciliation.summary.unlinkedStockQty || reconciliation.summary.unlinkedLotQty || reconciliation.summary.unlinkedMovementCount > 0) && <strong className="form-error">Material əlaqəsi olmayan: Stock {num(reconciliation.summary.unlinkedStockQty, 3)} · Lot {num(reconciliation.summary.unlinkedLotQty, 3)} · Hərəkət {reconciliation.summary.unlinkedMovementCount}</strong>}</div>
+          <TableContainer className="wide"><DataTable><thead><tr><th>Material / anbar</th><th className="num">Stock</th><th className="num">Lot</th><th className="num">Stock − material</th><th className="num">Lot − stock</th><th className="num">Xalis tanınan hərəkət</th><th className="num">Təxmini açılış / qalıq</th><th>Son hərəkət / say</th></tr></thead><tbody>{reconciliation.items.flatMap((item) => item.places.length ? item.places.map((place) => <tr key={`${item.materialId}-${place.locationId || "none"}`}><td><b>{item.materialName}</b><div className="muted">{item.materialId} · {place.locationName}</div></td><td className="num">{num(place.stockQty, 3)} {item.unit}</td><td className="num">{num(place.lotQty, 3)}</td><td className="num">{num(item.stockDifference, 3)}</td><td className="num">{num(item.lotDifference, 3)}<div className="muted">anbar fərqi: {num(place.difference, 3)}</div></td><td className="num">{num(place.knownNetMovementQty, 3)}<div className="muted">{place.unsupportedMovementCount} naməlum</div></td><td className="num">{num(place.inferredOpeningResidualQty, 3)}</td><td>{place.lastMovement ? dateAZ(place.lastMovement) : "—"}<div className="muted">{place.movementCount} təsir</div></td></tr>) : [<tr key={item.materialId}><td><b>{item.materialName}</b><div className="muted">{item.materialId} · anbar sətri yoxdur</div></td><td className="num">{num(item.stockQty, 3)} {item.unit}</td><td className="num">{num(item.lotQty, 3)}</td><td className="num">{num(item.stockDifference, 3)}</td><td className="num">{num(item.lotDifference, 3)}</td><td className="num">{num(item.knownNetMovementQty, 3)}</td><td className="num">{num(item.inferredOpeningResidualQty, 3)}</td><td>—</td></tr>])}</tbody></DataTable>{reconciliation.summary.mismatchCount === 0 && reconciliation.summary.unsupportedMovementCount === 0 && reconciliation.summary.unlinkedStockQty === 0 && reconciliation.summary.unlinkedLotQty === 0 && reconciliation.summary.unlinkedMovementCount === 0 && <Empty title="Fərq aşkarlanmadı" text="Material, Stock və StockLot cəmləri uzlaşır." />}</TableContainer>
+          <p className="muted">Hesabat {dateAZ(reconciliation.generatedAt.slice(0, 10))} tarixində yaradılıb. Tanınan xalis hərəkət mədaxil, məxaric və anbar transferlərinin cəmidir. “Təxmini açılış/qalıq” = Stock − tanınan hərəkət qalıq göstəricisidir; ilkin açılış balansı və legacy hərəkətlər təsdiqlənmədən bunu uçot açılışı kimi qəbul etmək olmaz.</p>
+        </>}
+      </>}
+      {tab === "rezerv" && <TableContainer><DataTable><thead><tr><th>Tələb</th><th>Layihə</th><th>Material</th><th>Mənbə anbar</th><th>Rezerv</th><th>Kim yaradıb</th><th>Tarix</th></tr></thead><tbody>{reservations.filter((row) => row.status === "active").filter((row) => { const request = requests.find((item) => item.id === row.requestId); const material = materials.find((item) => item.id === row.materialId); return hit(query, row.requestId, request?.project, material?.name, nameOf(row.locationId), row.createdBy) }).map((row) => { const request = requests.find((item) => item.id === row.requestId); const material = materials.find((item) => item.id === row.materialId); return <tr key={row.id}><td><b>{row.requestId}</b></td><td>{request?.project || "—"}</td><td>{material?.name || row.materialId}</td><td>{nameOf(row.locationId) || row.locationId}</td><td>{num(row.qty, 3)} {material?.unit || ""}</td><td>{row.createdBy}</td><td>{dateAZ(row.createdAt.slice(0, 10))}</td></tr> })}</tbody></DataTable>{reservations.filter((row) => row.status === "active").length === 0 && <Empty title="Aktiv rezerv yoxdur" text="Təsdiqlənmiş tələblər üçün ayrılmış stok burada görünəcək." />}</TableContainer>}
       {tab !== "pasport" && (
       <>
       {tab === "partiyalar" && <>
@@ -266,6 +319,7 @@ export default function Warehouse() {
             <tbody>
               {stockRows.map((item) => {
                 const places = placesOf(item.id)
+                const balance = reservationBalance(item.id)
                 return (
                   <tr key={item.id} className="click" onClick={() => setReading({ kind: "material", id: item.id })}>
                     <td>
@@ -282,6 +336,7 @@ export default function Warehouse() {
                     </td>
                     <td>
                       {num(item.qty, item.qty % 1 ? 1 : 0)} {item.unit}
+                      <div className="muted">Anbarlarda fiziki: {num(balance.physical, 3)} · rezerv: {num(balance.reserved, 3)} · sərbəst: {num(balance.free, 3)}</div>
                       <div className="muted">min {num(item.min)}</div>
                     </td>
                     <td style={{ minWidth: 120 }}><StockBar qty={item.qty} min={item.min} /></td>
@@ -328,6 +383,7 @@ export default function Warehouse() {
                     <div className="name-cell">
                       <b>{item.id}</b>
                       <span className="muted">{dateAZ(item.date)} · {item.by}</span>
+                      <Badge status={item.status || "legacy"} />
                     </div>
                   </td>
                   <td>
@@ -336,7 +392,7 @@ export default function Warehouse() {
                       <span className="clip">{item.lines.map((line) => line.material).join(", ")}</span>
                     </button>
                   </td>
-                  <td className="num">{money(item.lines.reduce((sum, line) => sum + line.amount, 0))}</td>
+                  <td className="num">{item.valuationVisible === false ? "—" : money(item.lines.reduce((sum, line) => sum + (line.amount || 0), 0))}</td>
                   <td className="track-cell">
                     <button type="button" className="track-btn" aria-label={`${item.id} marşrutu`} onClick={(event) => { event.stopPropagation(); setError(""); setReading({ kind: "shipment", id: item.id }) }}>
                       <RouteTrack shipment={item} nameOf={nameOf} />
@@ -455,18 +511,26 @@ export default function Warehouse() {
         <Drawer title={routeCard.id} onClose={() => setReading(null)}>
           <div className="form">
             <RouteTrack shipment={routeCard} nameOf={nameOf} />
-            <p className="muted">{routeCard.step >= routeCard.stops.length - 1 ? "Material son dayanacaqdadır." : `İndi ${nameOf(routeCard.stops[routeCard.step])} dayanacağındadır. Növbəti: ${nameOf(routeCard.stops[routeCard.step + 1])}.`}</p>
+            <p><Badge status={routeCard.status || "legacy"} /></p>
+            {routeCard.createdBy && <p>Yaradıb: {routeCard.createdBy}</p>}
+            {routeCard.dispatchedBy && <p>Göndərən imzası: {routeCard.dispatchedBy}{routeCard.dispatchedAt ? ` · ${dateAZ(routeCard.dispatchedAt.slice(0, 10))}` : ""}</p>}
+            {routeCard.receivedBy && <p>Qəbul edən imzası: {routeCard.receivedBy}{routeCard.receivedAt ? ` · ${dateAZ(routeCard.receivedAt.slice(0, 10))}` : ""}</p>}
+            {routeCard.cancelReason && <p>Ləğv səbəbi: {routeCard.cancelReason}</p>}
             {routeCard.note && <p>{routeCard.note}</p>}
             {routeCard.lines.map((line) => (
-              <p key={line.materialId}><b>{line.material}</b> · {num(line.qty, 1)} {line.unit} · {money(line.price)} · {money(line.amount)}</p>
+              <p key={line.materialId}><b>{line.material}</b> · {num(line.qty, 1)} {line.unit}{routeCard.valuationVisible === false ? "" : ` · ${money(line.price || 0)} · ${money(line.amount || 0)}`}</p>
             ))}
-            <p><b>Cəmi {money(routeCard.lines.reduce((sum, line) => sum + line.amount, 0))}</b></p>
+            {routeCard.valuationVisible !== false && <p><b>Cəmi {money(routeCard.lines.reduce((sum, line) => sum + (line.amount || 0), 0))}</b></p>}
             {error && <p className="form-error">{error}</p>}
-            {routeCard.step < routeCard.stops.length - 1 && (
+            {canSignRoute && (
               <div className="form-actions">
-                <Button type="button" onClick={() => setError(advanceShipment(routeCard.id))}>Növbəti dayanacağa</Button>
+                <Button type="button" onClick={() => setError(advanceShipment(routeCard.id))}>{!session ? "Növbəti dayanacağa" : routeCard.status === "waiting_sender" ? "Göndərən kimi imzala və göndər" : "Qəbul et və imzala"}</Button>
               </div>
             )}
+            {session && routeCard.canCancel && routeCard.status === "waiting_sender" && <>
+              <Field label="Ləğv səbəbi"><Input value={cancelReason} onChange={(event) => setCancelReason(event.target.value)} /></Field>
+              <Button type="button" className="ghost" disabled={!cancelReason.trim()} onClick={() => setError(cancelShipment(routeCard.id, cancelReason))}>Transferi ləğv et</Button>
+            </>}
           </div>
         </Drawer>
       )}
@@ -567,21 +631,21 @@ export default function Warehouse() {
         <Drawer title="Transfer" onClose={() => setReading(null)}>
           <div className="form">
             <Field label="Haradan">
-              <Select value={origin} onValueChange={setOrigin} options={locations.map((item) => ({ value: item.id, label: item.name }))} />
+              <Select value={origin} onValueChange={(value) => { setOrigin(value); if (stops[0] === value) setStops([]) }} options={locations.map((item) => ({ value: item.id, label: item.name }))} />
             </Field>
             <div className="stop-row">
               <span className="stop-chip">{nameOf(origin)}</span>
-              {stops.map((id) => (
+              {stops.slice(0, 1).map((id) => (
                 <span className="stop-chip" key={id}>
                   {nameOf(id)}
                   <button type="button" aria-label="Dayanacağı sil" onClick={() => setStops(stops.filter((item) => item !== id))}>×</button>
                 </span>
               ))}
             </div>
-            <div className="pull-row">
-              <Select ariaLabel="Dayanacaq" value={pick} onValueChange={setPick} options={locations.filter((item) => item.id !== stops[stops.length - 1] && item.id !== (stops.length ? "" : origin)).map((item) => ({ value: item.id, label: item.name }))} />
-              <Button type="button" className="ghost small" onClick={() => { if (pick && pick !== stops[stops.length - 1] && !(stops.length === 0 && pick === origin)) setStops([...stops, pick]) }}>Əlavə et</Button>
-            </div>
+            {stops.length === 0 && <div className="pull-row">
+              <Select ariaLabel="Hədəf anbar" value={pick} onValueChange={setPick} options={locations.filter((item) => item.id !== origin).map((item) => ({ value: item.id, label: item.name }))} />
+              <Button type="button" className="ghost small" onClick={() => { if (pick && pick !== origin) setStops([pick]) }}>Hədəfi seç</Button>
+            </div>}
             {lines.map((line) => {
               const material = materials.find((item) => item.id === line.materialId)
               const amount = (Number(line.qty) || 0) * (Number(line.price) || 0)
@@ -598,7 +662,7 @@ export default function Warehouse() {
                   />
                   <div className="recipe-line-qty">
                     <Input aria-label="Miqdar" type="number" min="0" step="0.1" value={line.qty} onChange={(event) => setLines(lines.map((row) => (row.key === line.key ? { ...row, qty: event.target.value } : row)))} />
-                    <Input aria-label="Qiymət" type="number" min="0" step="1" value={line.price} onChange={(event) => setLines(lines.map((row) => (row.key === line.key ? { ...row, price: event.target.value } : row)))} />
+                    <Input aria-label="Qiymət" type="number" min="0" step="1" value={line.price} disabled={Boolean(session)} onChange={(event) => setLines(lines.map((row) => (row.key === line.key ? { ...row, price: event.target.value } : row)))} />
                     <Button type="button" className="ghost small" onClick={() => setLines(lines.length === 1 ? lines : lines.filter((row) => row.key !== line.key))}><Icon name="trash" /> Sil</Button>
                   </div>
                   <p className="muted">{material ? `Anbarda ${num(onHand(stocks, material.id, origin), 1)} ${material.unit} · ` : ""}{money(amount)}</p>
@@ -615,7 +679,7 @@ export default function Warehouse() {
             {error && <p className="form-error">{error}</p>}
             <div className="form-actions">
               <Button type="button" className="ghost" onClick={() => setReading(null)}>Ləğv et</Button>
-              <Button type="button" onClick={submitRoute}>Marşrutu yaz</Button>
+              <Button type="button" disabled={stops.length !== 1} onClick={submitRoute}>Transfer sənədi yarat</Button>
             </div>
           </div>
         </Drawer>
@@ -640,7 +704,7 @@ function RouteTrack({ shipment, nameOf }: { shipment: Shipment; nameOf: (id: str
       {shipment.stops.map((id, index) => (
         <li key={`${id}-${index}`} className={index < shipment.step ? "done" : index === shipment.step ? "current" : ""}>
           <i />
-          <span>{nameOf(id)}</span>
+          <span>{index === 0 ? shipment.fromLocationName || nameOf(id) : index === shipment.stops.length - 1 ? shipment.toLocationName || nameOf(id) : nameOf(id)}</span>
         </li>
       ))}
     </ol>

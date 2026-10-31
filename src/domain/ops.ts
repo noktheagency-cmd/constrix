@@ -2475,7 +2475,7 @@ export function createRequest(state: AppState, form: RequestForm, actor: Actor):
 
 export function convertRequest(state: AppState, requestId: string, actor: Actor): OpResult {
   const request = state.requests.find((item) => item.id === requestId)
-  if (!request || request.status !== "gozleyir") return fail("Açıq tələbnamə seçin.")
+  if (!request || request.status !== "tesdiq") return fail("Sifariş üçün rəhbər tərəfindən təsdiqlənmiş tələbnamə seçin.")
   const material = state.materials.find((item) => item.id === request.materialId)
   const amount = roundMoney(request.qty * (material?.price || 0))
   const order: PurchaseOrder = {
@@ -2623,7 +2623,7 @@ export function addQuote(state: AppState, form: QuoteForm, actor: Actor): OpResu
   const days = Math.round(Number(form.days) || 0)
   if (!form.requestId || !form.supplier.trim() || !(amount > 0)) return fail("Tələb, təchizatçı və məbləğ vacibdir.")
   const request = state.requests.find((item) => item.id === form.requestId)
-  if (!request || (request.status !== "gozleyir" && request.status !== "teklif")) return fail("Bu tələbə təklif yazılmır.")
+  if (!request || (request.status !== "gozleyir" && request.status !== "teklif" && request.status !== "tesdiq")) return fail("Bu tələbə təklif yazılmır.")
   const quote: Quote = {
     id: nextId("TKL", state.quotes),
     requestId: form.requestId,
@@ -2635,7 +2635,7 @@ export function addQuote(state: AppState, form: QuoteForm, actor: Actor): OpResu
   return {
     patch: {
       quotes: [quote, ...state.quotes],
-      requests: state.requests.map((item) => (item.id === form.requestId ? { ...item, status: "teklif" } : item)),
+      requests: state.requests.map((item) => (item.id === form.requestId ? { ...item, status: item.status === "tesdiq" ? "tesdiq" : "teklif" } : item)),
       audit: audit(state, actor, "Təklif yazıldı", `${quote.id} · ${quote.supplier}`),
     },
   }
@@ -2645,7 +2645,7 @@ export function awardQuote(state: AppState, quoteId: string, actor: Actor): OpRe
   const quote = state.quotes.find((item) => item.id === quoteId)
   if (!quote || quote.status !== "acik") return fail("Açıq təklif seçin.")
   const request = state.requests.find((item) => item.id === quote.requestId)
-  if (!request || request.status === "sifaris" || request.status === "anbar") return fail("Tələb artıq bağlanıb.")
+  if (!request || request.status !== "tesdiq") return fail("Təklifi seçmək üçün rəhbər əvvəlcə tələbnaməni təsdiqləməlidir.")
   const order: PurchaseOrder = {
     id: nextId("PO", state.purchaseOrders),
     supplier: quote.supplier,

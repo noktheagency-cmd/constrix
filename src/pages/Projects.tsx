@@ -1,6 +1,6 @@
 import { DataTable } from '../components/DataTable'
 import { Button, Input, Metric, SearchInput, StatGrid, TableContainer, Textarea, Toolbar } from "../components/primitives"
-import { useState, type FormEvent } from "react"
+import { useEffect, useState, type FormEvent } from "react"
 import { DateField } from "../DateField"
 import { Link } from "react-router-dom"
 import type { DocumentForm, NewProjectForm, Project, ProjectStatus } from "../domain/types"
@@ -9,6 +9,7 @@ import { Icon } from "../icons"
 import { usePrefs } from "../i18n"
 import { useStore } from "../store"
 import { Badge, Drawer, Empty, Field, Meter, Modal, PageHead, RowMenu, Select, Tabs, useTitle } from "../ui"
+import { ApiError, api } from "../api"
 
 const STATUSES: { id: string; label: string }[] = [
   { id: "hamisi", label: "Hamısı" },
@@ -21,6 +22,8 @@ const STATUSES: { id: string; label: string }[] = [
 const KINDS = ["İcazə", "Çizgi", "Əlavə iş", "Protokol", "Akt"]
 
 const emptyPaper: DocumentForm = { projectId: "", title: "", kind: "İcazə", date: "" }
+type ProjectTransferAssignment = { accountId: string; name: string; email: string; seatRole: string; canSendTransfers: boolean; canReceiveTransfers: boolean; active: boolean; assignedBy: string; updatedAt: string }
+type ProjectMemberChoice = { accountId: string; name: string; seatRole: string }
 
 function passport(project: Project): NewProjectForm {
   return {
@@ -74,10 +77,63 @@ export default function Projects() {
   const [note, setNote] = useState<{ projectId: string; id: string; text: string } | null>(null)
   const [paper, setPaper] = useState<(DocumentForm & { id: string }) | null>(null)
   const [error, setError] = useState("")
+  const [assignmentRows, setAssignmentRows] = useState<ProjectTransferAssignment[]>([])
+  const [assignmentMembers, setAssignmentMembers] = useState<ProjectMemberChoice[]>([])
+  const [assignmentAccountId, setAssignmentAccountId] = useState("")
+  const [assignmentCanSend, setAssignmentCanSend] = useState(false)
+  const [assignmentCanReceive, setAssignmentCanReceive] = useState(true)
+  const [assignmentBusy, setAssignmentBusy] = useState(false)
+  const [assignmentError, setAssignmentError] = useState("")
   const canSign = actor.role === "director" || actor.role === "pm"
 
   const rows = projects.filter((item) => (filter === "hamisi" || item.status === filter) && hit(query, item.name, item.client, item.city, item.district, item.manager, item.id, item.phase))
   const open = projects.find((item) => item.id === openId) || null
+
+  useEffect(() => {
+    let current = true
+    if (!openId || actor.role !== "director") return () => { current = false }
+    setAssignmentBusy(true)
+    setAssignmentError("")
+    Promise.all([
+      api<ProjectTransferAssignment[]>(`/api/projects/${encodeURIComponent(openId)}/assignments`),
+      api<{ org: { members: { accountId: string | null; name: string; seatRole: string }[] } | null }>("/api/platform/me"),
+    ]).then(([rows, profile]) => {
+      if (!current) return
+      setAssignmentRows(rows)
+      setAssignmentMembers((profile.org?.members || []).filter((member): member is { accountId: string; name: string; seatRole: string } => Boolean(member.accountId) && ["sahe", "layihe"].includes(member.seatRole)).map((member) => ({ accountId: member.accountId, name: member.name, seatRole: member.seatRole })))
+    }).catch((reason) => {
+      if (current) setAssignmentError(reason instanceof ApiError ? reason.message : "Layihə üzvləri yüklənmədi")
+    }).finally(() => { if (current) setAssignmentBusy(false) })
+    return () => { current = false }
+  }, [openId, actor.role])
+
+  async function saveAssignment(event: FormEvent) {
+    event.preventDefault()
+    if (!open || assignmentBusy) return
+    setAssignmentBusy(true)
+    setAssignmentError("")
+    try {
+      const saved = await api<ProjectTransferAssignment>(`/api/projects/${encodeURIComponent(open.id)}/assignments`, { method: "POST", body: JSON.stringify({ accountId: assignmentAccountId, canSendTransfers: assignmentCanSend, canReceiveTransfers: assignmentCanReceive }) })
+      setAssignmentRows((rows) => [saved, ...rows.filter((row) => row.accountId !== saved.accountId)])
+      setAssignmentAccountId("")
+      setAssignmentCanSend(false)
+      setAssignmentCanReceive(true)
+    } catch (reason) {
+      setAssignmentError(reason instanceof ApiError ? reason.message : "Layihə səlahiyyəti saxlanmadı")
+    } finally { setAssignmentBusy(false) }
+  }
+
+  async function deactivateAssignment(accountId: string) {
+    if (!open || assignmentBusy) return
+    setAssignmentBusy(true)
+    setAssignmentError("")
+    try {
+      await api(`/api/projects/${encodeURIComponent(open.id)}/assignments/${encodeURIComponent(accountId)}`, { method: "DELETE" })
+      setAssignmentRows((rows) => rows.map((row) => row.accountId === accountId ? { ...row, active: false } : row))
+    } catch (reason) {
+      setAssignmentError(reason instanceof ApiError ? reason.message : "Layihə səlahiyyəti deaktiv edilmədi")
+    } finally { setAssignmentBusy(false) }
+  }
 
   function edit(project: Project) {
     setError("")
@@ -419,6 +475,33 @@ export default function Projects() {
               </li>
             ))}
           </ol>
+          {actor.role === "director" && <section className="form" style={{ marginTop: 22 }}>
+            <div>
+              <strong>Layihə üzrə transfer səlahiyyəti</strong>
+              <p className="muted">Sahə və layihə üzvlərini ayrıca təyin edin. Göndərən və qəbul edən imzaları ayrı hesablardan verilməlidir.</p>
+            </div>
+            {assignmentBusy && <p className="muted">Yüklənir…</p>}
+            {assignmentError && <p className="form-error" role="alert">{assignmentError}</p>}
+            {assignmentRows.filter((row) => row.active).map((row) => (
+              <div className="check-row" key={row.accountId}>
+                <span>{row.name}<small className="muted"> · {row.seatRole} · {[row.canSendTransfers && "Göndərən", row.canReceiveTransfers && "Qəbul edən"].filter(Boolean).join(" + ")}</small></span>
+                <Button type="button" className="small ghost" disabled={assignmentBusy} onClick={() => void deactivateAssignment(row.accountId)}>Deaktiv et</Button>
+              </div>
+            ))}
+            <form className="form" onSubmit={(event) => void saveAssignment(event)}>
+              <Field label="Şirkət üzvü">
+                <Select value={assignmentAccountId} onValueChange={(accountId) => {
+                  setAssignmentAccountId(accountId)
+                  const assigned = assignmentRows.find((row) => row.accountId === accountId && row.active)
+                  setAssignmentCanSend(assigned?.canSendTransfers || false)
+                  setAssignmentCanReceive(assigned ? assigned.canReceiveTransfers : true)
+                }} options={assignmentMembers.map((member) => ({ value: member.accountId, label: `${member.name} · ${member.seatRole}` }))} placeholder="İstifadəçi seçin" />
+              </Field>
+              <label className="check-row"><span>Layihə anbarından göndərə bilər</span><Input type="checkbox" checked={assignmentCanSend} onChange={(event) => setAssignmentCanSend(event.target.checked)} /></label>
+              <label className="check-row"><span>Layihə anbarına qəbul edə bilər</span><Input type="checkbox" checked={assignmentCanReceive} onChange={(event) => setAssignmentCanReceive(event.target.checked)} /></label>
+              <Button type="submit" disabled={assignmentBusy || !assignmentAccountId || (!assignmentCanSend && !assignmentCanReceive)}>Təyinatı saxla</Button>
+            </form>
+          </section>}
         </Drawer>
       )}
 

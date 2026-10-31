@@ -45,7 +45,7 @@ export type ActStatus = "qaralama" | "tesdiq" | "faktura"
 export type ReportStatus = "qaralama" | "gonderilib" | "duzelis" | "tesdiq"
 export type DealStage = "ilkin" | "teklif" | "danisiq" | "muqavile" | "uduzulub"
 export type DocStatus = "gozleyir" | "tesdiq"
-export type RequestStatus = "gozleyir" | "sifaris" | "anbar" | "teklif" | "redd"
+export type RequestStatus = "gozleyir" | "tesdiq" | "qaytarildi" | "sifaris" | "anbar" | "teklif" | "redd"
 export type ChangeStatus = "qaralama" | "tesdiq" | "redd"
 export type QuoteStatus = "acik" | "secildi" | "redd"
 export type PayableStatus = "acik" | "odenilib"
@@ -326,6 +326,7 @@ export interface WorkOrder {
   closedBy?: string
   sentBy?: string
   cancelledBy?: string
+  cancelledById?: string
   vehicle?: string
   note?: string
   cost?: number
@@ -363,8 +364,8 @@ export interface ShipmentLine {
   material: string
   qty: number
   unit: string
-  price: number
-  amount: number
+  price?: number
+  amount?: number
 }
 
 export interface Shipment {
@@ -375,6 +376,27 @@ export interface Shipment {
   date: string
   by: string
   note?: string
+  status?: "legacy" | "waiting_sender" | "sent" | "received" | "cancelled"
+  fromLocationId?: string
+  toLocationId?: string
+  fromLocationName?: string
+  toLocationName?: string
+  toProjectId?: string | null
+  valuationVisible?: boolean
+  canDispatch?: boolean
+  canReceive?: boolean
+  canCancel?: boolean
+  createdBy?: string
+  createdById?: string
+  dispatchedBy?: string
+  dispatchedById?: string
+  dispatchedAt?: string
+  receivedBy?: string
+  receivedById?: string
+  receivedAt?: string
+  cancelledBy?: string
+  cancelledAt?: string
+  cancelReason?: string
 }
 
 export interface ShipmentForm {
@@ -692,7 +714,7 @@ export interface SmetaLine {
   section?: string
 }
 
-export type PurchaseActStatus = "qaralama" | "tesdiq"
+export type PurchaseActStatus = "qaralama" | "qismən" | "tesdiq" | "legv"
 
 export interface PurchaseActLine {
   id: string
@@ -706,6 +728,8 @@ export interface PurchaseActLine {
   note: string
   sender: string
   materialId?: string
+  receivedQty?: number
+  closedQty?: number
 }
 
 export interface PurchaseActAdjust {
@@ -968,6 +992,19 @@ export interface Stock {
   qty: number
 }
 
+export interface StockReservation {
+  id: string
+  requestId: string
+  materialId: string
+  locationId: string
+  qty: number
+  status: "active" | "consumed" | "released"
+  createdBy: string
+  createdAt: string
+  resolvedAt?: string
+  resolvedBy?: string
+}
+
 export interface MaterialRequest {
   id: string
   projectId: string
@@ -977,6 +1014,7 @@ export interface MaterialRequest {
   qty: number
   unit: string
   status: RequestStatus
+  fulfilledQty?: number
   author: string
   date: string
   text?: string
@@ -1129,6 +1167,7 @@ export interface AppState {
   reports: DailyReport[]
   locations: Location[]
   stocks: Stock[]
+  reservations: StockReservation[]
   materials: Material[]
   movements: Movement[]
   shipments: Shipment[]

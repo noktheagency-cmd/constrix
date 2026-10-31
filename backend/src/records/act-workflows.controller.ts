@@ -1,4 +1,4 @@
-import {Body,Controller,Param,Post,Req} from '@nestjs/common';
+import {Body,Controller,Get,Param,Post,Req} from '@nestjs/common';
 import {AuthUser} from '../auth/auth.service';
 import {ActWorkflowsService} from './act-workflows.service';
 @Controller('act-workflows')
@@ -13,4 +13,9 @@ export class ActWorkflowsController{
  @Post(':id/return-purchase') returnPurchase(@Req()req:{user:AuthUser},@Param('id')id:string,@Body()body:Record<string,unknown>){return this.workflows.reversePurchase(req.user,id,body);}
  @Post(':id/approve-f2') approve(@Req()req:{user:AuthUser},@Param('id')id:string,@Body()body:Record<string,unknown>){return this.workflows.approveF2(req.user,id,body.key);}
  @Post(':id/receive-purchase') receive(@Req()req:{user:AuthUser},@Param('id')id:string,@Body()body:Record<string,unknown>){return this.workflows.receivePurchase(req.user,id,body);}
+ @Get(':id/purchase-receipts') receipts(@Req()req:{user:AuthUser},@Param('id')id:string){return this.workflows.purchaseReceipts(req.user,id);}
+ @Get(':id/purchase-dispute-resolutions') disputeResolutions(@Req()req:{user:AuthUser},@Param('id')id:string){return this.workflows.purchaseDisputeResolutions(req.user,id);}
+ @Get('purchase-supplier-reconciliation') supplierReconciliation(@Req()req:{user:AuthUser}){return this.workflows.purchaseSupplierReconciliation(req.user);}
+ @Post(':id/request-purchase-dispute-resolution') requestDisputeResolution(@Req()req:{user:AuthUser},@Param('id')id:string,@Body()body:Record<string,unknown>){return this.workflows.requestPurchaseDisputeResolution(req.user,id,body);}
+ @Post(':id/review-purchase-dispute-resolution') reviewDisputeResolution(@Req()req:{user:AuthUser},@Param('id')id:string,@Body()body:Record<string,unknown>){return this.workflows.reviewPurchaseDisputeResolution(req.user,id,body);}
 }

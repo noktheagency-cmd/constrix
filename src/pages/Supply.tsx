@@ -1,6 +1,6 @@
 import { DataTable } from '../components/DataTable'
 import { Button, Input, TableContainer, Toolbar } from "../components/primitives"
-import { useState, type FormEvent } from "react"
+import { useEffect, useState, type FormEvent } from "react"
 import { DateField } from "../DateField"
 import { TODAY } from "../domain/ops"
 import type { Gear, GearCategory, GearEvent, GearForm, MaterialRequest, Payable, PurchaseOrder, Quote, QuoteForm } from "../domain/types"
@@ -61,8 +61,8 @@ export default function Supply() {
   const { t } = usePrefs()
   useTitle(t("page.supply.title"))
   const {
-    query, purchaseOrders, materials, requests, stocks, quotes, payables, projects, gear, gearEvents, suppliers,
-    addPurchase, receivePo, convertRequest, coverRequest, addQuote, awardQuote, payPayable, rejectRequest, createRequest,
+    query, purchaseOrders, materials, requests, stocks, reservations, locations, quotes, payables, projects, gear, gearEvents, suppliers,
+    addPurchase, receivePo, convertRequest, coverRequest, addQuote, awardQuote, payPayable, rejectRequest, createRequest, decideRequests, resubmitReturnedRequest, actor,
     addGear, sendGearCheck, startGearCheck, confirmGearCheck, finishGearCheck, returnGearCheck, replaceGear, acceptGear, obsoleteGear, loseGear,
   } = useStore()
   const [tab, setTab] = useState<Tab>("teleb")
@@ -76,17 +76,22 @@ export default function Supply() {
   const [quote, setQuote] = useState<QuoteForm>({ requestId: "", supplier: suppliers[0]?.name || "", amount: "", days: "7" })
   const [reason, setReason] = useState("")
   const [error, setError] = useState("")
+  const [selectedRequests, setSelectedRequests] = useState<string[]>([])
+  const [bulkFeedback, setBulkFeedback] = useState<{ succeeded: number; failed: number; issues: string[] } | null>(null)
 
   const orders = purchaseOrders.filter((item) => hit(query, item.id, item.supplier, item.item, item.status))
   const requestRows = requests.filter((item) => hit(query, item.id, item.project, item.material, item.text || "", item.author))
   const quoteRows = quotes.filter((item) => hit(query, item.id, item.supplier, item.requestId, item.status))
   const payableRows = payables.filter((item) => hit(query, item.id, item.supplier, item.poId, item.status))
   const vendorRows = suppliers.filter((item) => hit(query, item.name, item.category, item.city, item.contact))
-  const openRequests = requests.filter((item) => item.status === "gozleyir" || item.status === "teklif")
+  const openRequests = requests.filter((item) => item.status === "gozleyir" || item.status === "teklif" || item.status === "tesdiq")
+  const pendingRequests = requestRows.filter((item) => item.status === "gozleyir" || item.status === "teklif")
 
   function away(item: MaterialRequest) {
-    const siteId = `LOC-${item.projectId}`
-    return stocks.filter((row) => row.materialId === item.materialId && row.locationId !== siteId).reduce((sum, row) => sum + row.qty, 0)
+    const eligibleIds = new Set(locations.filter((location) => !location.projectId).map((location) => location.id))
+    const physical = stocks.filter((row) => row.materialId === item.materialId && eligibleIds.has(row.locationId)).reduce((sum, row) => sum + row.qty, 0)
+    const held = reservations.filter((row) => row.materialId === item.materialId && eligibleIds.has(row.locationId) && row.status === "active").reduce((sum, row) => sum + row.qty, 0)
+    return Math.max(0, physical - held)
   }
 
   function openReading(next: Reading) {
@@ -114,6 +119,11 @@ export default function Supply() {
             <Icon name="plus" /> Tələb
           </Button>
         )}
+        {tab === "teleb" && actor.role === "director" && pendingRequests.length > 0 && (
+          <Button type="button" className="ghost" disabled={!selectedRequests.some((id) => pendingRequests.some((item) => item.id === id))} onClick={() => { void decideRequests(selectedRequests.filter((id) => pendingRequests.some((item) => item.id === id)), "approve").then((result) => result && setBulkFeedback({ succeeded: result.succeeded, failed: result.failed, issues: result.results.filter((row) => !row.ok).map((row) => `${row.id}: ${row.message}`) })) }}>
+            Təsdiqlə ({selectedRequests.length})
+          </Button>
+        )}
         {tab === "teklif" && (
           <Button type="button" onClick={() => { setError(""); setQuote({ requestId: openRequests[0]?.id || "", supplier: suppliers[0]?.name || "", amount: "", days: "7" }); setComposer("teklif") }}>
             <Icon name="plus" /> Təklif
@@ -128,7 +138,7 @@ export default function Supply() {
       <Toolbar>
         <Tabs
           value={tab}
-          onChange={(id) => { setTab(id as Tab); setReading(null); setError("") }}
+          onChange={(id) => { setTab(id as Tab); setReading(null); setError(""); setSelectedRequests([]) }}
           options={[
             { id: "teleb", label: "Tələb" },
             { id: "teklif", label: "Təklif" },
@@ -140,6 +150,7 @@ export default function Supply() {
           ]}
         />
       </Toolbar>
+      {bulkFeedback && tab === "teleb" && <p className={bulkFeedback.failed ? "form-error" : "muted"}>{bulkFeedback.succeeded} təsdiqləndi · {bulkFeedback.failed} uğursuz{bulkFeedback.issues.length ? ` — ${bulkFeedback.issues.join("; ")}` : ""}</p>}
       {tab === "reyestr" && (
         <>
           <Toolbar>
@@ -229,6 +240,7 @@ export default function Supply() {
           <DataTable>
             <thead>
               <tr>
+                <th>{actor.role === "director" && <input aria-label="Bütün açıq sorğuları seç" type="checkbox" checked={pendingRequests.length > 0 && pendingRequests.every((item) => selectedRequests.includes(item.id))} onChange={(event) => setSelectedRequests(event.target.checked ? pendingRequests.map((item) => item.id) : [])} />}</th>
                 <th>Tələb</th>
                 <th>Layihə</th>
                 <th>Material</th>
@@ -242,6 +254,7 @@ export default function Supply() {
                 const stock = away(item)
                 return (
                   <tr key={item.id} className="click" onClick={() => openReading({ kind: "teleb", id: item.id })}>
+                    <td onClick={(event) => event.stopPropagation()}>{actor.role === "director" && (item.status === "gozleyir" || item.status === "teklif") && <input aria-label={`${item.id} seç`} type="checkbox" checked={selectedRequests.includes(item.id)} onChange={(event) => setSelectedRequests((current) => event.target.checked ? [...current, item.id] : current.filter((id) => id !== item.id))} />}</td>
                     <td>
                       <div className="name-cell">
                         <b>{item.id}</b>
@@ -258,10 +271,10 @@ export default function Supply() {
                     </td>
                     <td>
                       <div className="row-actions stay" onClick={(event) => event.stopPropagation()}>
-                        {(item.status === "gozleyir" || item.status === "teklif") && stock + 1e-9 >= item.qty && (
+                        {item.status === "tesdiq" && stock + 1e-9 >= item.qty && (
                           <Button type="button" className="small" onClick={() => act(coverRequest(item.id))}>Anbardan</Button>
                         )}
-                        {item.status === "gozleyir" && stock + 1e-9 < item.qty && (
+                        {item.status === "tesdiq" && stock + 1e-9 < item.qty && (
                           <Button type="button" className="ghost small" onClick={() => act(convertRequest(item.id))}>Sifarişə</Button>
                         )}
                       </div>
@@ -456,8 +469,14 @@ export default function Supply() {
           onReason={setReason}
           onClose={() => setReading(null)}
           onCover={(id) => act(coverRequest(id))}
+          onApprove={(id, qty) => { void decideRequests([id], "approve", "", qty ? { [id]: qty } : undefined) }}
+          canApprove={actor.role === "director"}
           onOrder={(id) => act(convertRequest(id))}
           onReject={(id) => act(rejectRequest(id, reason))}
+          onReturn={(id) => { void decideRequests([id], "return", reason) }}
+          onCancel={(id) => { void decideRequests([id], "cancel", reason) }}
+          canEditReturned={actor.name === requests.find((item) => item.id === reading.id)?.author || actor.role === "director"}
+          onResubmit={(id, qty, text) => act(resubmitReturnedRequest(id, qty, text))}
           onAward={(id) => act(awardQuote(id))}
           onOpen={openReading}
         />
@@ -635,6 +654,7 @@ export default function Supply() {
 
 function requestIndex(request: MaterialRequest, order?: PurchaseOrder, payable?: Payable) {
   if (request.status === "anbar") return { labels: ["Tələb", "Anbar"], index: 1 }
+  if (request.status === "tesdiq") return { labels: ["Tələb", "Təsdiq", "Anbar"], index: 1 }
   if (payable?.status === "odenilib") return { labels: ["Tələb", "Təklif", "Sifariş", "Qəbul", "Ödəniş"], index: 4 }
   if (order?.status === "qebul") return { labels: ["Tələb", "Təklif", "Sifariş", "Qəbul", "Ödəniş"], index: 3 }
   if (request.status === "sifaris") return { labels: ["Tələb", "Təklif", "Sifariş", "Qəbul", "Ödəniş"], index: 2 }
@@ -644,6 +664,7 @@ function requestIndex(request: MaterialRequest, order?: PurchaseOrder, payable?:
 
 function Chain({ request, quotes, orders, payables }: { request: MaterialRequest; quotes: Quote[]; orders: PurchaseOrder[]; payables: Payable[] }) {
   if (request.status === "redd") return <Badge status="redd" />
+  if (request.status === "qaytarildi") return <Badge status="qaytarildi" />
   const order = orders.find((item) => item.id === request.poId || item.requestId === request.id)
   const payable = payables.find((item) => item.poId === order?.id && item.status === "odenilib") || payables.find((item) => item.poId === order?.id)
   const awarded = quotes.some((item) => item.requestId === request.id && item.status === "secildi")
@@ -676,7 +697,7 @@ function Track({ labels, index }: { labels: string[]; index: number }) {
 }
 
 function RequestRead({
-  request, stock, quotes, orders, payables, reason, error, onReason, onClose, onCover, onOrder, onReject, onAward, onOpen,
+  request, stock, quotes, orders, payables, reason, error, onReason, onClose, onCover, onOrder, onReject, onReturn, onCancel, onApprove, canApprove, canEditReturned, onResubmit, onAward, onOpen,
 }: {
   request?: MaterialRequest
   stock: number
@@ -690,25 +711,45 @@ function RequestRead({
   onCover: (id: string) => void
   onOrder: (id: string) => void
   onReject: (id: string) => void
+  onReturn: (id: string) => void
+  onCancel: (id: string) => void
+  onApprove: (id: string, qty?: string) => void
+  canApprove: boolean
+  canEditReturned: boolean
+  onResubmit: (id: string, qty: string, text: string) => void
   onAward: (id: string) => void
   onOpen: (reading: Reading) => void
 }) {
+  const [approvedQty, setApprovedQty] = useState(request?.qty.toString() || "")
+  const [editQty, setEditQty] = useState(request?.qty.toString() || "")
+  const [editText, setEditText] = useState(request?.text || "")
+  useEffect(() => { setApprovedQty(request?.qty.toString() || ""); setEditQty(request?.qty.toString() || ""); setEditText(request?.text || "") }, [request?.id, request?.qty, request?.text])
   if (!request) return null
   const order = orders.find((item) => item.id === request.poId || item.requestId === request.id)
-  const canCover = (request.status === "gozleyir" || request.status === "teklif") && stock + 1e-9 >= request.qty
-  const canOrder = request.status === "gozleyir" && stock + 1e-9 < request.qty
-  const canReject = request.status === "gozleyir" || request.status === "teklif"
+  const canCover = request.status === "tesdiq" && stock + 1e-9 >= request.qty
+  const canOrder = request.status === "tesdiq" && stock + 1e-9 < request.qty
+  const canReject = canApprove && (request.status === "gozleyir" || request.status === "teklif")
+  const canCancel = canApprove && request.status === "tesdiq" && !(request.fulfilledQty && request.fulfilledQty > 0)
+  const canApproveRequest = canApprove && (request.status === "gozleyir" || request.status === "teklif")
   return (
     <Drawer className="supply-drawer" title={request.id} onClose={onClose}>
       <div className="supply-sheet">
         <Chain request={request} quotes={quotes} orders={orders} payables={payables} />
         <div className="supply-facts">
           <p>{request.project}</p>
-          <p><b>{request.material}</b> · {num(request.qty)} {request.unit}</p>
-          <p className="muted">Başqa anbarda {num(stock, stock % 1 ? 1 : 0)} {request.unit}. Yazıb: {request.author}, {dateAZ(request.date)}.</p>
+           <p><b>{request.material}</b> · {num(request.qty)} {request.unit}{(request.fulfilledQty || 0) > 0 ? ` · sahəyə ${num(request.fulfilledQty || 0, 3)} verilib` : ""}</p>
+          {canApproveRequest && <Field label={`Təsdiq miqdarı (${request.unit})`}><Input type="number" min="0.001" step="0.001" value={approvedQty} onChange={(event) => setApprovedQty(event.target.value)} /></Field>}
+          <p className="muted">Ümumi anbarlarda sərbəst: {num(stock, stock % 1 ? 1 : 0)} {request.unit}. Yazıb: {request.author}, {dateAZ(request.date)}.</p>
           {request.text && <p>{request.text}</p>}
           {request.decision && <p className="muted">Qərar: {request.decision}{request.decidedBy ? ` · ${request.decidedBy}` : ""}</p>}
         </div>
+        {request.status === "qaytarildi" && canEditReturned && (
+          <form className="form supply-reject" onSubmit={(event) => { event.preventDefault(); onResubmit(request.id, editQty, editText) }}>
+            <Field label={`Düzəliş edilmiş miqdar (${request.unit})`}><Input type="number" min="0.001" step="0.001" required value={editQty} onChange={(event) => setEditQty(event.target.value)} /></Field>
+            <Field label="İzah"><Input value={editText} onChange={(event) => setEditText(event.target.value)} /></Field>
+            <div className="form-actions"><Button type="submit">Düzəlişi göndər</Button></div>
+          </form>
+        )}
         {order && <Button type="button" className="ghost small" onClick={() => onOpen({ kind: "sifaris", id: order.id })}>{order.id} · {order.supplier}</Button>}
         {quotes.length > 0 && (
           <div className="supply-quotes">
@@ -726,19 +767,21 @@ function RequestRead({
             ))}
           </div>
         )}
-        {(canCover || canOrder) && (
+        {(canApproveRequest || canCover || canOrder) && (
           <div className="supply-actions">
+            {canApproveRequest && <Button type="button" onClick={() => onApprove(request.id, approvedQty)}>Rəhbər təsdiqi</Button>}
             {canCover && <Button type="button" onClick={() => onCover(request.id)}>Anbardan köçür</Button>}
             {canOrder && <Button type="button" onClick={() => onOrder(request.id)}>Birbaşa sifariş</Button>}
           </div>
         )}
-        {canReject && (
-          <form className="form supply-reject" onSubmit={(event) => { event.preventDefault(); onReject(request.id) }}>
-            <Field label="Rədd səbəbi">
+        {(canReject || canCancel) && (
+          <form className="form supply-reject" onSubmit={(event) => { event.preventDefault(); if (canReject) onReject(request.id); else onCancel(request.id) }}>
+            <Field label="Qərar səbəbi">
               <Input value={reason} onChange={(event) => onReason(event.target.value)} />
             </Field>
             <div className="form-actions">
-              <Button className="ghost" type="submit">Rədd et</Button>
+              {canReject && <><Button className="ghost" type="submit" disabled={!reason.trim()}>Rədd et</Button><Button className="ghost" type="button" disabled={!reason.trim()} onClick={() => onReturn(request.id)}>Düzəlişə qaytar</Button></>}
+              {canCancel && <Button className="ghost" type="button" disabled={!reason.trim()} onClick={() => onCancel(request.id)}>Təsdiqi və rezervi ləğv et</Button>}
             </div>
           </form>
         )}

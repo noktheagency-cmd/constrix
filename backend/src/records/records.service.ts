@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   Injectable,
   NotFoundException,
   ForbiddenException,
@@ -128,8 +129,12 @@ export class RecordsService {
   }
 
   async create(spec: ResourceSpec, body: unknown,user:AuthUser) {
+    if(spec.route==='shipments')throw new ForbiddenException('Transfer sənədi yalnız imzalı transfer workflow ilə yaradılır');
     const organizationId=await this.scope.allow(user,spec.route);
     const data=await this.safeData(spec,this.bodyOf(body),organizationId,false);
+    if(spec.route==='requests'){
+      data.status='gozleyir';data.author=user.name;data.decidedBy=null;data.decision=null;data.poId=null;data.fulfilledQty=0;
+    }
     if(['acts','purchase-acts','forma3'].includes(spec.route)&&data.status!=='qaralama')throw new ForbiddenException('Akt yalnız qaralama kimi yaradılır');
     if(spec.route==='reports'){
       if(!['qaralama','gonderilib'].includes(String(data.status)))throw new ForbiddenException('Gündəlik yalnız qaralama və ya göndərilmiş kimi yaradılır');
@@ -152,11 +157,29 @@ export class RecordsService {
   }
 
   async update(spec: ResourceSpec, id: string, body: unknown,user:AuthUser) {
+    if(spec.route==='shipments')throw new ForbiddenException('Transfer sənədi yalnız transfer workflow ilə dəyişir');
     const before=await this.findOne(spec, id,user);
     if(spec.route==='audit')throw new ForbiddenException('Audit qeydi dəyişdirilə bilməz');
     const organizationId=await this.scope.allow(user,spec.route);
     this.writeRole(user,spec);
     const data=await this.safeData(spec,this.bodyOf(body),organizationId,true,id);
+    if(spec.route==='requests'){
+      const previous=before as Row;
+      if(['decidedBy','decision','author','fulfilledQty'].some((field)=>data[field]!==undefined&&JSON.stringify(data[field])!==JSON.stringify(previous[field])))throw new ForbiddenException('Tələbnamə müəllifi, qərarı və icra miqdarı xüsusi sorğu əməliyyatı ilə idarə olunur');
+      if(data.status==='sifaris'&&previous.status!=='tesdiq')throw new ForbiddenException('Sifarişə yalnız rəhbər təsdiqli tələbnamə çevrilir');
+      if(data.status!==undefined&&data.status!==previous.status&&(['tesdiq','anbar','redd','qaytarildi'].includes(String(data.status))||(['tesdiq','anbar','redd'].includes(String(previous.status))&&!(previous.status==='tesdiq'&&data.status==='sifaris'))))throw new ForbiddenException('Tələbnamə statusu xüsusi sorğu əməliyyatı ilə dəyişir');
+      if(previous.status==='tesdiq'&&data.status==='sifaris'){
+        const changed=Object.entries(data).filter(([key,value])=>JSON.stringify(value)!==JSON.stringify(previous[key]));
+        if(changed.some(([key])=>!['status','poId'].includes(key)))throw new ForbiddenException('Təsdiqlənmiş tələbnamədə yalnız sifariş əlaqəsi yazıla bilər');
+      }else{
+        if(previous.status!=='gozleyir'&&previous.status!=='qaytarildi')throw new ForbiddenException('Yalnız açıq və ya düzəlişə qaytarılmış tələbnamə redaktə olunur');
+        const advancing=['sifaris','teklif'].includes(String(data.status))&&['director','procurement','warehouse'].includes(user.role);
+        if(advancing){
+          const changed=Object.entries(data).filter(([key,value])=>JSON.stringify(value)!==JSON.stringify(previous[key]));
+          if(changed.some(([key])=>!['status','poId'].includes(key)))throw new ForbiddenException('Tələb irəlilədikdən sonra onun mətni dəyişmir');
+        }else if(user.role!=='director'&&previous.author!==user.name)throw new ForbiddenException('Tələbnaməni yalnız müəllifi və ya rəhbər redaktə edir');
+      }
+    }
     if(spec.route==='reports'){
       const previous=before as Row;
       if(previous.status==='tesdiq'||data.status==='tesdiq')throw new ForbiddenException('Gündəlik təsdiqi və ölçmə xüsusi əməliyyatla icra edilir');
@@ -169,8 +192,32 @@ export class RecordsService {
       if(data.status!==undefined&&data.status!==previous.status)throw new ForbiddenException('Aktın statusu xüsusi təsdiq əməliyyatı ilə dəyişir');
       if(previous.status!=='qaralama')throw new ForbiddenException('Təsdiqlənmiş aktın məzmunu dəyişmir');
     }
+    let requestUpdatedAt: Date | undefined;
+    if(spec.route==='requests'){
+      const raw=await this.delegate(spec).findUnique({where:{id,organizationId}}) as Row|null;
+      if(!raw||raw.status!==(before as Row).status)throw new ConflictException('Tələbnamə yenilənib. Məlumatı yenidən yükləyin.');
+      requestUpdatedAt=raw.updatedAt instanceof Date?raw.updatedAt:undefined;
+    }
     try {
       const row = await this.prisma.$transaction(async tx=>{
+        if(spec.route==='stocks'){
+          await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${organizationId}))`;
+          const fresh=await tx.stock.findFirst({where:{id,organizationId}});
+          if(!fresh)throw new NotFoundException('Stok tapılmadı');
+          if(!new Prisma.Decimal(String((before as Row).qty)).equals(fresh.qty))throw new ConflictException('Stok başqa əməliyyatla dəyişib. Məlumatı yenidən yükləyin.');
+          const reservations=await tx.stockReservation.findMany({where:{organizationId,materialId:fresh.materialId,locationId:fresh.locationId,status:'active'}});
+          const transferHolds=await tx.shipmentLine.findMany({where:{materialId:fresh.materialId,shipment:{organizationId,fromLocationId:fresh.locationId,status:{in:['waiting_sender','sent']}}}});
+          const reserved=reservations.reduce((sum,item)=>sum.plus(item.qty),new Prisma.Decimal(0)).plus(transferHolds.reduce((sum,item)=>sum.plus(item.qty),new Prisma.Decimal(0)));
+          if((reservations.length||transferHolds.length)&&((data.materialId!==undefined&&data.materialId!==fresh.materialId)||(data.locationId!==undefined&&data.locationId!==fresh.locationId)))throw new ConflictException('Aktiv rezerv və ya transfer gözləyən stokun materialı/anbarı dəyişdirilə bilməz');
+          const nextQty=data.qty===undefined?fresh.qty:new Prisma.Decimal(String(data.qty));
+          if(nextQty.lessThan(reserved))throw new ConflictException(`Bu anbarda ${reserved.toString()} vahid aktiv rezerv var; stok bundan aşağı salına bilməz`);
+        }
+        if(spec.route==='requests'){
+          await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${organizationId}))`;
+          const fresh=await this.delegate(spec,tx).findUnique({where:{id,organizationId}}) as Row|null;
+          const freshUpdated=fresh?.updatedAt;
+          if(!fresh||!requestUpdatedAt||!(freshUpdated instanceof Date)||requestUpdatedAt.getTime()!==freshUpdated.getTime())throw new ConflictException('Tələbnamə yenilənib. Məlumatı yenidən yükləyin.');
+        }
         if(spec.route==='reports'){await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${organizationId}))`;const fresh=await this.delegate(spec,tx).findUnique({where:{id,organizationId}}) as Row|null;if(!fresh||fresh.status==='tesdiq'||fresh.status!==(before as Row).status)throw new ForbiddenException('Gündəlik statusu dəyişib. Yeniləyin');}
         if(['acts','purchase-acts','forma3'].includes(spec.route)){await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${organizationId}))`;const fresh=await this.delegate(spec,tx).findUnique({where:{id,organizationId}}) as Row|null;if(!fresh||fresh.status!=='qaralama')throw new ForbiddenException('Sənəd artıq təsdiqlənib. Yeniləyin.');}
         const result=await this.delegate(spec,tx).update({
@@ -188,11 +235,23 @@ export class RecordsService {
   }
 
   async remove(spec: ResourceSpec, id: string,user:AuthUser) {
+    if(spec.route==='shipments')throw new ForbiddenException('Transfer sənədi silinmir; gözləyən sənədi ləğv edin');
     const before=await this.findOne(spec, id,user);
     const organizationId=await this.scope.allow(user,spec.route);
     this.writeRole(user,spec);
+    if(spec.route==='requests'&&!['gozleyir','qaytarildi'].includes(String((before as Row).status)))throw new ForbiddenException('Yalnız açıq və ya düzəlişə qaytarılmış tələbnamə silinir');
     if(['audit','expenses','invoices','payables','journal'].includes(spec.route))throw new ForbiddenException('Maliyyə və audit qeydi silinmir. Düzəliş əməliyyatı yaradın.');
     await this.prisma.$transaction(async tx=>{
+      if(spec.route==='stocks'){
+        await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${organizationId}))`;
+        const stock=await tx.stock.findFirst({where:{id,organizationId}});
+        if(stock){const reservations=await tx.stockReservation.findMany({where:{organizationId,materialId:stock.materialId,locationId:stock.locationId,status:'active'}});const transfers=await tx.shipmentLine.findMany({where:{materialId:stock.materialId,shipment:{organizationId,fromLocationId:stock.locationId,status:{in:['waiting_sender','sent']}}}});if(reservations.length||transfers.length)throw new ConflictException('Stok aktiv tələb rezervində və ya transferdədir; əvvəl sənədi tamamlayın və ya ləğv edin');}
+      }
+      if(spec.route==='requests'){
+        await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${organizationId}))`;
+        const fresh=await this.delegate(spec,tx).findUnique({where:{id,organizationId}}) as Row|null;
+        if(!fresh||fresh.status!==(before as Row).status)throw new ConflictException('Tələbnamə yenilənib. Məlumatı yenidən yükləyin.');
+      }
       if(spec.route==='reports'){await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${organizationId}))`;const fresh=await this.delegate(spec,tx).findUnique({where:{id,organizationId}}) as Row|null;if(!fresh||!['qaralama','duzelis'].includes(String(fresh.status)))throw new ForbiddenException('Yalnız qaralama və ya düzəliş gündəliyi silinir');}
       if(['acts','purchase-acts','forma3'].includes(spec.route)){await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${organizationId}))`;const fresh=await this.delegate(spec,tx).findUnique({where:{id,organizationId}}) as Row|null;if(!fresh||fresh.status!=='qaralama')throw new ForbiddenException('Təsdiqlənmiş sənəd silinmir. Əvvəl düzəliş üçün qaytarın.');}
       await this.delegate(spec,tx).delete({where:{id,organizationId}});
@@ -240,6 +299,7 @@ export class RecordsService {
         if(!isRow(item))throw new BadRequestException('Sətir düzgün deyil');
         const row=this.scope.scalarData(delegate,item);
         delete row[child.foreignKey];
+        if(delegate==='purchaseActLine'){delete row.receivedQty;delete row.payableQty;delete row.closedQty;}
         if(row.id){
           const exists=await this.scope.model(delegate).findFirst({where:{id:row.id}}) as Row|null;
           if(exists&&(!parentId||exists[child.foreignKey]!==parentId))throw new NotFoundException('Sətir tapılmadı');

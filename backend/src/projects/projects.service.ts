@@ -1,9 +1,10 @@
 import { AuthUser } from '../auth/auth.service';
 import { TenantDataService } from '../prisma/tenant-data.service';
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { rethrowPrisma } from '../prisma/prisma-errors';
 import { PrismaService } from '../prisma/prisma.service';
+import { TenantService } from '../platform/tenant.service';
 import {
   CreateProjectDto,
   PhaseDto,
@@ -100,7 +101,56 @@ function noteCreate(notes: ProjectNoteDto[]) {
 
 @Injectable()
 export class ProjectsService {
-  constructor(private readonly prisma: PrismaService,private readonly scope:TenantDataService) {}
+  constructor(private readonly prisma: PrismaService,private readonly scope:TenantDataService,private readonly tenant:TenantService) {}
+
+  async assignments(projectId: string, user: AuthUser) {
+    const ctx = await this.tenant.load(user);
+    this.tenant.allow(ctx, 'members');
+    const organizationId = this.tenant.requireOrg(ctx);
+    await this.scope.requireOwned('project', projectId, organizationId);
+    const rows = await this.prisma.projectAssignment.findMany({
+      where: { organizationId, projectId },
+      include: { account: { select: { name: true, email: true } } },
+      orderBy: [{ active: 'desc' }, { createdAt: 'asc' }],
+    });
+    const memberships = await this.prisma.organizationMember.findMany({ where: { organizationId, accountId: { in: rows.map((row) => row.accountId) } }, select: { accountId: true, seatRole: true } });
+    const seats = new Map(memberships.map((row) => [row.accountId, row.seatRole]));
+    return rows.map((row) => ({ accountId: row.accountId, name: row.account.name, email: row.account.email, seatRole: seats.get(row.accountId) || '', canSendTransfers: row.canSendTransfers, canReceiveTransfers: row.canReceiveTransfers, active: row.active, assignedBy: row.assignedBy, updatedAt: row.updatedAt }));
+  }
+
+  async assign(projectId: string, body: Record<string, unknown>, user: AuthUser) {
+    const ctx = await this.tenant.load(user);
+    this.tenant.allow(ctx, 'members');
+    const organizationId = this.tenant.requireOrg(ctx);
+    await this.scope.requireOwned('project', projectId, organizationId);
+    const accountId = String(body.accountId || '');
+    const canSendTransfers = body.canSendTransfers;
+    const canReceiveTransfers = body.canReceiveTransfers;
+    if (!accountId || typeof canSendTransfers !== 'boolean' || typeof canReceiveTransfers !== 'boolean' || (!canSendTransfers && !canReceiveTransfers)) throw new BadRequestException('Layihə üzvü və ən azı bir transfer səlahiyyəti seçilməlidir');
+    const member = await this.prisma.organizationMember.findFirst({ where: { organizationId, accountId }, select: { id: true, seatRole: true } });
+    if (!member) throw new NotFoundException('İstifadəçi bu şirkətin aktiv üzvü deyil');
+    if (!['sahe', 'layihe'].includes(member.seatRole)) throw new BadRequestException('Layihə transfer səlahiyyəti yalnız sahə və layihə üzvlərinə verilə bilər');
+    const row = await this.prisma.projectAssignment.upsert({
+      where: { organizationId_accountId_projectId: { organizationId, accountId, projectId } },
+      update: { canSendTransfers, canReceiveTransfers, active: true, assignedBy: ctx.accountId },
+      create: { organizationId, accountId, projectId, canSendTransfers, canReceiveTransfers, assignedBy: ctx.accountId },
+      include: { account: { select: { name: true, email: true } } },
+    });
+    await this.tenant.audit(ctx, 'Layihəyə transfer səlahiyyəti təyin edildi', JSON.stringify({ projectId, accountId, canSendTransfers, canReceiveTransfers }));
+    const seat = await this.prisma.organizationMember.findFirst({ where: { organizationId, accountId }, select: { seatRole: true } });
+    return { accountId: row.accountId, name: row.account.name, email: row.account.email, seatRole: seat?.seatRole || '', canSendTransfers: row.canSendTransfers, canReceiveTransfers: row.canReceiveTransfers, active: row.active, assignedBy: row.assignedBy, updatedAt: row.updatedAt };
+  }
+
+  async unassign(projectId: string, accountId: string, user: AuthUser) {
+    const ctx = await this.tenant.load(user);
+    this.tenant.allow(ctx, 'members');
+    const organizationId = this.tenant.requireOrg(ctx);
+    await this.scope.requireOwned('project', projectId, organizationId);
+    const row = await this.prisma.projectAssignment.findFirst({ where: { organizationId, projectId, accountId, active: true } });
+    if (!row) throw new NotFoundException('Aktiv layihə təyinatı tapılmadı');
+    await this.prisma.projectAssignment.update({ where: { id: row.id }, data: { active: false } });
+    await this.tenant.audit(ctx, 'Layihə transfer səlahiyyəti deaktiv edildi', JSON.stringify({ projectId, accountId }));
+  }
 
   async findAll(user:AuthUser): Promise<ProjectResponse[]> {
     const projects = await this.prisma.project.findMany({

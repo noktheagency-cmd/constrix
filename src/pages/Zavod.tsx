@@ -642,7 +642,7 @@ export default function Zavod({ kind = "zavod" }: { kind?: PlantKind }) {
                   <tr key={item.id} className="click" onClick={() => { setShipmentFor(item.id); setTransferError("") }}>
                     <td className="mono">{item.id}<div className="muted">{dateAZ(item.date)} · {item.by}</div></td>
                     <td>{item.lines.map((line) => line.material).join(", ")}</td>
-                    <td>{money(item.lines.reduce((sum, line) => sum + line.amount, 0))}</td>
+                    <td>{item.valuationVisible === false ? "—" : money(item.lines.reduce((sum, line) => sum + (line.amount || 0), 0))}</td>
                     <td className="track-cell">
                       <button type="button" className="track-btn" aria-label={`${item.id} marşrutu`} onClick={() => { setShipmentFor(item.id); setTransferError("") }}>
                         <RouteTrack shipment={item} nameOf={shortPlace} />
@@ -810,16 +810,19 @@ export default function Zavod({ kind = "zavod" }: { kind?: PlantKind }) {
         <Drawer title={openShipment.id} onClose={() => setShipmentFor("")}>
           <div className="form">
             <RouteTrack shipment={openShipment} nameOf={(id) => place(id)} />
+            <p><Badge status={openShipment.status || "legacy"} /></p>
+            {openShipment.dispatchedBy && <p>Göndərən imzası: {openShipment.dispatchedBy}</p>}
+            {openShipment.receivedBy && <p>Qəbul edən imzası: {openShipment.receivedBy}</p>}
             <p className="muted">{openShipment.step >= openShipment.stops.length - 1 ? "Material son dayanacaqdadır." : `İndi ${place(openShipment.stops[openShipment.step])} dayanacağındadır. Növbəti: ${place(openShipment.stops[openShipment.step + 1])}.`}</p>
             {openShipment.note && <p>{openShipment.note}</p>}
             {openShipment.lines.map((line) => (
-              <p key={line.materialId}><b>{line.material}</b> · {num(line.qty, 1)} {line.unit} · {money(line.price)} · {money(line.amount)}</p>
+              <p key={line.materialId}><b>{line.material}</b> · {num(line.qty, 1)} {line.unit}{openShipment.valuationVisible === false ? "" : ` · ${money(line.price || 0)} · ${money(line.amount || 0)}`}</p>
             ))}
-            <p><b>Cəmi {money(openShipment.lines.reduce((sum, line) => sum + line.amount, 0))}</b></p>
+            {openShipment.valuationVisible !== false && <p><b>Cəmi {money(openShipment.lines.reduce((sum, line) => sum + (line.amount || 0), 0))}</b></p>}
             {transferError && <p className="form-error">{transferError}</p>}
-            {openShipment.step < openShipment.stops.length - 1 && (
+            {((openShipment.status === "waiting_sender" && openShipment.canDispatch) || (openShipment.status === "sent" && openShipment.canReceive) || (!openShipment.status && openShipment.step < openShipment.stops.length - 1)) && (
               <div className="form-actions">
-                <Button type="button" onClick={() => setTransferError(advanceShipment(openShipment.id))}>Növbəti dayanacağa</Button>
+                <Button type="button" onClick={() => setTransferError(advanceShipment(openShipment.id))}>{openShipment.status === "waiting_sender" ? "Göndərən kimi imzala və göndər" : openShipment.status === "sent" ? "Qəbul et və imzala" : "Növbəti dayanacağa"}</Button>
               </div>
             )}
           </div>

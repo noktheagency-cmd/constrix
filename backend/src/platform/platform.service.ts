@@ -1673,63 +1673,74 @@ export class PlatformService {
     this.tenant.allow(ctx, 'warehouse');
     const qty = num(body.qty);
     if (qty == null) throw new BadRequestException('Miqdar yazılmalıdır');
-    const policy = await this.prisma.warehousePolicy.findUnique({
-      where: { organizationId: ctx.orgId as string },
-    });
+    const orgId = this.tenant.requireOrg(ctx);
     const code = required(body.code, 'Material kodu');
-    const lots = await this.prisma.stockLot.findMany({
-      where: { organizationId: ctx.orgId as string, code },
-      orderBy: { createdAt: 'asc' },
-    });
-    const have = lots.reduce((sum, lot) => sum + lot.qty.toNumber(), 0);
-    if (have + 1e-9 < qty) throw new BadRequestException('Anbar qalığı sıfırdan aşağı düşə bilməz');
-    const method = policy?.method ?? 'orta';
-    let unitCost = 0;
-    if (method === 'fifo') {
-      const plan = fifoIssue(
-        lots.map((lot) => ({ id: lot.id, qty: lot.qty.toNumber(), at: lot.createdAt.getTime() })),
-        qty,
-      );
-      if (!plan.ok) throw new BadRequestException(plan.reason);
-      let spent = 0;
-      for (const take of plan.taken) {
-        const lot = lots.find((item) => item.id === take.id);
-        if (!lot) continue;
-        spent += take.qty * lot.unitCost.toNumber();
-        await this.prisma.stockLot.update({
-          where: { id: take.id },
-          data: { qty: new Prisma.Decimal((lot.qty.toNumber() - take.qty).toString()) },
-        });
-      }
-      unitCost = qty ? spent / qty : 0;
-    } else {
-      const worth = lots.reduce((sum, lot) => sum + lot.qty.toNumber() * lot.unitCost.toNumber(), 0);
-      unitCost = have ? worth / have : 0;
+    return this.prisma.$transaction(async (tx) => {
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${orgId}))`;
+      const policy = await tx.warehousePolicy.findUnique({ where: { organizationId: orgId } });
+      const lots = await tx.stockLot.findMany({ where: { organizationId: orgId, code, qty: { gt: 0 } }, orderBy: { createdAt: 'asc' } });
+      const have = lots.reduce((sum, lot) => sum + lot.qty.toNumber(), 0);
+      if (have + 1e-9 < qty) throw new BadRequestException('Anbar qalığı sıfırdan aşağı düşə bilməz');
+      const allocations: { lot: typeof lots[number]; qty: number }[] = [];
       let left = qty;
       for (const lot of lots) {
         if (left <= 0) break;
         const take = Math.min(left, lot.qty.toNumber());
+        allocations.push({ lot, qty: take });
         left -= take;
-        await this.prisma.stockLot.update({
-          where: { id: lot.id },
-          data: { qty: new Prisma.Decimal((lot.qty.toNumber() - take).toString()) },
-        });
       }
-    }
-    const projectId = text(body.projectId);
-    const kind = text(body.kind) || 'buraxilis';
-    if (kind === 'buraxilis' && projectId) {
-      const project = await this.prisma.project.findFirst({
-        where: { id: projectId, organizationId: ctx.orgId as string },
-      });
-      if (project) {
-        await this.prisma.project.update({
-          where: { id: project.id },
-          data: { spent: { increment: new Prisma.Decimal((unitCost * qty).toFixed(2)) } },
-        });
+      const usedByPlace = new Map<string, { materialId: string; locationId: string; qty: number }>();
+      for (const allocation of allocations) {
+        const locationId = allocation.lot.locationId;
+        const materialId = allocation.lot.materialId;
+        if (locationId && materialId) {
+          const key = `${materialId}\u0000${locationId}`;
+          const used = usedByPlace.get(key) || { materialId, locationId, qty: 0 };
+          used.qty += allocation.qty;
+          usedByPlace.set(key, used);
+        }
       }
-    }
-    return { method, unitCost, qty, kind, projectCost: kind === 'buraxilis' ? unitCost * qty : 0 };
+      for (const { materialId, locationId, qty: used } of usedByPlace.values()) {
+        const [stock, reservations, transfers, placeLots] = await Promise.all([
+          tx.stock.findFirst({ where: { organizationId: orgId, materialId, locationId } }),
+          tx.stockReservation.findMany({ where: { organizationId: orgId, materialId, locationId, status: 'active' } }),
+          tx.shipmentLine.findMany({ where: { materialId, shipment: { organizationId: orgId, fromLocationId: locationId, status: { in: ['waiting_sender', 'sent'] } } } }),
+          tx.stockLot.findMany({ where: { organizationId: orgId, materialId, locationId, qty: { gt: 0 } } }),
+        ]);
+        const protectedQty = reservations.reduce((sum, row) => sum.plus(row.qty), new Prisma.Decimal(0)).plus(transfers.reduce((sum, row) => sum.plus(row.qty), new Prisma.Decimal(0)));
+        const placeLotsQty = placeLots.reduce((sum, lot) => sum.plus(lot.qty), new Prisma.Decimal(0));
+        if (stock ? stock.qty.minus(used).lessThan(protectedQty) : placeLotsQty.minus(used).lessThan(protectedQty)) {
+          throw new BadRequestException('Partiya çıxışı aktiv tələb rezervi və ya transferdə olan miqdarı keçə bilməz');
+        }
+      }
+      const method = policy?.method ?? 'orta';
+      let unitCost = 0;
+      if (method === 'fifo') {
+        const plan = fifoIssue(lots.map((lot) => ({ id: lot.id, qty: lot.qty.toNumber(), at: lot.createdAt.getTime() })), qty);
+        if (!plan.ok) throw new BadRequestException(plan.reason);
+        let spent = 0;
+        for (const take of plan.taken) {
+          const lot = lots.find((item) => item.id === take.id);
+          if (!lot) continue;
+          spent += take.qty * lot.unitCost.toNumber();
+          await tx.stockLot.update({ where: { id: take.id }, data: { qty: new Prisma.Decimal((lot.qty.toNumber() - take.qty).toString()) } });
+        }
+        unitCost = qty ? spent / qty : 0;
+      } else {
+        const worth = lots.reduce((sum, lot) => sum + lot.qty.toNumber() * lot.unitCost.toNumber(), 0);
+        unitCost = have ? worth / have : 0;
+        for (const allocation of allocations) {
+          await tx.stockLot.update({ where: { id: allocation.lot.id }, data: { qty: new Prisma.Decimal((allocation.lot.qty.toNumber() - allocation.qty).toString()) } });
+        }
+      }
+      const projectId = text(body.projectId);
+      const kind = text(body.kind) || 'buraxilis';
+      if (kind === 'buraxilis' && projectId) {
+        const project = await tx.project.findFirst({ where: { id: projectId, organizationId: orgId } });
+        if (project) await tx.project.update({ where: { id: project.id }, data: { spent: { increment: new Prisma.Decimal((unitCost * qty).toFixed(2)) } } });
+      }
+      return { method, unitCost, qty, kind, projectCost: kind === 'buraxilis' ? unitCost * qty : 0 };
+    }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
   }
 
   async listLots(ctx: TenantCtx) {

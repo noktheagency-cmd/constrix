@@ -292,6 +292,7 @@ model Project {
   phases        ProjectPhase[]
   notes         ProjectNote[]
   projectFiles  ProjectFile[]
+  assignments   ProjectAssignment[]
   calcJobs      CalcJob[]
   tenders       TenderCase[]
   boqBooks      BoqBook[]
@@ -372,6 +373,7 @@ model Account {
   createdAt    DateTime              @default(now())
   updatedAt    DateTime              @updatedAt
   memberships  OrganizationMember[]
+  projectAssignments ProjectAssignment[]
 }
 
 model Crew {
@@ -603,6 +605,7 @@ model PurchaseAct {
   updatedAt      DateTime          @updatedAt
   lines          PurchaseActLine[]
   adjustments    PurchaseActAdjust[]
+  receipts       PurchaseReceipt[]
 
   @@index([projectId])
   @@index([date])
@@ -623,9 +626,79 @@ model PurchaseActLine {
   note         String      @default("")
   sender       String      @default("")
   materialId   String?
+  receivedQty  Decimal     @default(0) @db.Decimal(14, 3)
+  payableQty   Decimal     @default(0) @db.Decimal(14, 3)
+  closedQty    Decimal     @default(0) @db.Decimal(14, 3)
   act          PurchaseAct @relation(fields: [actId], references: [id], onDelete: Cascade)
+  receipts     PurchaseReceiptLine[]
 
   @@index([actId, sort])
+}
+
+model PurchaseReceipt {
+  id             String                @id @default(cuid())
+  organizationId String
+  actId          String
+  locationId     String
+  receivedAt     String
+  receivedBy     String
+  note           String                @default("")
+  reversedAt     String?
+  reversedBy     String?
+  reversalReason String?
+  createdAt      DateTime              @default(now())
+  act            PurchaseAct           @relation(fields: [actId], references: [id], onDelete: Restrict)
+  location       Location              @relation(fields: [locationId], references: [id], onDelete: Restrict)
+  organization   Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  lines          PurchaseReceiptLine[]
+
+  @@index([organizationId, actId, createdAt])
+  @@index([organizationId, locationId])
+}
+
+model PurchaseReceiptLine {
+  id             String         @id @default(cuid())
+  receiptId      String
+  purchaseLineId String
+  acceptedQty    Decimal        @db.Decimal(14, 3)
+  replacementQty Decimal        @default(0) @db.Decimal(14, 3)
+  disputedQty    Decimal        @default(0) @db.Decimal(14, 3)
+  resolvedQty    Decimal        @default(0) @db.Decimal(14, 3)
+  disputeStatus  String         @default("yoxdur")
+  note           String         @default("")
+  disputeReason  String         @default("")
+  receipt        PurchaseReceipt @relation(fields: [receiptId], references: [id], onDelete: Cascade)
+  purchaseLine   PurchaseActLine @relation(fields: [purchaseLineId], references: [id], onDelete: Restrict)
+
+  @@index([receiptId])
+  @@index([purchaseLineId])
+}
+
+model PurchaseDisputeResolution {
+  id                    String   @id @default(cuid())
+  organizationId        String
+  actId                 String
+  purchaseLineId        String
+  sourceReceiptLineId   String?
+  replacementReceiptLineId String?
+  kind                  String
+  qty                   Decimal  @db.Decimal(14, 3)
+  reason                String
+  proofFileIds          Json     @default("[]")
+  status                String   @default("pending")
+  requestedBy           String
+  requestedById         String
+  requestedAt           String
+  reviewedBy            String?
+  reviewedById          String?
+  reviewedAt            String?
+  reviewReason          String?
+  payableId             String?
+  createdAt             DateTime @default(now())
+
+  @@index([organizationId, actId, status])
+  @@index([purchaseLineId, kind, status])
+  @@index([sourceReceiptLineId])
 }
 
 model PurchaseActAdjust {
@@ -884,6 +957,10 @@ model Location {
   projectId String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  purchaseReceipts PurchaseReceipt[]
+  stockReservations StockReservation[] @relation("ReservationLocation")
+  outgoingShipments Shipment[] @relation("ShipmentFromLocation")
+  incomingShipments Shipment[] @relation("ShipmentToLocation")
 }
 
 model Material {
@@ -898,6 +975,7 @@ model Material {
   price     Decimal  @db.Decimal(14, 2)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  stockReservations StockReservation[]
 }
 
 model Stock {
@@ -936,15 +1014,35 @@ model Movement {
 model Shipment {
   organizationId String?
 
-  id        String         @id @default(cuid())
-  stops     String[]
-  step      Int            @default(0)
-  date      String
-  by        String
-  note      String?
-  createdAt DateTime       @default(now())
-  updatedAt DateTime       @updatedAt
-  lines     ShipmentLine[]
+  id               String         @id @default(cuid())
+  stops            String[]
+  step             Int            @default(0)
+  date             String
+  by               String
+  note             String?
+  fromLocationId   String?
+  toLocationId     String?
+  status           String         @default("legacy")
+  createdBy        String?
+  createdById      String?
+  dispatchedBy     String?
+  dispatchedById   String?
+  dispatchedAt     DateTime?
+  receivedBy       String?
+  receivedById     String?
+  receivedAt       DateTime?
+  cancelledBy      String?
+  cancelledById    String?
+  cancelledAt      DateTime?
+  cancelReason     String?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  fromLocation     Location?      @relation("ShipmentFromLocation", fields: [fromLocationId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  toLocation       Location?      @relation("ShipmentToLocation", fields: [toLocationId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  lines            ShipmentLine[]
+
+  @@index([organizationId, status])
+  @@index([organizationId, fromLocationId, status])
 }
 
 model ShipmentLine {
@@ -997,10 +1095,34 @@ model MaterialRequest {
   poId       String?
   decidedBy  String?
   decision   String?
+  fulfilledQty Decimal @default(0) @db.Decimal(14, 3)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
+  reservations StockReservation[]
 
   @@index([projectId])
+}
+
+model StockReservation {
+  organizationId String
+  id             String         @id @default(cuid())
+  requestId      String
+  materialId     String
+  locationId     String
+  qty            Decimal        @db.Decimal(14, 3)
+  status         String         @default("active")
+  createdBy      String
+  resolvedAt     DateTime?
+  resolvedBy     String?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  organization   Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  request        MaterialRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  material       Material       @relation(fields: [materialId], references: [id], onDelete: Restrict)
+  location       Location       @relation("ReservationLocation", fields: [locationId], references: [id], onDelete: Restrict)
+
+  @@index([organizationId, materialId, locationId, status])
+  @@index([organizationId, requestId, status])
 }
 
 model Recipe {
@@ -1673,6 +1795,7 @@ model Organization {
   updatedAt      DateTime         @updatedAt
   projects       Project[]
   members        OrganizationMember[]
+  projectAssignments ProjectAssignment[]
   products       CatalogProduct[]
   rules          TradeRule[]
   files          ProjectFile[]
@@ -1703,6 +1826,8 @@ model Organization {
   rentals         RentalOffer[]
   lots            StockLot[]
   warehousePolicy WarehousePolicy?
+  purchaseReceipts PurchaseReceipt[]
+  stockReservations StockReservation[]
   tenders         TenderCase[]
   boqBooks        BoqBook[]
   guarantees      GuaranteeCase[]
@@ -1730,6 +1855,25 @@ model OrganizationMember {
   @@unique([organizationId, accountId])
   @@index([organizationId])
   @@index([accountId])
+}
+
+model ProjectAssignment {
+  id                String       @id @default(cuid())
+  organizationId    String
+  accountId         String
+  projectId         String
+  canSendTransfers  Boolean      @default(false)
+  canReceiveTransfers Boolean    @default(true)
+  active            Boolean      @default(true)
+  assignedBy        String
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+  organization      Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  account           Account      @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  project           Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, accountId, projectId])
+  @@index([organizationId, projectId, active])
 }
 
 model CatalogProduct {

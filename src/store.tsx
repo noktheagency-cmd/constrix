@@ -59,9 +59,7 @@ import {
   deleteShop,
   saveFormula,
   replaceGear,
-  rejectRequest,
   convertRequest,
-  coverRequest,
   createAct,
   createForma3,
   updateClient,
@@ -310,6 +308,7 @@ export interface StoreValue extends AppState {
   transfer: (form: TransferForm) => string
   createShipment: (form: ShipmentForm) => string
   advanceShipment: (id: string) => string
+  cancelShipment: (id: string, reason: string) => string
   receivePo: (form: PurchaseReceiveForm) => string
   saveDaily: (form: ReportForm) => string
   removeDaily: (id: string) => string
@@ -328,7 +327,8 @@ export interface StoreValue extends AppState {
   removeAct: (id: string) => string
   makePurchaseAct: (form: PurchaseActForm) => string
   editPurchaseAct: (id: string, form: PurchaseActForm) => string
-  approvePurchaseAct: (id: string, locationId?: string) => string
+  receivePurchaseAct: (id: string, locationId: string, lines: { purchaseActLineId: string; acceptedQty: string; disputedQty: string; disputeReason?: string }[]) => string
+  purchaseDisputeAction: (id: string, action: "request-purchase-dispute-resolution" | "review-purchase-dispute-resolution", payload: Record<string, unknown>) => Promise<void>
   returnPurchaseAct: (id: string) => string
   removePurchaseAct: (id: string) => string
   importSmeta: (projectId: string, rows: SmetaImportRow[]) => string
@@ -385,6 +385,8 @@ export interface StoreValue extends AppState {
   proposeChange: (form: ChangeForm) => string
   approveChange: (id: string) => string
   coverRequest: (id: string) => string
+  decideRequests: (ids: string[], decision: "approve" | "reject" | "return" | "fulfill" | "cancel", reason?: string, qtyById?: Record<string, string>) => Promise<{results:{id:string;ok:boolean;message:string}[];succeeded:number;failed:number}|null>
+  resubmitReturnedRequest: (id: string, qty: string, text: string) => string
   addQuote: (form: QuoteForm) => string
   awardQuote: (id: string) => string
   payPayable: (id: string) => string
@@ -474,13 +476,56 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [workflowReturn,setWorkflowReturn]=useState<{id:string;kind:'return-f2'|'return-f3'|'return-purchase'|'return-invoice'}|null>(null)
   const [workflowReason,setWorkflowReason]=useState('')
   function requestWorkflowReturn(id:string,kind:'return-f2'|'return-f3'|'return-purchase'|'return-invoice'){setWorkflowReason('');setWorkflowReturn({id,kind});return ''}
-  function actWorkflow(id:string,kind:'approve-f2'|'receive-purchase'|'return-f2'|'approve-f3'|'return-f3'|'return-purchase'|'return-invoice'|'approve-daily'|'measure-daily',locationId?:string,reason?:string){
+  function actWorkflow(id:string,kind:'approve-f2'|'receive-purchase'|'return-f2'|'approve-f3'|'return-f3'|'return-purchase'|'return-invoice'|'approve-daily'|'measure-daily',locationId?:string,reason?:string,lines?:{purchaseActLineId:string;acceptedQty:string;disputedQty:string;disputeReason?:string}[]){
     if(!session){toast('Əvvəlcə daxil olun');return 'Əvvəlcə daxil olun'}
     if(workflowBusy.current)return 'Əvvəlki əməliyyat saxlanılır'
-    const identity=[id,kind,locationId||''].join('|')
+    const identity=[id,kind,locationId||'',JSON.stringify(lines||[])].join('|')
     const key=workflowKeys.current.get(identity)||crypto.randomUUID();workflowKeys.current.set(identity,key)
     workflowBusy.current=true;toast('Əməliyyat serverdə yoxlanılır…')
-    void api(`/api/act-workflows/${encodeURIComponent(id)}/${kind}`,{method:'POST',body:JSON.stringify({key,locationId,reason})}).then(()=>{workflowKeys.current.delete(identity);reload();toast(kind==='approve-daily'?'Gündəlik təsdiqləndi; ölçmə gözləyir':kind==='measure-daily'?'Ölçülmüş həcm, irəliləyiş və xərclər yazıldı':kind==='approve-f2'?'Forma-2 təsdiqləndi':kind==='approve-f3'?'Forma-3 təsdiqləndi':kind==='receive-purchase'?'Alış aktı qəbul edildi və anbara yazıldı':'Sənəd qaralamaya qaytarıldı; düzəliş tarixçədə saxlandı')}).catch(reason=>{toast(reason instanceof Error?reason.message:'Əməliyyat saxlanmadı')}).finally(()=>{workflowBusy.current=false})
+    void api(`/api/act-workflows/${encodeURIComponent(id)}/${kind}`,{method:'POST',body:JSON.stringify({key,locationId,reason,lines})}).then(()=>{workflowKeys.current.delete(identity);reload();toast(kind==='approve-daily'?'Gündəlik təsdiqləndi; ölçmə gözləyir':kind==='measure-daily'?'Ölçülmüş həcm, irəliləyiş və xərclər yazıldı':kind==='approve-f2'?'Forma-2 təsdiqləndi':kind==='approve-f3'?'Forma-3 təsdiqləndi':kind==='receive-purchase'?'Faktiki qəbul anbara yazıldı':'Sənəd qaralamaya qaytarıldı; düzəliş tarixçədə saxlandı')}).catch(reason=>{toast(reason instanceof Error?reason.message:'Əməliyyat saxlanmadı')}).finally(()=>{workflowBusy.current=false})
+    return ''
+  }
+  async function purchaseDisputeAction(id:string,action:"request-purchase-dispute-resolution"|"review-purchase-dispute-resolution",payload:Record<string,unknown>){
+    const key=crypto.randomUUID()
+    try{await api(`/api/act-workflows/${encodeURIComponent(id)}/${action}`,{method:"POST",body:JSON.stringify({...payload,key})});reload();toast(action.startsWith("request")?"Qərar sorğusu yaradıldı":"Qərar qeydə alındı")}
+    catch(reason){const message=reason instanceof Error?reason.message:"Qərar sorğusu saxlanmadı";toast(message)}
+  }
+  async function decideRequests(ids:string[],decision:"approve"|"reject"|"return"|"fulfill"|"cancel",reason='',qtyById?:Record<string,string>){
+    if(!session){toast('Əvvəlcə daxil olun');return null}
+    const unique=[...new Set(ids)].filter(Boolean)
+    if(!unique.length)return null
+    const identity=`requests:${decision}:${unique.join(',')}:${reason}:${JSON.stringify(qtyById||{})}`
+    const key=workflowKeys.current.get(identity)||crypto.randomUUID();workflowKeys.current.set(identity,key)
+    toast('Sorğular serverdə yoxlanılır…')
+    try{
+      const result=await api<{results:{id:string;ok:boolean;message:string}[];succeeded:number;failed:number}>('/api/request-workflows/decision',{method:'POST',body:JSON.stringify({ids:unique,decision,reason,key,qtyById})})
+      workflowKeys.current.delete(identity);reload();toast(result.failed?`${result.succeeded} uğurlu, ${result.failed} uğursuz`:`${result.succeeded} sorğu üzrə qərar qeydə alındı`);return result
+    }catch(error){toast(error instanceof Error?error.message:'Sorğu qərarı saxlanmadı');return null}
+  }
+  function resubmitReturnedRequest(id:string,qty:string,text:string){
+    const amount=Number(qty)
+    if(!Number.isFinite(amount)||amount<=0)return 'Miqdar sıfırdan böyük olmalıdır'
+    void api(`/api/requests/${encodeURIComponent(id)}`,{method:'PATCH',body:JSON.stringify({qty:amount,text:text.trim(),status:'gozleyir'})})
+      .then(()=>{reload();toast('Düzəliş edilmiş tələb rəhbərə göndərildi')})
+      .catch(error=>toast(error instanceof Error?error.message:'Tələb yenidən göndərilmədi'))
+    return ''
+  }
+  function shipmentWorkflow(id:string,action:'dispatch'|'receive'|'cancel',payload:Record<string,unknown>={}){
+    if(!session){toast('Əvvəlcə daxil olun');return 'Əvvəlcə daxil olun'}
+    const identity=`shipment:${id}:${action}:${JSON.stringify(payload)}`
+    const key=workflowKeys.current.get(identity)||crypto.randomUUID();workflowKeys.current.set(identity,key)
+    void api(`/api/shipment-workflows/${encodeURIComponent(id)}/${action}`,{method:'POST',body:JSON.stringify({...payload,key})})
+      .then(()=>{workflowKeys.current.delete(identity);reload();toast(action==='dispatch'?'Göndərən imzası qeydə alındı; transfer qəbul gözləyir':action==='receive'?'Qəbul imzası qeydə alındı; stok hədəf anbara köçürüldü':'Gözləyən transfer ləğv edildi')})
+      .catch(error=>toast(error instanceof Error?error.message:'Transfer əməliyyatı saxlanmadı'))
+    return ''
+  }
+  function createShipmentWorkflow(form:ShipmentForm){
+    if(!session)return run(createShipment(state,form,actor),'Transfer marşrutu yazıldı')
+    if(form.stops.length!==2)return 'İkitərəfli transfer üçün başlanğıc və bir hədəf anbar seçin.'
+    const id=`TR-${crypto.randomUUID()}`,identity=`shipment:create:${id}`,key=crypto.randomUUID();workflowKeys.current.set(identity,key)
+    void api('/api/shipment-workflows',{method:'POST',body:JSON.stringify({id,fromLocationId:form.stops[0],toLocationId:form.stops[1],lines:form.lines,note:form.note,key})})
+      .then(()=>{workflowKeys.current.delete(identity);reload();toast('Transfer sənədi açıldı; göndərən imzasını gözləyir')})
+      .catch(error=>toast(error instanceof Error?error.message:'Transfer sənədi yaradılmadı'))
     return ''
   }
 
@@ -760,8 +805,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     removeMove: (id) => run(deleteHrMove(state, id, actor), "Köçürmə silindi"),
     stockMove,
     transfer: (form) => run(transferStock(state, form, actor), "Köçürmə qeydə alındı"),
-    createShipment: (form) => run(createShipment(state, form, actor), "Transfer marşrutu yazıldı"),
-    advanceShipment: (id) => run(advanceShipment(state, id, actor), "Material növbəti dayanacağa keçdi"),
+    createShipment: createShipmentWorkflow,
+    advanceShipment: (id) => {if(!session)return run(advanceShipment(state,id,actor),"Material köçürüldü");const shipment=state.shipments.find((item)=>item.id===id);if(shipment?.status==='waiting_sender')return shipmentWorkflow(id,'dispatch');if(shipment?.status==='sent')return shipmentWorkflow(id,'receive');return 'Transferin cari statusu imzaya uyğun deyil.'},
+    cancelShipment: (id,reason) => shipmentWorkflow(id,'cancel',{reason}),
     receivePo: (form) => run(receivePurchase(state, form, actor), "Mal qəbul edildi, anbar artdı"),
     saveDaily: (form) => run(saveReport(state, form, actor), form.id ? "Gündəlik redaktə olundu" : "Gündəlik saxlandı"),
     removeDaily: (id) => run(deleteReport(state, id, actor), "Gündəlik silindi"),
@@ -780,7 +826,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     removeAct: (id) => run(deleteAct(state, id, actor), "Forma-2 silindi"),
     makePurchaseAct: (form) => run(createPurchaseAct(state, form, actor), "Alış aktı açıldı"),
     editPurchaseAct: (id, form) => run(updatePurchaseAct(state, id, form, actor), "Alış aktı yazıldı"),
-    approvePurchaseAct: (id, locationId) => actWorkflow(id,'receive-purchase',locationId||state.locations[0]?.id),
+    receivePurchaseAct: (id, locationId, lines) => actWorkflow(id,'receive-purchase',locationId,undefined,lines),
+    purchaseDisputeAction,
     returnPurchaseAct: (id) => requestWorkflowReturn(id, "return-purchase"),
     removePurchaseAct: (id) => run(deletePurchaseAct(state, id, actor), "Alış aktı silindi"),
     importSmeta: (projectId, rows) => run(applySmetaImport(state, projectId, rows, actor), "Smeta Excel-dən yükləndi"),
@@ -824,7 +871,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     obsoleteGear: (id, note) => run(obsoleteGear(state, id, note, actor), "Köhnəlmiş yazılıb"),
     loseGear: (id, note) => run(loseGear(state, id, note, actor), "İtki yazıldı"),
     saveFormula: (recipeId, lines) => run(saveFormula(state, recipeId, lines, actor), "Formul yazıldı"),
-    rejectRequest: (id, reason) => run(rejectRequest(state, id, reason, actor), "Tələbnamə rədd edildi"),
+    rejectRequest: (id, reason) => {void decideRequests([id],"reject",reason);return ''},
     openFromDeal: (id) => run(openProjectFromDeal(state, id, actor), "Layihə, smeta və müqavilə açıldı"),
     decideDocument: (id, status) => run(decideDocument(state, id, status, actor), "Sənəd yeniləndi"),
     addProject,
@@ -840,7 +887,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     convertRequest: (id) => run(convertRequest(state, id, actor), "Tələbnamə sifarişə çevrildi"),
     proposeChange: (form) => run(proposeChange(state, form, actor), "Əlavə iş qaralama açıldı"),
     approveChange: (id) => run(approveChange(state, id, actor), "Əlavə iş smeta və müqaviləyə yazıldı"),
-    coverRequest: (id) => run(coverRequest(state, id, actor), "Tələb sahə anbarına köçürüldü"),
+    coverRequest: (id) => {void decideRequests([id],"fulfill");return ''},
+    decideRequests,
+    resubmitReturnedRequest,
     addQuote: (form) => run(addQuote(state, form, actor), "Təklif yazıldı"),
     awardQuote: (id) => run(awardQuote(state, id, actor), "Təklif sifarişə çevrildi"),
     payPayable: (id) => run(payPayable(state, id, actor), "Təchizatçı borcu bağlandı"),

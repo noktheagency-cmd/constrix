@@ -344,6 +344,7 @@ function buildState(): AppState {
     ],
     locations,
     stocks,
+    reservations: [],
     materials: seedMaterials.map((item) => ({ ...item })),
     movements: movements.map((item) => ({ ...item })),
     purchaseOrders: seedOrders.map((order) => ({
@@ -685,6 +686,7 @@ export function createEmptyState(): AppState {
     reports: [],
     locations: [],
     stocks: [],
+    reservations: [],
     materials: [],
     movements: [],
     shipments: [],

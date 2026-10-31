@@ -12,8 +12,8 @@ export const ROLES: Record<Role, string> = {
 
 const ACCESS: Record<Role, Area[] | ["*"]> = {
   director: ["*"],
-  pm: ["dashboard", "projects", "reports", "site", "assets", "production", "people", "finance", "audit", "clients", "acts", "tender", "boq", "spec", "weather", "guarantee", "procure"],
-  site: ["site", "reports", "projects", "assets", "weather", "procure"],
+  pm: ["dashboard", "projects", "reports", "site", "assets", "production", "people", "finance", "audit", "clients", "acts", "tender", "boq", "spec", "weather", "guarantee", "procure", "warehouse"],
+  site: ["site", "reports", "projects", "assets", "weather", "procure", "warehouse"],
   warehouse: ["warehouse", "supply", "reports", "procure"],
   procurement: ["supply", "warehouse", "dashboard", "tender", "boq", "procure"],
   accountant: ["finance", "dashboard", "audit", "projects", "acts", "boq", "guarantee", "procure"],

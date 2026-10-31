@@ -28,6 +28,22 @@ export class ProjectsController {
     return this.projects.procedures(id,req.user);
   }
 
+  @Get(':id/assignments')
+  assignments(@Param('id') id: string, @Req() req: { user: AuthUser }) {
+    return this.projects.assignments(id, req.user);
+  }
+
+  @Post(':id/assignments')
+  assign(@Param('id') id: string, @Body() body: Record<string, unknown>, @Req() req: { user: AuthUser }) {
+    return this.projects.assign(id, body, req.user);
+  }
+
+  @Delete(':id/assignments/:accountId')
+  @HttpCode(204)
+  unassign(@Param('id') id: string, @Param('accountId') accountId: string, @Req() req: { user: AuthUser }) {
+    return this.projects.unassign(id, accountId, req.user);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string,@Req() req:{user:AuthUser}) {
     return this.projects.findOne(id,req.user);
