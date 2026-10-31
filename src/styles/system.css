@@ -1344,3 +1344,7 @@ input.text-input, textarea.text-input { min-width: 0; border: 1px solid var(--li
 .nakopitel-table thead tr:nth-child(2) th { top: 42px; }
 .nakopitel-table thead th[rowspan] { z-index: 3; }
 @media print { .data-table-scroll:has(> .nakopitel-table) { max-height: none; overflow: visible; } .nakopitel-table thead th { position: static; } }
+/* Keep multi-house act selection usable for large housing projects. */
+.act-house-picker { border: 1px solid var(--line, #dfe5e7); border-radius: 10px; padding: 12px; min-width: 0; }
+.act-house-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px 12px; max-height: 190px; overflow: auto; padding: 6px 2px; }
+.act-house-grid label { display: flex; align-items: center; gap: 6px; }

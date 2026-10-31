@@ -13,7 +13,15 @@ export async function verifyTemplateDb(db:PrismaClient,ctx:TenantCtx,other:Tenan
  const prisma=db as PrismaService,service=new PlatformService(prisma,new TenantService(prisma)),result=await service.sourcePrices(ctx,source.id,book.id),before=new XlsxTemplate(original),after=new XlsxTemplate(result.bytes),target=worksheetPath(before,name);
  assert.equal(result.rows,1);assert(after.text(target).includes('<v>12.50</v>'));assert(after.text(target).includes('<v>42.00</v>'));
  for(const member of before.names())if(![target,'xl/workbook.xml'].includes(member))assert(before.bytes(member).equals(after.bytes(member)));
- await assert.rejects(()=>service.sourcePrices(other,source.id,book.id));await db.boqLine.update({where:{id:book.lines[0].id},data:{confirmed:false}});await assert.rejects(()=>service.sourcePrices(ctx,source.id,book.id));
+ await db.boqLine.update({where:{id:book.lines[0].id},data:{brand:'QA marka',model:'QA model',manufacturer:'QA istehsalçı',origin:'Azərbaycan',attributeSource:'QA texniki pasport'}});
+ await assert.rejects(()=>service.sourcePrices(ctx,source.id,book.id,{includeAttributes:true,headerRow:10}));
+ const enriched=await service.sourcePrices(ctx,source.id,book.id,{includeAttributes:true,allowNewColumns:true,headerRow:10});
+ const enrichedTemplate=new XlsxTemplate(enriched.bytes);assert(enrichedTemplate.text(target).includes('QA marka'));assert(enrichedTemplate.text(target).includes('Mənşə ölkəsi'));
+ for(const member of before.names())if(![target,'xl/workbook.xml'].includes(member))assert(before.bytes(member).equals(enrichedTemplate.bytes(member)));
+ const persisted=await service.saveBoq(ctx,{id:book.id,lines:[{sheet:name,name:sheet.E11.v,unit:sheet.F11.v,qty:sheet.G11.v,material:12.5,labor:42,sourceRow:11,confirmed:true,pricedOn:day,source:'QA price review',brand:'QA marka',attributeSource:'QA sənəd'}]});
+ assert.equal(persisted.lines[0].brand,'QA marka');assert.equal(persisted.lines[0].confirmed,true);assert.equal(persisted.lines[0].pricedOn,day);
+ await assert.rejects(()=>service.saveBoq(ctx,{id:book.id,lines:[{sheet:name,name:'QA',unit:'m2',qty:1,brand:'Mənbəsiz'}]}));
+ await assert.rejects(()=>service.sourcePrices(other,source.id,book.id));await db.boqLine.update({where:{id:persisted.lines[0].id},data:{confirmed:false}});await assert.rejects(()=>service.sourcePrices(ctx,source.id,book.id));
  assert.equal(createHash('sha256').update((await db.sourceWorkbook.findUniqueOrThrow({where:{id:source.id}})).original).digest('hex'),source.sha256);
  console.log('PASS template export uses reviewed DB prices, preserves original bytes and blocks foreign/unreviewed exports');return 'reviewed DB price export, original preservation and tenant isolation';
 }

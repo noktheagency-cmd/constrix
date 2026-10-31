@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react"
+import { createContext, useContext, useEffect, useMemo, useState, type Context, type ReactNode } from "react"
 import type { Role } from "./domain/types"
 import type { ModuleId } from "./nav"
 import { api, ApiError } from "./api"
@@ -105,6 +105,7 @@ const copy = {
   "nav.companyCabinet": ["Şirkət kabineti", "Company cabinet", "Кабинет компании"],
   "nav.clients": ["Sifarişçilər", "Clients", "Заказчики"],
   "nav.forma2": ["Forma-2", "Form-2", "Форма-2"],
+  "nav.workActs": ["İş həcmləri və aktlaşdırma", "Work volumes and certification", "Объёмы и актирование"],
   "nav.forma3": ["Forma-3", "Form-3", "Форма-3"],
   "nav.purchaseActs": ["Alış aktı", "Purchase act", "Акт закупки"],
   "nav.warehouse": ["Anbar", "Warehouse", "Склад"],
@@ -629,7 +630,9 @@ type Prefs = {
   t: (key: string, vars?: Record<string, string | number>) => string
 }
 
-const PrefsContext = createContext<Prefs | null>(null)
+// Translation edits must not split the provider and consumers during hot refresh.
+const PrefsContext = (import.meta.hot?.data.prefsContext as Context<Prefs | null> | undefined) ?? createContext<Prefs | null>(null)
+if (import.meta.hot) import.meta.hot.data.prefsContext = PrefsContext
 
 export function PrefsProvider({ children }: { children: ReactNode }) {
   const [theme, setThemeState] = useState<Theme>(readTheme)

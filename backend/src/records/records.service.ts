@@ -131,6 +131,10 @@ export class RecordsService {
     const organizationId=await this.scope.allow(user,spec.route);
     const data=await this.safeData(spec,this.bodyOf(body),organizationId,false);
     if(['acts','purchase-acts','forma3'].includes(spec.route)&&data.status!=='qaralama')throw new ForbiddenException('Akt yalnız qaralama kimi yaradılır');
+    if(spec.route==='reports'){
+      if(!['qaralama','gonderilib'].includes(String(data.status)))throw new ForbiddenException('Gündəlik yalnız qaralama və ya göndərilmiş kimi yaradılır');
+      data.measuredAt='';data.measuredBy='';data.author=user.name;delete data.laborCost;delete data.machineCost;
+    }
     this.writeRole(user,spec);
     try {
       const row = await this.prisma.$transaction(async tx=>{
@@ -153,6 +157,13 @@ export class RecordsService {
     const organizationId=await this.scope.allow(user,spec.route);
     this.writeRole(user,spec);
     const data=await this.safeData(spec,this.bodyOf(body),organizationId,true,id);
+    if(spec.route==='reports'){
+      const previous=before as Row;
+      if(previous.status==='tesdiq'||data.status==='tesdiq')throw new ForbiddenException('Gündəlik təsdiqi və ölçmə xüsusi əməliyyatla icra edilir');
+      if(previous.status==='gonderilib' && (data.status!=='duzelis'||!['director','pm'].includes(user.role)))throw new ForbiddenException('Göndərilmiş gündəliyi yalnız rəhbər düzəlişə qaytarır');
+      if(previous.status==='gonderilib')for(const key of Object.keys(data))if(key!=='status')delete data[key];
+      for(const key of ['measuredAt','measuredBy','laborCost','machineCost'])delete data[key];data.author=previous.author;
+    }
     if(['acts','purchase-acts','forma3'].includes(spec.route)){
       const previous=before as Row;
       if(data.status!==undefined&&data.status!==previous.status)throw new ForbiddenException('Aktın statusu xüsusi təsdiq əməliyyatı ilə dəyişir');
@@ -160,6 +171,7 @@ export class RecordsService {
     }
     try {
       const row = await this.prisma.$transaction(async tx=>{
+        if(spec.route==='reports'){await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${organizationId}))`;const fresh=await this.delegate(spec,tx).findUnique({where:{id,organizationId}}) as Row|null;if(!fresh||fresh.status==='tesdiq'||fresh.status!==(before as Row).status)throw new ForbiddenException('Gündəlik statusu dəyişib. Yeniləyin');}
         if(['acts','purchase-acts','forma3'].includes(spec.route)){await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${organizationId}))`;const fresh=await this.delegate(spec,tx).findUnique({where:{id,organizationId}}) as Row|null;if(!fresh||fresh.status!=='qaralama')throw new ForbiddenException('Sənəd artıq təsdiqlənib. Yeniləyin.');}
         const result=await this.delegate(spec,tx).update({
         where: { id,organizationId },
@@ -181,6 +193,7 @@ export class RecordsService {
     this.writeRole(user,spec);
     if(['audit','expenses','invoices','payables','journal'].includes(spec.route))throw new ForbiddenException('Maliyyə və audit qeydi silinmir. Düzəliş əməliyyatı yaradın.');
     await this.prisma.$transaction(async tx=>{
+      if(spec.route==='reports'){await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${organizationId}))`;const fresh=await this.delegate(spec,tx).findUnique({where:{id,organizationId}}) as Row|null;if(!fresh||!['qaralama','duzelis'].includes(String(fresh.status)))throw new ForbiddenException('Yalnız qaralama və ya düzəliş gündəliyi silinir');}
       if(['acts','purchase-acts','forma3'].includes(spec.route)){await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${organizationId}))`;const fresh=await this.delegate(spec,tx).findUnique({where:{id,organizationId}}) as Row|null;if(!fresh||fresh.status!=='qaralama')throw new ForbiddenException('Təsdiqlənmiş sənəd silinmir. Əvvəl düzəliş üçün qaytarın.');}
       await this.delegate(spec,tx).delete({where:{id,organizationId}});
       await this.log(tx,organizationId,user,'Silindi',spec,before,null);
@@ -189,9 +202,32 @@ export class RecordsService {
 
   private async safeData(spec:ResourceSpec,input:Row,orgId:string,update:boolean,parentId?:string){
     if(input.organizationId!=null&&input.organizationId!==orgId)throw new ForbiddenException('Başqa şirkətə yazmaq olmaz');
+    if(spec.route==='reports' && input.photos!==undefined){
+      if(!Array.isArray(input.photos)||input.photos.length>30||input.photos.some(id=>typeof id!=='string'))throw new BadRequestException('Ən çox 30 şəkil ID-si tələb olunur');
+      const ids=[...new Set(input.photos as string[])];
+      const count=await this.prisma.blobFile.count({where:{id:{in:ids},organizationId:orgId,kind:'project',scanStatus:'clean',mime:{in:['image/png','image/jpeg','image/webp']}}});
+      if(count!==ids.length)throw new BadRequestException('Şəkil şirkətə aid deyil və ya təhlükəsizlik yoxlaması tamamlanmayıb');
+      input={...input,photos:ids};
+    }
     const children=new Set(spec.children?.map(c=>c.field)||[]);
     const scalars=this.scope.scalarData(spec.delegate,Object.fromEntries(Object.entries(input).filter(([key])=>!children.has(key))),update);
     await this.scope.references(spec.delegate,scalars,orgId);
+    if(spec.route==='reports'){
+      const report=parentId?await this.prisma.dailyReport.findFirst({where:{id:parentId,organizationId:orgId}}):null;
+      const projectId=String(input.projectId||report?.projectId||'');
+      if(input.status!==undefined&&!['qaralama','gonderilib','duzelis','tesdiq'].includes(String(input.status)))throw new BadRequestException('Gündəlik statusu düzgün deyil');
+      for(const field of ['lines','attendance','machines']){
+        if(input[field]===undefined)continue;
+        if(!Array.isArray(input[field]))throw new BadRequestException('Gündəlik sətirləri siyahı olmalıdır');
+        const seen=new Set<string>();
+        for(const row of input[field] as Row[]){
+          const id=String(row?.[field==='lines'?'smetaLineId':field==='attendance'?'personId':'assetId']||'');
+          const value=Number(row?.[field==='lines'?'qty':'hours']);
+          if(!id||seen.has(id)||!Number.isFinite(value)||value<=0||(field!=='lines'&&value>24))throw new BadRequestException('Təkrar sətir və ya düzgün olmayan həcm/saat');seen.add(id);
+          if(field==='lines'&&!await this.prisma.smetaLine.findFirst({where:{id,kind:'work',smeta:{organizationId:orgId,projectId}}}))throw new BadRequestException('İş sətri bu layihənin smetasına aid deyil');
+        }
+      }
+    }
     const meta=Prisma.dmmf.datamodel.models.find(m=>m.name[0].toLowerCase()+m.name.slice(1)===spec.delegate);
     for(const child of spec.children||[]){
       if(!(child.field in input))continue;

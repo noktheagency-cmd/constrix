@@ -1,5 +1,6 @@
 import assert from "node:assert/strict"
 import test from "node:test"
+import { measureReport } from './ops'
 import { approveAct, approveChange, approveForma3, returnForma3, deleteForma3, refreshForma3, approveReport, completeWorkOrder, coverRequest, createAct, createForma3, dispatchWorkOrder, handoverSale, invoiceAct, issueStock, openProjectFromDeal, openSale, openService, openWorkOrder, paySale, proposeChange, receivePurchase, reserveUnit, runPayroll, saveReport, deleteReport, returnReport, startWorkOrder, cancelWorkOrder, returnWorkOrder, writeWaste, setPlantPlan, addShiftNote, updateJournal, deleteJournal, confirmPlantPlan, addPlantProduct, updatePlantProduct, deletePlantProduct, saveFormula, rejectRequest, advancePlantQueue, createShipment, advanceShipment, onHand, sendGearCheck, startGearCheck, confirmGearCheck, finishGearCheck, returnGearCheck, replaceGear, acceptGear, obsoleteGear, loseGear, addLocation, updateLocation, deleteLocation, addShop, updateShop, deleteShop, updateAct, deleteAct, returnAct, updateClient, deleteClient, promoteLead, deleteDeal, addPerson, updatePerson, deletePerson, assignAsset, updateAsset, releaseAsset, logFuel, openTrip, departTrip, arriveTrip, assignVehicle, addProject, updateProject, deleteProject, addProjectNote, updateProjectNote, deleteProjectNote, addDocument, updateDocument, deleteDocument } from "./ops"
 import { agingRows, cashRows, vatRows } from "./financeReports"
 import { createInitialState } from "./seed"
@@ -36,19 +37,24 @@ test("çatışmayan qalıq məxaric olunmur", () => {
   assert.match(result.error ?? "", /qalıq/)
 })
 
-test("gündəlik təsdiqi smeta həcmini və xərci artırır, ikinci dəfə bağlanır", () => {
+test("gündəlik təsdiqi həcmi dəyişmir, ayrıca ölçmə bir dəfə həcm və xərc yazır", () => {
   const state = createInitialState()
   const before = state.smetas.find((item) => item.projectId === "PRJ-2408")?.lines.find((line) => line.code === "02")
   assert.ok(before)
   const result = approveReport(state, "DR-014", actor)
   assert.equal(result.error, undefined)
-  const patch = patchOf(result)
+  assert.equal(result.patch?.smetas, undefined)
+  assert.equal(result.patch?.expenses, undefined)
+  const approved = withPatch(state, result)
+  const measured = measureReport(approved, "DR-014", actor)
+  const patch = patchOf(measured)
   const after = patch.smetas?.find((item) => item.projectId === "PRJ-2408")?.lines.find((line) => line.code === "02")
   assert.ok(after)
   assert.equal(after.doneQty, before.doneQty + 30)
   assert.ok(patch.expenses?.some((item) => item.category === "Əmək haqqı" && item.project === "Port Baku Residence"))
   const second = approveReport(withPatch(state, result), "DR-014", actor)
   assert.match(second.error ?? "", /göndərilmiş/)
+  assert.ok(measureReport(withPatch(approved, measured), "DR-014", actor).error)
 })
 
 test("akt təsdiqdən sonra ƏDV-li faktura açır", () => {

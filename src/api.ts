@@ -1,9 +1,11 @@
 export class ApiError extends Error {
   status: number
+  requestId?: string
 
-  constructor(status: number, message: string) {
+  constructor(status: number, message: string, requestId?: string) {
     super(message)
     this.status = status
+    this.requestId = requestId
   }
 }
 
@@ -18,8 +20,8 @@ export async function api<T>(path: string, init?: RequestInit): Promise<T> {
     },
   }).catch(()=>{throw new ApiError(0,'Serverlə əlaqə alınmadı. Əməliyyatın vəziyyətini yeniləyib yoxlayın.')})
   const raw = await response.text()
-  let data: { message?: string | string[] } | null = null
-  try { data = raw ? JSON.parse(raw) as { message?: string | string[] } : null }
+  let data: { message?: string | string[]; requestId?: string } | null = null
+  try { data = raw ? JSON.parse(raw) as { message?: string | string[]; requestId?: string } : null }
   catch { throw new ApiError(response.status, response.status >= 500 ? 'API hazır deyil və ya serverə bağlantı alınmadı. Bir az sonra yeniləyin.' : 'Serverdən düzgün JSON cavabı alınmadı.') }
   if (!response.ok) {
     if (response.status === 401 && !path.includes("/auth/login")) {
@@ -32,7 +34,8 @@ export async function api<T>(path: string, init?: RequestInit): Promise<T> {
     }
     const message = data?.message
     const text = Array.isArray(message) ? message.join(" ") : message || "Sorğu alınmadı"
-    throw new ApiError(response.status, text)
+    const requestId = response.headers.get("X-Request-ID") || data?.requestId || undefined
+    throw new ApiError(response.status, requestId ? `${text} (Sorğu: ${requestId})` : text, requestId)
   }
   return data as T
 }

@@ -47,3 +47,30 @@ export function writeNumericCell(xml:string,ref:string,value:string){
  const style=/\bs="(\d+)"/.exec(content)?.[1];content=content.slice(0,at)+`<c r="${ref}"${style?` s="${style}"`:''}><v>${value}</v></c>`+content.slice(at);return xml.replace(rowPattern,`${row[1]}${content}${row[3]}`);
 }
 export function forceRecalculation(xml:string){const tag=/<calcPr\b[^>]*\/?\s*>/;return tag.test(xml)?xml.replace(tag,current=>current.replace(/\s+(calcId|fullCalcOnLoad|forceFullCalc)="[^"]*"/g,'').replace(/\/?\s*>$/,' calcId="0" fullCalcOnLoad="1" forceFullCalc="1"/>')):xml.replace('</workbook>','<calcPr calcId="0" fullCalcOnLoad="1" forceFullCalc="1"/></workbook>')}
+
+export type PriceColumns={name:string;unit:string;qty:string;material:string;labor:string};
+export function priceColumns(input:unknown):PriceColumns{
+ const defaults={name:'E',unit:'F',qty:'G',material:'J',labor:'K'};
+ if(input===undefined)return defaults;
+ if(!input||typeof input!=='object'||Array.isArray(input))throw new BadRequestException('Excel sütun xəritəsi düzgün deyil');
+ const result={...defaults};for(const key of Object.keys(defaults) as (keyof PriceColumns)[]){const column=String((input as Record<string,unknown>)[key]||'').toUpperCase();if(!/^[A-Z]{1,3}$/.test(column)||columnNumber(column)>16384)throw new BadRequestException('Excel sütunu A–XFD aralığında olmalıdır');result[key]=column;}
+ if(new Set(Object.values(result)).size!==5)throw new BadRequestException('Mənbə və qiymət sütunları fərqli olmalıdır');return result;
+}
+const columnNumber=(column:string)=>[...column].reduce((number,letter)=>number*26+letter.charCodeAt(0)-64,0);
+function columnName(number:number){let name='';while(number>0){number--;name=String.fromCharCode(65+number%26)+name;number=Math.floor(number/26);}return name;}
+function writeTextCell(xml:string,ref:string,value:string){
+ if(value.length>32767||/[\x00-\x08\x0b\x0c\x0e-\x1f]/.test(value))throw new BadRequestException('Excel atribut mətni düzgün deyil');
+ const escape=(text:string)=>text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+ const row=ref.replace(/^[A-Z]+/,''),pattern=new RegExp(`(<row\\b(?=[^>]*\\br="${row}")[^>]*>)([\\s\\S]*?)(</row>)`);
+ if(!pattern.test(xml))throw new BadRequestException('Atribut başlığı üçün mövcud Excel sətri seçin');
+ return xml.replace(pattern,(_,start:string,content:string,end:string)=>`${start}${content}<c r="${ref}" t="inlineStr"><is><t xml:space="preserve">${escape(value)}</t></is></c>${end}`);
+}
+export function appendTechnicalAttributes(xml:string,rows:{row:number;brand:string;model:string;manufacturer:string;origin:string}[],headerRow:number){
+ if(!Number.isInteger(headerRow)||headerRow<1||rows.some(row=>row.row<=headerRow))throw new BadRequestException('Atribut başlığı məlumat sətirlərindən əvvəl olmalıdır');
+ const refs=[...xml.matchAll(/<c\b[^>]*\br="([A-Z]+)\d+"/g)];let last=refs.reduce((max,match)=>Math.max(max,columnNumber(match[1])),0);
+ if(last+4>16384)throw new BadRequestException('Yeni atribut sütunları üçün Excel həddi aşılır');
+ const fields=[['brand','Marka'],['model','Model'],['manufacturer','İstehsalçı'],['origin','Mənşə ölkəsi']] as const;
+ for(const [key,label]of fields){const column=columnName(++last);xml=writeTextCell(xml,`${column}${headerRow}`,label);for(const row of rows)xml=writeTextCell(xml,`${column}${row.row}`,row[key]);}
+ // The old dimension can hide appended cells in readers; let Excel recompute it.
+ return xml.replace(/<dimension\b[^>]*\/?\s*>/,'');
+}

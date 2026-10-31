@@ -2,6 +2,7 @@ import { DataTable } from '../components/DataTable'
 import { DocumentSummary } from "../components/DocumentSummary"
 import { Button, TableContainer, Toolbar } from "../components/primitives"
 import { useState } from "react"
+import { Link } from "react-router-dom"
 import { company } from "../data"
 import { roundMoney, roundQty } from "../domain/ops"
 import type { Act, Forma3, Forma3Kind, Forma3Status } from "../domain/types"
@@ -87,6 +88,7 @@ export default function Forma3Page() {
   return (
     <div className="forma-page">
       <PageHead kicker={t("page.forma3.kicker")} title={t("page.forma3.title")} text={t("page.forma3.text")}>
+        <Link className="btn ghost" to="/forma-2">İş həcmləri və Forma-2</Link>
         {tab !== "odenis" && (
           <Button type="button" onClick={() => openNew(tab === "yekun" ? "yekun" : "araliq")}>
             <Icon name="plus" /> Forma-3

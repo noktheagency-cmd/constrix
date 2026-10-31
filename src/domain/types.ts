@@ -918,6 +918,9 @@ export interface ReportMachine {
 }
 
 export interface DailyReport {
+  photos?: string[]
+  measuredAt?: string
+  measuredBy?: string
   id: string
   projectId: string
   date: string
@@ -1300,6 +1303,7 @@ export interface PurchaseReceiveForm {
 }
 
 export interface ReportForm {
+  photos?: string[]
   id?: string
   projectId: string
   date?: string

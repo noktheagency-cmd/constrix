@@ -2,7 +2,7 @@ import { DataTable } from './DataTable'
 import { useEffect, useState } from 'react'
 import { api } from '../api'
 import { Select } from '../ui'
-import { Button, Panel, SearchInput, TableContainer, Toolbar } from './primitives'
+import { Button, Input, Panel, SearchInput, TableContainer, Toolbar } from './primitives'
 
 type Book = { id: string; name: string; sheets: { id: string; name: string; rowCount: number; cellCount: number }[] }
 type Cell = { column: string; value: string | number | null; formula?: string }
@@ -18,9 +18,13 @@ export function SourceWorkbookViewer({ kind,boqId }: { kind: 'purchase' | 'nakop
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
   const [exporting,setExporting]=useState(false)
+  const [columns,setColumns]=useState({name:'E',unit:'F',qty:'G',material:'J',labor:'K'})
+  const [includeAttributes,setIncludeAttributes]=useState(false)
+  const [allowNewColumns,setAllowNewColumns]=useState(false)
+  const [headerRow,setHeaderRow]=useState('10')
   async function exportPrices(){
     if(!book||!boqId)return;setExporting(true);setError('');
-    try{const response=await fetch(`/api/platform/source-workbooks/${book.id}/prices`,{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify({boqId})});if(!response.ok){const body=await response.json();throw new Error(body.message||'İxrac alınmadı')}const url=URL.createObjectURL(await response.blob()),a=document.createElement('a');a.href=url;a.download=book.name.replace(/\.xlsx$/i,'-qiymet.xlsx');a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}catch(e){setError(e instanceof Error?e.message:'İxrac alınmadı')}finally{setExporting(false)}
+    try{if(!navigator.onLine)throw new Error('İxrac üçün internet bağlantısı tələb olunur');const response=await fetch(`/api/platform/source-workbooks/${book.id}/prices`,{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify({boqId,columns,includeAttributes,allowNewColumns,headerRow:Number(headerRow)})});if(!response.ok){const body=await response.json();throw new Error(body.message||'İxrac alınmadı')}const url=URL.createObjectURL(await response.blob()),a=document.createElement('a');a.href=url;a.download=book.name.replace(/\.xlsx$/i,'-qiymet.xlsx');a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}catch(e){setError(e instanceof Error?e.message:'İxrac alınmadı')}finally{setExporting(false)}
   }
   useEffect(() => {
     let live = true
@@ -46,7 +50,12 @@ export function SourceWorkbookViewer({ kind,boqId }: { kind: 'purchase' | 'nakop
     <Panel className="pad"><strong>Excel mənbəsi</strong><p className="muted">Bütün vərəqlər və doldurulmuş sütunlar. Rəqəmlər Excel-in saxlanmış nəticələridir; formulun üzərinə gəldikdə mənbə düsturu görünür. Orijinal fayl format və şəkilləri ilə saxlanılıb.</p>
       <Toolbar><Select ariaLabel="Excel vərəqi" value={sheetId} onValueChange={value => { setSheetId(value); setPage(1) }} options={books.flatMap(item => item.sheets.map(sheet => ({ value: sheet.id, label: sheet.name })))} />
       {book && <a className="btn ghost" href={`/api/platform/source-workbooks/${book.id}/download`}>Orijinalı yüklə</a>}{kind==='boq'&&boqId&&<Button disabled={exporting} onClick={()=>void exportPrices()}>{exporting?'Hazırlanır…':'Qiymətləri orijinal şablonda yüklə'}</Button>}</Toolbar>
-      {kind==='boq'&&<p className="muted">Əvvəl qiymətləri və tarixlərini yoxlayın, sətirləri təsdiqləyib “Bazaya yaz” seçin. İxrac yalnız həmin aktual qiymətləri J/K xanalarına yazır; orijinal düsturlar, vərəqlər və format saxlanır. Mənbənin mövcud formula xətaları düzəldilmiş sayılmır.</p>}
+      {kind==='boq'&&<><p className="muted">Əvvəl qiymətləri və tarixlərini yoxlayın, sətirləri təsdiqləyib “Bazaya yaz” seçin. İxrac yalnız təsdiqli aktual qiymətləri seçilmiş sütunlara yazır. Düstur olan xanaya yazmaq bloklanır; orijinal vərəqlər və format saxlanır. Mənbədəki formula xətaları düzəldilmiş sayılmır.</p>
+        <details><summary>İxrac sütunları və texniki atributlar</summary><p className="muted">AZCDG üçün E/F/G/J/K seçilir. Başqa şablonda iş adı, vahid və miqdar sütunları mənbə ilə uyğun olmalıdır. Daxili marja və alış mənbələri ixrac edilmir.</p>
+          {([['name','İşin adı sütunu'],['unit','Vahid sütunu'],['qty','Miqdar sütunu'],['material','Material qiyməti sütunu'],['labor','İşçilik qiyməti sütunu']] as const).map(([key,label])=><label key={key}>{label}<Input value={columns[key]} maxLength={3} onChange={event=>setColumns(previous=>({...previous,[key]:event.target.value.toUpperCase()}))}/></label>)}
+          <label><input type="checkbox" checked={includeAttributes} onChange={event=>setIncludeAttributes(event.target.checked)}/>Marka, model, istehsalçı və mənşə sütunlarını əlavə et</label>
+          {includeAttributes&&<><label>Başlıq sətri<Input type="number" min="1" value={headerRow} onChange={event=>setHeaderRow(event.target.value)}/></label><label><input type="checkbox" checked={allowNewColumns} onChange={event=>setAllowNewColumns(event.target.checked)}/>Müştəri şablonuna dörd yeni sütun əlavə edilməsinə icazə var</label><p className="muted">Yeni sütunlar mövcud cədvəlin sağında yaradılır. Mövcud sütunlar yerini dəyişmir. Mənbəsiz atribut ixrac edilmir.</p></>}
+        </details></>}
       <SearchInput aria-label="Excel sətirlərində axtar" placeholder="Bütün sətirlərdə axtar" value={query} onChange={event => { setQuery(event.target.value); setPage(1) }} />
     </Panel>
     {error && <p role="alert" className="form-error">{error}</p>}

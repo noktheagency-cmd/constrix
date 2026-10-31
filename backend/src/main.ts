@@ -23,7 +23,7 @@ async function bootstrap() {
   app.use(json({limit:'3mb'}));
   await app.get(AuthService).seed();
   app.setGlobalPrefix('api');
-  app.enableCors({ origin: allowedOrigins(), credentials: true });
+  app.enableCors({ origin: allowedOrigins(), credentials: true, exposedHeaders: ['X-Request-ID'] });
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,

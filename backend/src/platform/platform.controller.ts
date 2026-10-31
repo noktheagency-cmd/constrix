@@ -36,7 +36,7 @@ export class PlatformController {
   }
   @Post('source-workbooks/:id/prices')
   async sourcePrices(@Req()request:RequestUser,@Param('id')id:string,@Body()body:Record<string,unknown>,@Res({passthrough:true})response:Response){
-    const result=await this.platform.sourcePrices(await this.ctx(request),id,String(body.boqId||''));response.setHeader('Content-Type','application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');response.setHeader('Cache-Control','private, no-store');response.setHeader('X-Export-Rows',String(result.rows));response.setHeader('Content-Disposition',`attachment; filename*=UTF-8''${encodeURIComponent(result.name)}`);return new StreamableFile(result.bytes);
+    const result=await this.platform.sourcePrices(await this.ctx(request),id,String(body.boqId||''),body);response.setHeader('Content-Type','application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');response.setHeader('Cache-Control','private, no-store');response.setHeader('X-Export-Rows',String(result.rows));response.setHeader('Content-Disposition',`attachment; filename*=UTF-8''${encodeURIComponent(result.name)}`);return new StreamableFile(result.bytes);
   }
 
   @Get('meta')

@@ -1,9 +1,10 @@
 import { DataTable } from '../components/DataTable'
+import { DailyPhotos } from '../components/DailyPhotos'
+import { MarketDownload } from '../components/MarketDocuments'
 import { Button, Input, TableContainer, Textarea, Toolbar } from "../components/primitives"
 import { useState, type FormEvent } from "react"
 import { DateField } from "../DateField"
 import type { DailyReport, Weather } from "../domain/types"
-import { TODAY } from "../domain/ops"
 import { dateAZ, hit, money, num } from "../format"
 import { Icon } from "../icons"
 import { usePrefs } from "../i18n"
@@ -11,6 +12,7 @@ import { useStore } from "../store"
 import { Badge, Drawer, Empty, Field, Modal, PageHead, RowMenu, Select, Tabs, useTitle } from "../ui"
 
 type Tab = "gundelik" | "hecm" | "tabel" | "texnika" | "qeyd"
+const TODAY = new Intl.DateTimeFormat("sv-SE", { timeZone: "Asia/Baku" }).format(new Date())
 
 type Draft = {
   id: string
@@ -26,6 +28,7 @@ type Draft = {
   delay: string
   material: string
   photo: string
+  photos: string[]
 }
 
 const emptyDraft = (projectId = ""): Draft => ({
@@ -42,17 +45,19 @@ const emptyDraft = (projectId = ""): Draft => ({
   delay: "",
   material: "",
   photo: "",
+  photos: [],
 })
 
 export default function Reports({ embedded = false, projectId }: { embedded?: boolean; projectId?: string }) {
   const { t } = usePrefs()
   useTitle(embedded ? t("page.site.title") : t("page.daily.title"))
-  const { query, reports, projects, smetas, people, assets, plants, journal, actor, allowed, saveDaily, removeDaily, submitDaily, returnDaily, approveDaily, addNote, editNote, removeNote } = useStore()
+  const { query, reports, projects, smetas, people, assets, plants, journal, actor, allowed, saveDaily, removeDaily, submitDaily, returnDaily, approveDaily, measureDaily, addNote, editNote, removeNote } = useStore()
   const [tab, setTab] = useState<Tab>("gundelik")
   const [openId, setOpenId] = useState("")
   const [form, setForm] = useState<Draft | null>(null)
   const [note, setNote] = useState<{ id: string; site: string; text: string } | null>(null)
   const [error, setError] = useState("")
+  const [uploadingPhotos, setUploadingPhotos] = useState(false)
   const canSign = actor.role === "director" || actor.role === "pm"
   const report = reports.find((item) => item.id === openId)
   const projectOf = (id: string) => projects.find((item) => item.id === id)
@@ -68,14 +73,14 @@ export default function Reports({ embedded = false, projectId }: { embedded?: bo
     return lines.flatMap((line) => {
       const mine = reports.filter((item) => item.projectId === project.id && item.lines.some((row) => row.smetaLineId === line.id))
       if (!mine.length) return []
-      const qty = (status: string) => mine.filter((item) => item.status === status).reduce((sum, item) => sum + (item.lines.find((row) => row.smetaLineId === line.id)?.qty || 0), 0)
+      const qty = (status: string) => mine.filter((item) => item.status === status && item.measuredAt !== "").reduce((sum, item) => sum + (item.lines.find((row) => row.smetaLineId === line.id)?.qty || 0), 0)
       const open = mine.filter((item) => item.status !== "tesdiq").reduce((sum, item) => sum + (item.lines.find((row) => row.smetaLineId === line.id)?.qty || 0), 0)
       return [{ project, line, open, signed: qty("tesdiq"), left: Math.max(0, line.qty - line.doneQty) }]
     })
   }).filter((item) => hit(query, item.project.name, item.line.code, item.line.name))
-  const times = reports.flatMap((item) => (item.attendance || []).map((row) => ({ report: item, row, person: personOf(row.personId) }))).filter((item) => hit(query, item.person?.name, item.report.id, projectOf(item.report.projectId)?.name))
-  const machines = reports.flatMap((item) => item.machines.map((row) => ({ report: item, row, asset: assetOf(row.assetId) }))).filter((item) => hit(query, item.asset?.name, item.report.id, projectOf(item.report.projectId)?.name))
-  const notes = journal.filter((item) => hit(query, item.site, item.text, item.id))
+  const times = scoped.flatMap((item) => (item.attendance || []).map((row) => ({ report: item, row, person: personOf(row.personId) }))).filter((item) => hit(query, item.person?.name, item.report.id, projectOf(item.report.projectId)?.name))
+  const machines = scoped.flatMap((item) => item.machines.map((row) => ({ report: item, row, asset: assetOf(row.assetId) }))).filter((item) => hit(query, item.asset?.name, item.report.id, projectOf(item.report.projectId)?.name))
+  const notes = journal.filter((item) => (!projectId || item.site === projectOf(projectId)?.name) && hit(query, item.site, item.text, item.id))
   const places = [...new Set([...projects.map((item) => item.name), ...plants.map((item) => item.name), ...journal.map((item) => item.site)])]
   const smeta = smetas.find((item) => item.projectId === form?.projectId)
   const projectName = projectOf(form?.projectId || "")?.name
@@ -119,12 +124,14 @@ export default function Reports({ embedded = false, projectId }: { embedded?: bo
       delay: take("Gecikmə"),
       material: take("Material"),
       photo: take("Şəkil"),
+      photos: item.photos || [],
     })
   }
 
   function submitForm(event: FormEvent | { preventDefault: () => void }, send: boolean) {
     event.preventDefault()
     if (!form) return
+    if (uploadingPhotos) { setError("Şəkillərin yüklənməsini gözləyin."); return }
     const lines = Object.entries(form.lines).filter(([, qty]) => Number(qty) > 0).map(([smetaLineId, qty]) => ({ smetaLineId, qty }))
     const attendance = Object.entries(form.attendance).filter(([, hours]) => Number(hours) > 0).map(([personId, hours]) => ({ personId, hours }))
     const extra = [
@@ -142,6 +149,7 @@ export default function Reports({ embedded = false, projectId }: { embedded?: bo
       lines,
       machines: form.assetId ? [{ assetId: form.assetId, hours: form.hours }] : [],
       attendance,
+      photos: form.photos,
       submit: send,
     })
     setError(message)
@@ -377,9 +385,12 @@ export default function Reports({ embedded = false, projectId }: { embedded?: bo
             )}
           </div>
           {report.status === "tesdiq" && <p className="muted">Təsdiqlənmiş gündəlik redaktə olunmur və silinmir.</p>}
+          {report.status === "tesdiq" && report.measuredAt === "" && <div><p className="muted">Gündəlik təsdiqlənib. İrəliləyiş və xərclər ayrıca ölçmə təsdiqini gözləyir.</p>{canSign && <Button type="button" onClick={() => setError(measureDaily(report.id))}>Ölçülmüş həcmi təsdiqlə</Button>}</div>}
+          {report.measuredAt && report.measuredAt !== "legacy" && <p className="muted">Ölçmə: {report.measuredBy} · {dateAZ(report.measuredAt)}</p>}
           {report.status === "gonderilib" && !canSign && <p className="muted">Göndərilmiş gündəlik layihə rəhbərinin təsdiqini gözləyir.</p>}
           <p className="muted">{report.id} · {dateAZ(report.date)} · {t(`weather.${report.weather}`)} · {report.author} · briqada {report.crew}</p>
           {report.note && <p style={{ marginTop: 8 }}>{report.note}</p>}
+          {(report.photos || []).map((id, index) => <MarketDownload key={id} id={id} label={`Şəkil ${index + 1}`} />)}
           <p className="block-title">Həcm</p>
           <div className="mini-list">
             {report.lines.map((line) => {
@@ -496,29 +507,7 @@ export default function Reports({ embedded = false, projectId }: { embedded?: bo
               </Field>
             </div>
             <div className="daily-span">
-              <Field label="Şəkil">
-                <div className={`photo-field${form.photo ? " has-file" : ""}`}>
-                  <input type="file" accept="image/*" capture="environment" onChange={(event) => setForm({ ...form, photo: event.target.files?.[0]?.name || "" })} />
-                  <span className="photo-field-btn"><Icon name="image" /> Şəkil seç</span>
-                  <span className="photo-field-name">{form.photo || "Fayl seçilməyib"}</span>
-                  {form.photo && (
-                    <button
-                      type="button"
-                      className="photo-field-clear"
-                      aria-label="Şəkli sil"
-                      onClick={(event) => {
-                        event.preventDefault()
-                        event.stopPropagation()
-                        const input = event.currentTarget.parentElement?.querySelector("input")
-                        if (input instanceof HTMLInputElement) input.value = ""
-                        setForm({ ...form, photo: "" })
-                      }}
-                    >
-                      <Icon name="close" />
-                    </button>
-                  )}
-                </div>
-              </Field>
+              <DailyPhotos value={form.photos} onChange={photos => setForm(previous => previous ? { ...previous, photos } : previous)} onBusyChange={setUploadingPhotos} />
             </div>
             {error && <p className="form-error">{error}</p>}
             <div className="form-actions">

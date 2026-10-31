@@ -69,7 +69,7 @@ export default function Shell() {
   },[signedIn,orgs.activeId,bell])
   const docHorizon = addDays(alertToday, 14)
   const alerts: NotificationAlert[] = [
-    ...serverNotices.map<NotificationAlert>(item=>({id:`notice:${item.id}`,to:item.text.startsWith('Bazar komiss')?'/market':'/kabinet',title:item.text,meta:item.dueOn?`${t('shell.alertsDue')}: ${notificationDate(item.dueOn)}`:'',date:item.createdAt,icon:item.kind==='odeme'?'invoice':'bell',tone:item.dueOn&&item.dueOn.slice(0,10)<alertToday?'danger':'info'})),
+    ...serverNotices.map<NotificationAlert>(item=>({id:`notice:${item.id}`,to:item.text.startsWith('Bazar')?'/market':'/kabinet',title:item.text,meta:item.dueOn?`${t('shell.alertsDue')}: ${notificationDate(item.dueOn)}`:'',date:item.createdAt,icon:item.kind==='odeme'?'invoice':'bell',tone:item.dueOn&&item.dueOn.slice(0,10)<alertToday?'danger':'info'})),
     ...(notices.doc ? fleetDocs : [])
       .filter((item) => item.expires <= docHorizon)
       .map<NotificationAlert>((item) => ({

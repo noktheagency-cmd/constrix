@@ -1135,7 +1135,7 @@ type BoqRow = {
   profit: unknown
   vat: unknown
   management: string
-  lines: { id:string;sourceRow?:number|null;confirmed:boolean;source:string;pricedOn:string;stale:boolean;sheet: string; name: string; unit: string; qty: unknown; material: unknown; labor: unknown; laborOnly: boolean }[]
+  lines: { id:string;brand?:string;model?:string;manufacturer?:string;origin?:string;attributeSource?:string;sourceRow?:number|null;confirmed:boolean;source:string;pricedOn:string;stale:boolean;sheet: string; name: string; unit: string; qty: unknown; material: unknown; labor: unknown; laborOnly: boolean }[]
   costs: { kind: string; name: string; amount: unknown }[]
 }
 
@@ -1174,6 +1174,7 @@ function applyBoq(book: BoqRow) {
           return {
             id: line.id || prev?.id || uid(),
             sourceRow:line.sourceRow,
+            brand:line.brand,model:line.model,manufacturer:line.manufacturer,origin:line.origin,attributeSource:line.attributeSource,
             sheet: line.sheet,
             name: line.name,
             unit: line.unit,
@@ -1318,7 +1319,7 @@ export function BoqPage() {
           profit: boq.profit,
           vat: boq.vat,
           management: boq.management,
-          lines: lines.map((row) => ({ sheet: row.sheet, name: row.name, unit: row.unit, qty: row.qty, material: row.material, labor: row.labor, laborOnly: row.laborOnly })),
+          lines: lines.map((row) => ({ sheet: row.sheet, name: row.name, unit: row.unit, qty: row.qty, material: row.material, labor: row.labor, laborOnly: row.laborOnly, sourceRow:row.sourceRow,confirmed:row.confirmed===true,source:row.source,pricedOn:row.pricedOn,stale:row.stale,brand:row.brand,model:row.model,manufacturer:row.manufacturer,origin:row.origin,attributeSource:row.attributeSource })),
           costs,
         }),
       })
@@ -1399,7 +1400,7 @@ export function BoqPage() {
           const quote = laborQuote(line.name, state.boq.region, state.boq.complexity, "vahid")
           if (!quote) return line
           hit += 1
-          return { ...line, labor: String(quote.amount), source: `Tarif · ${quote.trade} · ${quote.region}`, pricedOn: new Date().toISOString().slice(0, 10), stale: false }
+          return { ...line, labor: String(quote.amount), source: `Tarif · ${quote.trade} · ${quote.region}`, pricedOn: new Date().toISOString().slice(0, 10), stale: false, confirmed:false }
         }),
       },
     }))
@@ -1416,7 +1417,7 @@ export function BoqPage() {
           const price = regionMaterial(line.name, state.boq.region)
           if (!price) return line
           hit += 1
-          return { ...line, material: String(price.price), unit: line.unit || price.unit, source: `Rayon · ${price.material} · ${price.region}`, pricedOn: new Date().toISOString().slice(0, 10), stale: false }
+          return { ...line, material: String(price.price), unit: line.unit || price.unit, source: `Rayon · ${price.material} · ${price.region}`, pricedOn: new Date().toISOString().slice(0, 10), stale: false, confirmed:false }
         }),
       },
     }))
@@ -1454,7 +1455,7 @@ export function BoqPage() {
           const hit = cards.find((card) => line.name.toLocaleLowerCase("az").includes(card.name.toLocaleLowerCase("az")) || card.name.toLocaleLowerCase("az").includes(line.name.toLocaleLowerCase("az")))
           if (!hit) return { ...line, source: line.source || "Uyğun qiymət yoxdur" }
           if (hit.stale) return { ...line, stale: true, source: `${hit.code || hit.name} · müddəti bitib ${hit.validUntil}`, pricedOn: hit.validUntil, confirmed: false }
-          return { ...line, material: String(hit.price), source: hit.code || hit.name, pricedOn: hit.validUntil || new Date().toISOString().slice(0, 10), stale: false }
+          return { ...line, material: String(hit.price), source: hit.code || hit.name, pricedOn: hit.validUntil || new Date().toISOString().slice(0, 10), stale: false, confirmed:false }
         }),
       },
     }))
@@ -1645,6 +1646,7 @@ export function BoqPage() {
                             <span className={`badge ${mark.tone}`}>{mark.word}</span>
                           </div>
                           <span className="boq-sub">{!active && `${line.sheet} · `}{line.source || "Mənbə yoxdur"}{line.pricedOn ? ` · ${line.pricedOn}` : ""}</span>
+                          <details><summary>Texniki atributlar və mənbə</summary>{([['brand','Marka'],['model','Model'],['manufacturer','İstehsalçı'],['origin','Mənşə ölkəsi'],['attributeSource','Atributları təsdiqləyən sənəd və ya mənbə']] as const).map(([key,label]) => <Field key={key} label={label}><Input value={line[key] || ''} onChange={event => { const value=event.target.value; patch(state => ({...state,boq:{...state.boq,lines:state.boq.lines.map(item=>item.id===line.id?{...item,[key]:value,confirmed:false}:item)}})) }} /></Field>)}</details>
                         </td>
                         <td>{line.unit}</td>
                         <td className="num">{line.qty || "—"}</td>

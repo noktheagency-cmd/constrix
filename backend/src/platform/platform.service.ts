@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { FitStatus, Prisma } from '@prisma/client';
 import bcrypt from 'bcryptjs';
-import {XlsxTemplate,forceRecalculation,worksheetPath,writeNumericCell} from './xlsx-template';
+import {XlsxTemplate,forceRecalculation,worksheetPath,writeNumericCell,priceColumns,appendTechnicalAttributes} from './xlsx-template';
 import {createHash} from 'node:crypto';
 import { PrismaService } from '../prisma/prisma.service';
 import {
@@ -181,8 +181,9 @@ export class PlatformService {
     this.sourceAccess(ctx, book.kind);
     return book;
   }
-  async sourcePrices(ctx:TenantCtx,id:string,boqId:string){
-    const source=await this.sourceOriginal(ctx,id);if(source.kind!=='boq')throw new BadRequestException('Bu ixrac AZCDG qiymət şablonu üçündür');
+  async sourcePrices(ctx:TenantCtx,id:string,boqId:string,options:Record<string,unknown>={}){
+    const source=await this.sourceOriginal(ctx,id);if(source.kind!=='boq')throw new BadRequestException('Bu ixrac BOQ qiymət şablonu üçündür');
+    const columns=priceColumns(options.columns),attributes=new Map<string,{row:number;brand:string;model:string;manufacturer:string;origin:string}[]>(),exportedRows=new Set<string>();
     const book=await this.prisma.boqBook.findFirst({where:{id:boqId,organizationId:ctx.orgId!},include:{lines:{orderBy:{sort:'asc'}}}});if(!book)throw new NotFoundException('BOQ tapılmadı');
     const lines=book.lines.filter(l=>l.confirmed&&!l.stale);if(!lines.length)throw new BadRequestException('İxrac üçün təsdiqli aktual qiymət yoxdur');
     const sheets=await this.prisma.sourceSheet.findMany({where:{workbookId:id}}),template=new XlsxTemplate(Buffer.from(source.original)),replacements=new Map<string,string>(),changes:unknown[]=[];
@@ -190,11 +191,18 @@ export class PlatformService {
       if(!/^\d{4}-\d{2}-\d{2}$/.test(line.pricedOn)||line.pricedOn>new Date().toISOString().slice(0,10))throw new BadRequestException('Təsdiqli qiymətin tarixi yoxlanmalıdır');
       const sheet=sheets.find(s=>s.name===line.sheet);if(!sheet)throw new BadRequestException(`${line.name}: orijinal vərəq tapılmadı`);
       const rows=sheet.rows as {number:number;cells:{column:string;value:unknown}[]}[];
-      const matches=rows.filter(r=>{const val=(column:string)=>r.cells.find(c=>c.column===column)?.value;return (!line.sourceRow||r.number===line.sourceRow)&&String(val('E')||'').trim()===line.name.trim()&&String(val('F')||'').trim()===line.unit.trim()&&Number(val('G'))===line.qty.toNumber()});
+      const matches=rows.filter(r=>{const val=(column:string)=>r.cells.find(c=>c.column===column)?.value;return (!line.sourceRow||r.number===line.sourceRow)&&String(val(columns.name)||'').trim()===line.name.trim()&&String(val(columns.unit)||'').trim()===line.unit.trim()&&Number(val(columns.qty))===line.qty.toNumber()});
       if(matches.length!==1)throw new BadRequestException(`${line.name}: mənbə sətri birmənalı uyğun gəlmir`);
       const row=matches[0].number,path=worksheetPath(template,line.sheet);let xml=replacements.get(path)||template.text(path);
+      const rowKey=`${path}:${row}`;if(exportedRows.has(rowKey))throw new BadRequestException('Eyni mənbə sətrinə iki qiymət yazıla bilməz');exportedRows.add(rowKey);
       if(line.material.isNegative()||line.labor.isNegative())throw new BadRequestException('Mənfi qiymət ixrac edilmir');
-      xml=writeNumericCell(xml,`J${row}`,line.laborOnly?'0':line.material.toFixed(2));xml=writeNumericCell(xml,`K${row}`,line.labor.toFixed(2));replacements.set(path,xml);changes.push({lineId:line.id,sheet:line.sheet,row,material:line.material.toFixed(2),labor:line.labor.toFixed(2),pricedOn:line.pricedOn});
+      xml=writeNumericCell(xml,`${columns.material}${row}`,line.laborOnly?'0':line.material.toFixed(2));xml=writeNumericCell(xml,`${columns.labor}${row}`,line.labor.toFixed(2));replacements.set(path,xml);changes.push({lineId:line.id,sheet:line.sheet,row,material:line.material.toFixed(2),labor:line.labor.toFixed(2),pricedOn:line.pricedOn});
+      if([line.brand,line.model,line.manufacturer,line.origin].some(Boolean)&&!line.attributeSource)throw new BadRequestException('Texniki atributların təsdiqləyən mənbəsi yoxdur');
+      const list=attributes.get(path)||[];list.push({row,brand:line.brand,model:line.model,manufacturer:line.manufacturer,origin:line.origin});attributes.set(path,list);
+    }
+    if(options.includeAttributes===true){
+      if(options.allowNewColumns!==true)throw new BadRequestException('Müştəri şablonuna atribut sütunları əlavə etmək üçün icazəni təsdiqləyin və ya atribut ixracını söndürün');
+      for(const [path,rows]of attributes)replacements.set(path,appendTechnicalAttributes(replacements.get(path)!,rows,Number(options.headerRow)));
     }
     replacements.set('xl/workbook.xml',forceRecalculation(template.text('xl/workbook.xml')));const bytes=template.write(replacements),sha256=createHash('sha256').update(bytes).digest('hex');
     await this.tenant.audit(ctx,'Orijinal Excel şablonuna qiymət ixracı',JSON.stringify({sourceId:id,boqId,sourceSha256:source.sha256,sha256,rows:changes.length}));
@@ -1437,8 +1445,10 @@ export class PlatformService {
       lines: {
         create: lines.map((line, sort) => {
           const row = line as Record<string, unknown>;
+          if ([row.brand,row.model,row.manufacturer,row.origin].some(value=>text(value))&&!text(row.attributeSource)) throw new BadRequestException('Marka/model/istehsalçı/mənşə üçün təsdiqləyən mənbə yazın');
           return {
             sort,
+            brand:text(row.brand),model:text(row.model),manufacturer:text(row.manufacturer),origin:text(row.origin),attributeSource:text(row.attributeSource),
             sheet: text(row.sheet) || 'Əsas',
             name: required(row.name, 'İş'),
             unit: text(row.unit) || 'eded',

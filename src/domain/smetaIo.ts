@@ -15,6 +15,11 @@ export type SmetaImportRow = {
 }
 
 function cell(row: Record<string, unknown>, keys: string[]) {
+  // Exact matches precede fuzzy matches: “Ölçü vahidi” is never a price.
+  for (const key of keys) {
+    const found = Object.keys(row).find(name => name.toLocaleLowerCase("az").trim() === key.toLocaleLowerCase("az"))
+    if (found) return String(row[found] ?? "").trim()
+  }
   for (const [key, value] of Object.entries(row)) {
     const norm = key.toLocaleLowerCase("az").replace(/\s+/g, " ").trim()
     if (keys.some((item) => norm.includes(item))) {
@@ -26,15 +31,28 @@ function cell(row: Record<string, unknown>, keys: string[]) {
 }
 
 function numCell(row: Record<string, unknown>, keys: string[]) {
-  const raw = cell(row, keys).replace(",", ".")
+  const raw = cell(row, keys).replace(/[\s\u00a0]/g, "").replace(",", ".")
   const n = Number(raw)
-  return Number.isFinite(n) ? n : 0
+  return raw && Number.isFinite(n) ? n : NaN
 }
 
-export function parseSmetaWorkbook(buffer: ArrayBuffer): { rows: SmetaImportRow[]; errors: string[] } {
+export type SmetaColumns = { code: string; name: string; unit: string; qty: string; unitPrice: string }
+export type SmetaImportOptions = { sheet?: string; headerRow?: number; columns?: SmetaColumns }
+export function inspectSmetaWorkbook(buffer: ArrayBuffer, sheet?: string, headerRow?: number) {
   const book = XLSX.read(buffer)
-  const sheetName = book.SheetNames[0]
+  const sheetName = sheet || book.SheetNames[0]
+  if (!book.Sheets[sheetName]) throw new Error("Excel vərəqi tapılmadı.")
+  const matrix = XLSX.utils.sheet_to_json<unknown[]>(book.Sheets[sheetName], { header: 1, defval: "" })
+  const detected = matrix.slice(0, 30).findIndex(row => /iş|name|description/i.test(row.join(" ")) && /miqdar|həcm|vahid|qty|quantity/i.test(row.join(" ")))
+  const header = headerRow ?? Math.max(0, detected)
+  const headers = (matrix[header] || []).map((value, index) => ({ value: XLSX.utils.encode_col(index), label: `${XLSX.utils.encode_col(index)} — ${String(value || "Başlıqsız")}` }))
+  return { sheets: book.SheetNames, sheet: sheetName, headerRow: header, headers }
+}
+export function parseSmetaWorkbook(buffer: ArrayBuffer, options: SmetaImportOptions = {}): { rows: SmetaImportRow[]; errors: string[] } {
+  const book = XLSX.read(buffer)
+  const sheetName = options.sheet || book.SheetNames[0]
   if (!sheetName) return { rows: [], errors: ["Faylda vərəq yoxdur."] }
+  if (!book.Sheets[sheetName]) return { rows: [], errors: ["Vərəq tapılmadı."] }
   const matrix = XLSX.utils.sheet_to_json<unknown[]>(book.Sheets[sheetName], { header: 1, defval: "" }) as unknown[][]
   let headerAt = -1
   for (let i = 0; i < Math.min(matrix.length, 20); i += 1) {
@@ -44,7 +62,8 @@ export function parseSmetaWorkbook(buffer: ArrayBuffer): { rows: SmetaImportRow[
       break
     }
   }
-  const objects = headerAt >= 0
+  headerAt = options.headerRow ?? headerAt
+  const objects = options.columns ? matrix.slice(headerAt + 1).map(values => Object.fromEntries(Object.entries(options.columns!).map(([key, column]) => [key, column ? values[XLSX.utils.decode_col(column)] ?? "" : ""]))) : headerAt >= 0
     ? XLSX.utils.sheet_to_json<Record<string, unknown>>(book.Sheets[sheetName], { range: headerAt, defval: "" })
     : XLSX.utils.sheet_to_json<Record<string, unknown>>(book.Sheets[sheetName], { defval: "" })
 
@@ -52,9 +71,10 @@ export function parseSmetaWorkbook(buffer: ArrayBuffer): { rows: SmetaImportRow[
   const errors: string[] = []
   let houseNo = ""
   let section = ""
+  const seen = new Set<string>()
 
   for (const row of objects) {
-    const name = cell(row, ["işlərin adı", "işin adı", "iş adı", "name", "ad", "təsvir"])
+    const name = cell(row, ["name", "işlərin adı", "işin adı", "iş adı", "ad", "təsvir"])
       || cell(row, ["iş"])
     if (!name) continue
     const lower = name.toLocaleLowerCase("az")
@@ -72,14 +92,18 @@ export function parseSmetaWorkbook(buffer: ArrayBuffer): { rows: SmetaImportRow[
     }
     if (lower.includes("üzrə cəmi") || lower.startsWith("cəmi")) continue
 
-    const code = cell(row, ["kod", "№", "no", "sira", "sıra"])
-    const unit = cell(row, ["ölçü", "vahid", "unit"])
+    const code = cell(row, ["code", "kod", "№", "no", "sira", "sıra"])
+    const rawUnit = cell(row, ["unit", "ölçü", "vahid"])
+    const unit = ({ m2: "m²", m3: "m³", "м2": "m²", "м3": "m³", "əd": "ədəd", pcs: "ədəd", kg: "kq" } as Record<string,string>)[rawUnit.toLowerCase()] || rawUnit
     const qty = numCell(row, ["miqdar", "həcm", "hecm", "qty", "volume"])
-    const unitPrice = numCell(row, ["qiymət", "qiymet", "vahid", "price", "rate"])
-    if (!(qty > 0) && !(unitPrice > 0)) {
+    const unitPrice = numCell(row, ["unitPrice", "qiymət", "qiymet", "vahidinin dəyəri", "vahid qiymət", "price", "rate"])
+    if (!Number.isFinite(qty) || !Number.isFinite(unitPrice) || qty <= 0 || unitPrice < 0 || !unit) {
       errors.push(`«${name}»: miqdar/qiymət oxunmadı`)
       continue
     }
+    const identity = `${houseNo}|${section}|${code || name}|${unit}`.toLocaleLowerCase("az")
+    if (seen.has(identity)) { errors.push(`«${name}»: eyni obyekt/bölmədə dublikat iş sətri`); continue }
+    seen.add(identity)
     rows.push({
       kind: "work",
       houseNo,
@@ -106,6 +130,14 @@ export function applySmetaImport(state: AppState, projectId: string, rows: Smeta
   }
   const work = rows.filter((row) => row.kind === "work")
   if (!work.length) return fail("İş sətri yoxdur.")
+  const identities = new Set<string>()
+  for (const row of work) {
+    if (!row.name.trim() || !row.unit.trim() || !Number.isFinite(row.qty) || row.qty <= 0 || !Number.isFinite(row.unitPrice) || row.unitPrice < 0) return fail("İş adı, vahid, müsbət miqdar və mənfi olmayan qiymət tələb olunur.")
+    const identity = `${row.houseNo}|${row.section}|${row.code || row.name}|${row.unit}`.toLocaleLowerCase("az")
+    if (identities.has(identity)) return fail("Dublikat iş sətirlərini düzəldin.")
+    identities.add(identity)
+  }
+  if (state.reports.some(report => report.projectId === projectId) || state.smetas.some(smeta => smeta.projectId === projectId && smeta.lines.some(line => line.doneQty > 0 || line.billedQty > 0))) return fail("İcra həcmi və ya gündəliyi olan smeta idxalla əvəz edilmir. Dəyişiklik sənədi ilə işləyin.")
 
   const lines: SmetaLine[] = rows.map((row, index) => ({
     id: `SL-${projectId}-${index + 1}`,

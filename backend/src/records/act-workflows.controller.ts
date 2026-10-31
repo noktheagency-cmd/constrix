@@ -4,6 +4,8 @@ import {ActWorkflowsService} from './act-workflows.service';
 @Controller('act-workflows')
 export class ActWorkflowsController{
  constructor(private readonly workflows:ActWorkflowsService){}
+ @Post(':id/approve-daily') approveDaily(@Req()req:{user:AuthUser},@Param('id')id:string,@Body()body:Record<string,unknown>){return this.workflows.daily(req.user,id,body,false);}
+ @Post(':id/measure-daily') measureDaily(@Req()req:{user:AuthUser},@Param('id')id:string,@Body()body:Record<string,unknown>){return this.workflows.daily(req.user,id,body,true);}
  @Post(':id/return-invoice') returnInvoice(@Req()req:{user:AuthUser},@Param('id')id:string,@Body()body:Record<string,unknown>){return this.workflows.reverseInvoice(req.user,id,body);}
  @Post(':id/return-f2') returnF2(@Req()req:{user:AuthUser},@Param('id')id:string,@Body()body:Record<string,unknown>){return this.workflows.returnF2(req.user,id,body);}
  @Post(':id/approve-f3') approveF3(@Req()req:{user:AuthUser},@Param('id')id:string,@Body()body:Record<string,unknown>){return this.workflows.transitionF3(req.user,id,body,true);}

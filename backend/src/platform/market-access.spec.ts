@@ -7,6 +7,7 @@ describe('Market commercial privacy',()=>{
  const rfq={id:'rfq',kind:'rfq',buyerId:'buyer',supplierId:null,status:'sent',visibility:'private',invited:['supplier-a'],region:'Bakı',data:{files:[],lines:[{id:'line',itemId:'cement',qty:'10'}]}};
  function setup(row:unknown=rfq){
   const db:any={marketCase:{findUnique:jest.fn().mockResolvedValue(row)},marketCompany:{findUnique:jest.fn().mockResolvedValue({status:'approved'})},marketListing:{findFirst:jest.fn().mockResolvedValue({}),count:jest.fn().mockResolvedValue(1)},marketBid:{findMany:jest.fn().mockResolvedValue([])},marketMessage:{findMany:jest.fn().mockResolvedValue([]),create:jest.fn().mockImplementation(({data})=>data)}};
+  db.$transaction=jest.fn(async work=>work(db));db.notice={create:jest.fn()};db.messageOutbox={create:jest.fn()};
   const tenant:any={requireOrg:(c:TenantCtx)=>c.orgId,admin:jest.fn(()=>{throw new ForbiddenException()})};
   return {db,service:new MarketService(db,tenant,{requireOwn:jest.fn().mockResolvedValue(undefined)} as any)};
  }

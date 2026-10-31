@@ -50,7 +50,23 @@ export class MarketService{
    return result;
   },120000);
  }
- private async event(tx:Prisma.TransactionClient,ctx:TenantCtx,caseId:string,kind:string,data:unknown){await tx.marketEvent.create({data:{caseId,organizationId:this.org(ctx),accountId:ctx.accountId,kind,data:asJson(data)}});}
+ private async event(tx:Prisma.TransactionClient,ctx:TenantCtx,caseId:string,kind:string,data:unknown){
+  const event=await tx.marketEvent.create({data:{caseId,organizationId:this.org(ctx),accountId:ctx.accountId,kind,data:asJson(data)}});
+  const labels:Record<string,string>={'rfq-created':'Yeni qiymət sorğusu','bid-created':'Yeni kommersiya təklifi','order-created':'Yeni sifariş','supplier-confirmed':'Təchizatçı sifarişi təsdiqlədi',delivered:'Çatdırılma qeydə alındı',received:'Qəbul və komissiya hesablaşması qeydə alındı','non-binding-recommendation':'Mübahisə üçün moderator tövsiyəsi','dispute-resolved':'Mübahisə üzrə qərar qeydə alındı','return-requested':'Qaytarma tələb edildi','return-confirmed':'Qaytarma təsdiqləndi'};
+  if(!labels[kind])return;
+  const row=await tx.marketCase.findUnique({where:{id:caseId}});if(!row)return;
+  let recipients=[row.buyerId,...(row.supplierId?[row.supplierId]:[])];
+  if(kind==='rfq-created'){
+   if(row.visibility==='private')recipients.push(...row.invited as string[]);
+   else {const items=bodyData(row).lines.map(line=>line.itemId);const listings=await tx.marketListing.findMany({where:{itemId:{in:items},region:row.region},select:{organizationId:true}});recipients.push(...listings.map(listing=>listing.organizationId));}
+  }
+  for(const organizationId of new Set(recipients))if(organizationId!==ctx.orgId)await this.notify(tx,organizationId,event.id,labels[kind],caseId);
+ }
+ private async notify(tx:Prisma.TransactionClient,organizationId:string,reference:string,label:string,caseId:string){
+  const text=`Bazar: ${label}`;
+  await tx.notice.create({data:{organizationId,kind:'teklif',text}});
+  for(const channel of ['app','email','sms'])await tx.messageOutbox.create({data:{organizationId,channel,kind:'market-event',reference,status:channel==='app'?'available':'awaiting_provider',payload:asJson({text,caseId,href:'/market'})}});
+ }
  private async caseFor(ctx:TenantCtx,id:string,tx:Prisma.TransactionClient|PrismaService=this.prisma){
   const row=await tx.marketCase.findUnique({where:{id}});if(!row)throw new NotFoundException('Bazar sənədi tapılmadı');const orgId=this.org(ctx);
   if(row.buyerId===orgId||row.supplierId===orgId)return row;
@@ -172,7 +188,7 @@ export class MarketService{
   await this.files.requireOwn(ctx,strings(body.attachments),'commercial');
   const recipientId=row.kind==='rfq'&&row.buyerId===this.org(ctx)?input(body.recipientId,'Mesajın təchizatçısı',150):row.buyerId===this.org(ctx)?row.supplierId!:row.buyerId;
   if(row.kind==='rfq'&&row.buyerId===this.org(ctx))await this.caseFor({...ctx,orgId:recipientId},id);
-  return this.prisma.marketMessage.create({data:{caseId:row.id,organizationId:this.org(ctx),accountId:ctx.accountId,recipientId,text,attachments:strings(body.attachments)}});
+  return serializable(this.prisma,async tx=>{const message=await tx.marketMessage.create({data:{caseId:row.id,organizationId:this.org(ctx),accountId:ctx.accountId,recipientId,text,attachments:strings(body.attachments)}});await this.notify(tx,recipientId,`message:${message.id}`,'Yeni mesaj',row.id);return message;});
  }
 
  async deliver(ctx:TenantCtx,id:string,body:Row){

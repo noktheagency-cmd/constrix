@@ -3,6 +3,7 @@ import { SourceWorkbookViewer } from "../components/SourceWorkbookViewer"
 import { DocumentSummary } from "../components/DocumentSummary"
 import { Button, Input, TableContainer, Toolbar } from "../components/primitives"
 import { Fragment, useMemo, useRef, useState } from "react"
+import { Link } from "react-router-dom"
 import { company } from "../data"
 import { nakopitelBook, nakopitelTotals } from "../domain/nakopitel"
 import { actSettlement, roundMoney, roundQty } from "../domain/ops"
@@ -11,6 +12,8 @@ import {
   exportActSheet,
   exportNakopitelSheet,
   parseSmetaWorkbook,
+  inspectSmetaWorkbook,
+  type SmetaColumns,
   type SmetaImportRow,
 } from "../domain/smetaIo"
 import type { Act, ActStatus } from "../domain/types"
@@ -28,7 +31,7 @@ type Read =
   | { kind: "book"; projectId: string }
   | { kind: "ledger"; projectId: string }
   | { kind: "new" }
-  | { kind: "import"; projectId: string; rows: SmetaImportRow[]; errors: string[] }
+  | { kind: "import"; projectId: string; rows: SmetaImportRow[]; errors: string[]; buffer: ArrayBuffer; sheet: string; headerRow: number; columns?: SmetaColumns }
 
 const STEPS = ["Qaralama", "Təsdiq", "Faktura"]
 
@@ -42,6 +45,8 @@ export default function Forma2() {
   const [nakoPeriod, setNakoPeriod] = useState("2026-04")
   const [nakoHouse, setNakoHouse] = useState("")
   const [error, setError] = useState("")
+  const [actPeriod, setActPeriod] = useState(() => { const now = new Date(); return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}` })
+  const [actHouses, setActHouses] = useState<string[]>([])
   const fileRef = useRef<HTMLInputElement>(null)
   const q = query.trim().toLowerCase()
   const rows = acts.filter((act) => !q || `${act.number} ${act.id} ${act.project} ${act.client} ${act.period}`.toLowerCase().includes(q))
@@ -92,7 +97,9 @@ export default function Forma2() {
   const act = reading?.kind === "act" ? acts.find((item) => item.id === reading.id) : undefined
   const opened = reading?.kind === "open" ? openJobs.find((item) => item.project.id === reading.projectId) : undefined
   const chosen = projects.find((item) => item.id === projectId) || projects[0]
-  const preview = openLines(smetas.find((item) => item.projectId === chosen?.id)?.lines || [])
+  const actSmeta = smetas.find((item) => item.projectId === chosen?.id)
+  const availableHouses = [...new Set((actSmeta?.lines || []).filter(line => (line.kind || "work") === "work").map(line => line.houseNo || ""))]
+  const preview = openLines((actSmeta?.lines || []).filter(line => !actHouses.length || actHouses.includes(line.houseNo || "")))
 
   function openTab(next: string) {
     setTab(next as Tab)
@@ -102,7 +109,8 @@ export default function Forma2() {
 
   return (
     <div className="forma-page">
-      <PageHead kicker={t("page.forma2.kicker")} title={t("page.forma2.title")} text={t("page.forma2.text")}>
+      <PageHead kicker={t("page.forma2.kicker")} title={t("nav.workActs")} text={t("page.forma2.text")}>
+        <Link className="btn ghost" to="/forma-3">Forma-3</Link>
         {tab === "smeta" && (
           <>
             <input
@@ -114,10 +122,13 @@ export default function Forma2() {
                 const file = event.target.files?.[0]
                 event.target.value = ""
                 if (!file) return
-                const buffer = await file.arrayBuffer()
-                const parsed = parseSmetaWorkbook(buffer)
-                setError("")
-                setReading({ kind: "import", projectId: projectId || projects[0]?.id || "", rows: parsed.rows, errors: parsed.errors })
+                try {
+                  const buffer = await file.arrayBuffer()
+                  const info = inspectSmetaWorkbook(buffer)
+                  const parsed = parseSmetaWorkbook(buffer)
+                  setError("")
+                  setReading({ kind: "import", projectId: projectId || projects[0]?.id || "", buffer, sheet: info.sheet, headerRow: info.headerRow, rows: parsed.rows, errors: parsed.errors })
+                } catch { setError("Excel faylı oxunmadı. Faylın formatını və zədələnmədiyini yoxlayın.") }
               }}
             />
             <Button type="button" className="ghost" onClick={() => fileRef.current?.click()}>Excel idxal</Button>
@@ -386,6 +397,10 @@ export default function Forma2() {
       {reading?.kind === "import" && (
         <Drawer className="financial-drawer" title="Smeta idxalı" onClose={() => setReading(null)}>
           <div className="form">
+            <SmetaMapping value={reading} onChange={(options) => {
+              try { const parsed = parseSmetaWorkbook(reading.buffer, options); setReading({ ...reading, ...options, ...parsed }); setError("") }
+              catch { setError("Vərəq və başlıq sətrini yoxlayın.") }
+            }} />
             <Field label="Layihə">
               <Select
                 value={reading.projectId}
@@ -428,7 +443,7 @@ export default function Forma2() {
               <Button
                 type="button"
 
-                disabled={!reading.rows.some((row) => row.kind === "work")}
+                disabled={reading.errors.length > 0 || !reading.rows.some((row) => row.kind === "work")}
                 onClick={() => {
                   const message = importSmeta(reading.projectId, reading.rows)
                   setError(message)
@@ -492,11 +507,13 @@ export default function Forma2() {
       )}
 
       {reading?.kind === "new" && chosen && (
-        <Drawer className="financial-drawer" title="Bu ayın Forma-2-si" onClose={() => setReading(null)}>
+        <Drawer className="financial-drawer" title="Forma-2 yarat" onClose={() => setReading(null)}>
           <div className="form">
             <Field label="Layihə">
-              <Select value={chosen.id} onValueChange={setProjectId} options={projects.map((project) => ({ value: project.id, label: project.name }))} />
+              <Select value={chosen.id} onValueChange={value => { setProjectId(value); setActHouses([]) }} options={projects.map((project) => ({ value: project.id, label: project.name }))} />
             </Field>
+            <Field label="Hesabat dövrü"><Input type="month" value={actPeriod} onChange={event => setActPeriod(event.target.value)} /></Field>
+            <fieldset className="act-house-picker"><legend>Obyektlər və evlər</legend><p className="muted">Seçim edilməzsə bütün obyektlər bir aktda birləşdirilir.</p><div className="act-house-grid">{availableHouses.map(house => <label key={house || "general"}><input type="checkbox" checked={actHouses.includes(house)} onChange={event => setActHouses(previous => event.target.checked ? [...previous, house] : previous.filter(value => value !== house))} /> {house || "Ümumi / ev təyin edilməyib"}</label>)}</div></fieldset>
             {preview.length === 0 ? (
               <p className="muted">Bu layihədə aktlaşmamış həcm yoxdur.</p>
             ) : preview.map((line) => (
@@ -506,13 +523,26 @@ export default function Forma2() {
             {error && <p className="form-error">{error}</p>}
             <div className="form-actions">
               <Button type="button" className="ghost" onClick={() => setReading(null)}>Ləğv et</Button>
-              <Button type="button" onClick={() => { const message = makeAct(chosen.id); setError(message); if (!message) { setReading(null); setTab("aktlar") } }}>Aktı aç</Button>
+              <Button type="button" disabled={!actPeriod || preview.length === 0} onClick={() => { const message = makeAct(chosen.id, { period: actPeriod, houses: actHouses }); setError(message); if (!message) { setReading(null); setTab("aktlar") } }}>Aktı aç</Button>
             </div>
           </div>
         </Drawer>
       )}
     </div>
   )
+}
+
+function SmetaMapping({ value, onChange }: { value: Extract<Read, { kind: "import" }>; onChange: (options: { sheet: string; headerRow: number; columns?: SmetaColumns }) => void }) {
+  const info = useMemo(() => inspectSmetaWorkbook(value.buffer, value.sheet, value.headerRow), [value.buffer, value.sheet, value.headerRow])
+  const labels: Record<keyof SmetaColumns, string> = { code: "İş kodu", name: "İşin adı", unit: "Ölçü vahidi", qty: "Miqdar", unitPrice: "Vahid qiyməti" }
+  const patterns: Record<keyof SmetaColumns, RegExp> = { code: /kod|№|code/i, name: /iş.*ad|name|description/i, unit: /ölçü|unit(?!.*price)/i, qty: /miqdar|həcm|qty|quantity/i, unitPrice: /qiymət|dəyəri|price|rate/i }
+  const suggested = Object.fromEntries(Object.keys(labels).map(key => [key, info.headers.find(header => patterns[key as keyof SmetaColumns].test(header.label))?.value || ""])) as SmetaColumns
+  return <>
+    <Field label="Excel vərəqi"><Select value={value.sheet} options={info.sheets.map(sheet => ({ value: sheet, label: sheet }))} onValueChange={sheet => { const next = inspectSmetaWorkbook(value.buffer, sheet); onChange({ sheet, headerRow: next.headerRow }) }} /></Field>
+    <Field label="Başlıq sətri"><Input type="number" min="1" max="1000" value={value.headerRow + 1} onChange={event => { const row = Number(event.target.value); if (Number.isInteger(row) && row > 0 && row <= 1000) onChange({ sheet: value.sheet, headerRow: row - 1 }) }} /></Field>
+    <p className="muted">Sütunları yoxlayın. Xətalı və dublikat sətirlər düzəldilmədən idxal edilmir. Vahidlər m², m³, kq və ədəd formasına uyğunlaşdırılır.</p>
+    {(Object.keys(labels) as (keyof SmetaColumns)[]).map(key => <Field key={key} label={labels[key]}><Select value={value.columns?.[key] || "__auto"} options={[{ value: "__auto", label: "Avtomatik uyğunlaşdır" }, ...info.headers]} onValueChange={column => onChange({ sheet: value.sheet, headerRow: value.headerRow, columns: { ...(value.columns || suggested), [key]: column === "__auto" ? suggested[key] : column } })} /></Field>)}
+  </>
 }
 
 function openLines(lines: { id: string; code: string; name: string; unit: string; unitPrice: number; qty: number; doneQty: number; billedQty: number; kind?: string }[]) {

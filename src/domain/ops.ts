@@ -434,6 +434,17 @@ export function receivePurchase(state: AppState, form: PurchaseReceiveForm, acto
 
 export function saveReport(state: AppState, form: ReportForm, actor: Actor): OpResult {
   if (!form.projectId) return fail("Layihə seçin.")
+  if (form.id && state.reports.some(report => report.id === form.id && report.status === "tesdiq")) return fail("Təsdiqlənmiş gündəlik donub.")
+  const project = state.projects.find(project => project.id === form.projectId)
+  if (!project) return fail("Layihə tapılmadı.")
+  const smeta = state.smetas.find(smeta => smeta.projectId === form.projectId)
+  const rawLines = form.lines || []
+  if (rawLines.some(line => !Number.isFinite(Number(line.qty)) || Number(line.qty) < 0 || !smeta?.lines.some(source => source.id === line.smetaLineId && (source.kind || "work") === "work"))) return fail("İş həcmi və layihənin smeta sətirlərini yoxlayın.")
+  if (new Set(rawLines.map(line => line.smetaLineId)).size !== rawLines.length) return fail("Eyni iş sətri gündəlikdə təkrarlanır.")
+  const attendance = form.attendance || []
+  if (attendance.some(row => !state.people.some(person => person.id === row.personId) || !Number.isFinite(Number(row.hours)) || Number(row.hours) <= 0 || Number(row.hours) > 24) || new Set(attendance.map(row => row.personId)).size !== attendance.length) return fail("HR işçi seçimini və 0–24 saat aralığını yoxlayın.")
+  if ((form.machines || []).some(row => !state.assets.some(asset => asset.id === row.assetId) || !Number.isFinite(Number(row.hours)) || Number(row.hours) <= 0 || Number(row.hours) > 24)) return fail("Texnika və moto-saatı yoxlayın.")
+  if ((form.photos || []).length > 30) return fail("Bir gündəliyə ən çox 30 şəkil əlavə olunur.")
   const lines = (form.lines || []).filter((line) => Number(line.qty) > 0)
   if (!lines.length) return fail("Ən azı bir smeta sətrinə həcm yazın.")
   const report: DailyReport = {
@@ -452,6 +463,9 @@ export function saveReport(state: AppState, form: ReportForm, actor: Actor): OpR
       .map((row) => ({ personId: row.personId, hours: roundQty(row.hours) })),
     status: form.submit ? "gonderilib" : "qaralama",
     author: actor.name,
+    photos: [...new Set(form.photos || [])],
+    measuredAt: "",
+    measuredBy: "",
   }
   if (report.attendance?.length) report.crew = report.attendance.length
   const current = state.reports.find((item) => item.id === report.id)
@@ -506,8 +520,16 @@ export function deleteReport(state: AppState, reportId: string, actor: Actor): O
 }
 
 export function approveReport(state: AppState, reportId: string, actor: Actor): OpResult {
-  const report = state.reports.find((item) => item.id === reportId)
+  const report = state.reports.find(item => item.id === reportId)
   if (!report || report.status !== "gonderilib") return fail("Yalnız göndərilmiş gündəlik təsdiqlənir.")
+  if (!["director", "pm"].includes(actor.role)) return fail("Gündəlik təsdiqi üçün rəhbər səlahiyyəti tələb olunur.")
+  return { patch: { reports: state.reports.map(item => item.id === reportId ? { ...item, status: "tesdiq", measuredAt: "", measuredBy: "" } : item), audit: audit(state, actor, "Gündəlik təsdiqi", `${reportId} · ölçmə gözləyir`) } }
+}
+
+export function measureReport(state: AppState, reportId: string, actor: Actor): OpResult {
+  const report = state.reports.find((item) => item.id === reportId)
+  if (!report || report.status !== "tesdiq" || report.measuredAt !== "") return fail("Yalnız təsdiqlənmiş və ölçülməmiş gündəlik ölçülür.")
+  if (!["director", "pm"].includes(actor.role)) return fail("Ölçmə üçün rəhbər səlahiyyəti tələb olunur.")
   const project = state.projects.find((item) => item.id === report.projectId)
   const smeta = state.smetas.find((item) => item.id === project?.smetaId)
   if (!project || !smeta) return fail("Layihənin smetası yoxdur.")
@@ -594,7 +616,7 @@ export function approveReport(state: AppState, reportId: string, actor: Actor): 
       movements,
       expenses,
       reports: state.reports.map((item) =>
-        item.id === report.id ? { ...item, status: "tesdiq", laborCost, machineCost } : item,
+        item.id === report.id ? { ...item, measuredAt: new Date().toISOString(), measuredBy: actor.name, laborCost, machineCost } : item,
       ),
       journal: [
         { id: nextId("QEYD", state.journal), time: new Date().toTimeString().slice(0, 5), site: project.name, text: report.note || "Gündəlik təsdiqləndi və smetaya yazıldı." },
@@ -605,14 +627,16 @@ export function approveReport(state: AppState, reportId: string, actor: Actor): 
   }
 }
 
-export function createAct(state: AppState, projectId: string, actor: Actor): OpResult {
+export function createAct(state: AppState, projectId: string, actor: Actor, options: { period?: string; houses?: string[] } = {}): OpResult {
   const project = state.projects.find((item) => item.id === projectId)
   const smeta = state.smetas.find((item) => item.id === project?.smetaId)
   if (!project || !smeta) return fail("Smeta tapılmadı.")
   if (state.acts.some((act) => act.projectId === projectId && act.status === "qaralama")) {
     return fail("Bu layihədə açıq Forma-2 var.")
   }
-  const workLines = smeta.lines.filter((line) => (line.kind || "work") === "work")
+  if (options.period && !/^\d{4}-(0[1-9]|1[0-2])$/.test(options.period)) return fail("Hesabat dövrünü düzgün seçin.")
+  const houses = options.houses?.length ? new Set(options.houses) : null
+  const workLines = smeta.lines.filter((line) => (line.kind || "work") === "work" && (!houses || houses.has(line.houseNo || "")))
   const lines = workLines
     .map((line) => {
       const qty = roundQty(line.doneQty - line.billedQty)
@@ -635,7 +659,7 @@ export function createAct(state: AppState, projectId: string, actor: Actor): OpR
   }
   const net = roundMoney(lines.reduce((sum, line) => sum + line.qty * line.unitPrice, 0))
   const vat = roundMoney(net * VAT)
-  const period = TODAY.slice(0, 7)
+  const period = options.period || TODAY.slice(0, 7)
   const contract = state.contracts.find((item) => item.projectId === projectId)
   const seq = state.acts.filter((item) => item.projectId === projectId).length + 1
   const act: Act = {

@@ -1,4 +1,5 @@
 import { DataTable } from '../components/DataTable'
+import { DailyPhotos } from '../components/DailyPhotos'
 import { StepNav } from "../components/StepNav"
 import { Button, Disclosure, Input, Metric, Panel, StatGrid, SectionHeader, TableContainer, Textarea, Toolbar } from "../components/primitives"
 import { useEffect, useRef, useState, type FormEvent } from "react"
@@ -6,7 +7,6 @@ import { DateField } from "../DateField"
 import { useSearchParams } from "react-router-dom"
 import { isAway, PERSON_STATUSES } from "../domain/places"
 import type { PersonStatus, Weather } from "../domain/types"
-import { TODAY } from "../domain/ops"
 import { dateAZ, hit, num } from "../format"
 import { Icon } from "../icons"
 import { usePrefs } from "../i18n"
@@ -16,6 +16,7 @@ import { PhaseTrack } from "./projectParts"
 import Reports from "./Reports"
 
 const ASSET_TYPES = ["Kran", "Ekskavator", "Beton", "Nəqliyyat", "Anbar", "Dəzgah"]
+const TODAY = new Intl.DateTimeFormat("sv-SE", { timeZone: "Asia/Baku" }).format(new Date())
 const emptyPerson = { id: "", name: "", role: "", crew: "", phone: "", status: "sahede" as PersonStatus }
 
 type Tab = "icmal" | "hesabat" | "gundelik" | "hecm" | "briqada" | "texnika" | "material" | "qeyd"
@@ -30,6 +31,7 @@ const blank = {
   hours: "",
   attendance: {} as Record<string, string>,
   date: TODAY,
+  photos: [] as string[],
 }
 
 export default function Site() {
@@ -51,6 +53,7 @@ export default function Site() {
   const steps = [{id:"general",label:"Ümumi məlumat"},{id:"work",label:"İş və davamiyyət"},{id:"notes",label:"Texnika və qeyd"}]
   const stepIndex = steps.findIndex((item) => item.id === step)
   const [form, setForm] = useState(blank)
+  const [uploadingPhotos, setUploadingPhotos] = useState(false)
 
   function openSiteTab(next: string) {
     if (!SITE_TABS.includes(next as Tab)) return
@@ -98,6 +101,7 @@ export default function Site() {
 
   function submit(event: FormEvent | { preventDefault: () => void }, send: boolean) {
     event.preventDefault()
+    if (uploadingPhotos) { setError("Şəkillərin yüklənməsini gözləyin."); return }
     const reportLines = Object.entries(form.lines).filter(([, qty]) => Number(qty) > 0).map(([smetaLineId, qty]) => ({ smetaLineId, qty }))
     const attendance = Object.entries(form.attendance).filter(([, hours]) => Number(hours) > 0).map(([personId, hours]) => ({ personId, hours }))
     const message = saveDaily({
@@ -109,6 +113,7 @@ export default function Site() {
       lines: reportLines,
       machines: form.assetId ? [{ assetId: form.assetId, hours: form.hours }] : [],
       attendance,
+      photos: form.photos,
       submit: send,
     })
     setError(message)
@@ -224,6 +229,7 @@ export default function Site() {
           <Field label="Qeyd">
             <Textarea value={form.note} onChange={(event) => setForm({ ...form, note: event.target.value })} />
           </Field>
+          <DailyPhotos value={form.photos} onChange={photos => setForm(previous => ({ ...previous, photos }))} onBusyChange={setUploadingPhotos} />
           </div>}
           {error && <p className="form-error">{error}</p>}
           <div className="calc-step-footer"><span>{stepIndex + 1} / {steps.length}</span><div>{stepIndex > 0 && <Button className="ghost" onClick={() => setStep(steps[stepIndex-1].id)}>Geri</Button>}{stepIndex < steps.length-1 ? <Button onClick={() => setStep(steps[stepIndex+1].id)}>Davam et</Button> : <><Button className="ghost" type="submit">Qaralama saxla</Button><Button onClick={(event) => submit(event,true)}>Təsdiqə göndər</Button></>}</div></div>

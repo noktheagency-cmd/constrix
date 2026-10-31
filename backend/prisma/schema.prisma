@@ -769,6 +769,9 @@ model Forma3Line {
 }
 
 model DailyReport {
+  photos      String[]           @default([])
+  measuredAt  String             @default("legacy")
+  measuredBy  String             @default("")
   organizationId String?
 
   id          String             @id @default(cuid())
@@ -2230,6 +2233,11 @@ model BoqSheet {
 }
 
 model BoqLine {
+  brand String @default("")
+  model String @default("")
+  manufacturer String @default("")
+  origin String @default("")
+  attributeSource String @default("")
   sourceRow Int?
   confirmed Boolean @default(false)
   source String @default("")

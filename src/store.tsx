@@ -10,7 +10,6 @@ import {
   updateAct,
   deleteAct,
   approveChange,
-  approveReport,
   awardQuote,
   closeService,
   closePeriod,
@@ -317,9 +316,10 @@ export interface StoreValue extends AppState {
   submitDaily: (id: string) => string
   returnDaily: (id: string) => string
   approveDaily: (id: string) => string
+  measureDaily: (id: string) => string
   editNote: (id: string, text: string) => string
   removeNote: (id: string) => string
-  makeAct: (projectId: string) => string
+  makeAct: (projectId: string, options?: { period?: string; houses?: string[] }) => string
   makeForma3: (projectId: string, kind: Forma3Kind) => string
   approveAct: (id: string) => string
   reverseInvoice: (id: string) => string
@@ -474,13 +474,13 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [workflowReturn,setWorkflowReturn]=useState<{id:string;kind:'return-f2'|'return-f3'|'return-purchase'|'return-invoice'}|null>(null)
   const [workflowReason,setWorkflowReason]=useState('')
   function requestWorkflowReturn(id:string,kind:'return-f2'|'return-f3'|'return-purchase'|'return-invoice'){setWorkflowReason('');setWorkflowReturn({id,kind});return ''}
-  function actWorkflow(id:string,kind:'approve-f2'|'receive-purchase'|'return-f2'|'approve-f3'|'return-f3'|'return-purchase'|'return-invoice',locationId?:string,reason?:string){
+  function actWorkflow(id:string,kind:'approve-f2'|'receive-purchase'|'return-f2'|'approve-f3'|'return-f3'|'return-purchase'|'return-invoice'|'approve-daily'|'measure-daily',locationId?:string,reason?:string){
     if(!session){toast('Əvvəlcə daxil olun');return 'Əvvəlcə daxil olun'}
     if(workflowBusy.current)return 'Əvvəlki əməliyyat saxlanılır'
     const identity=[id,kind,locationId||''].join('|')
     const key=workflowKeys.current.get(identity)||crypto.randomUUID();workflowKeys.current.set(identity,key)
     workflowBusy.current=true;toast('Əməliyyat serverdə yoxlanılır…')
-    void api(`/api/act-workflows/${encodeURIComponent(id)}/${kind}`,{method:'POST',body:JSON.stringify({key,locationId,reason})}).then(()=>{workflowKeys.current.delete(identity);reload();toast(kind==='approve-f2'?'Forma-2 təsdiqləndi':kind==='approve-f3'?'Forma-3 təsdiqləndi':kind==='receive-purchase'?'Alış aktı qəbul edildi və anbara yazıldı':'Sənəd qaralamaya qaytarıldı; düzəliş tarixçədə saxlandı')}).catch(reason=>{toast(reason instanceof Error?reason.message:'Əməliyyat saxlanmadı')}).finally(()=>{workflowBusy.current=false})
+    void api(`/api/act-workflows/${encodeURIComponent(id)}/${kind}`,{method:'POST',body:JSON.stringify({key,locationId,reason})}).then(()=>{workflowKeys.current.delete(identity);reload();toast(kind==='approve-daily'?'Gündəlik təsdiqləndi; ölçmə gözləyir':kind==='measure-daily'?'Ölçülmüş həcm, irəliləyiş və xərclər yazıldı':kind==='approve-f2'?'Forma-2 təsdiqləndi':kind==='approve-f3'?'Forma-3 təsdiqləndi':kind==='receive-purchase'?'Alış aktı qəbul edildi və anbara yazıldı':'Sənəd qaralamaya qaytarıldı; düzəliş tarixçədə saxlandı')}).catch(reason=>{toast(reason instanceof Error?reason.message:'Əməliyyat saxlanmadı')}).finally(()=>{workflowBusy.current=false})
     return ''
   }
 
@@ -767,10 +767,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     removeDaily: (id) => run(deleteReport(state, id, actor), "Gündəlik silindi"),
     submitDaily: (id) => run(submitReport(state, id, actor), "Gündəlik təsdiqə göndərildi"),
     returnDaily: (id) => run(returnReport(state, id, actor), "Gündəlik düzəlişə qaytarıldı"),
-    approveDaily: (id) => run(approveReport(state, id, actor), "Gündəlik smetaya və xərcə yazıldı"),
+    approveDaily: (id) => actWorkflow(id, 'approve-daily'),
+    measureDaily: (id) => actWorkflow(id, 'measure-daily'),
     editNote: (id, text) => run(updateJournal(state, id, text, actor), "Qeyd yazıldı"),
     removeNote: (id) => run(deleteJournal(state, id, actor), "Qeyd silindi"),
-    makeAct: (projectId) => run(createAct(state, projectId, actor), "Forma-2 qaralaması açıldı"),
+    makeAct: (projectId, options) => run(createAct(state, projectId, actor, options), "Forma-2 qaralaması açıldı"),
     makeForma3: (projectId, kind) => run(createForma3(state, projectId, kind, actor), kind === "yekun" ? "Yekun Forma-3 açıldı" : "Aralıq Forma-3 açıldı"),
     approveAct: (id) => actWorkflow(id,'approve-f2'),
     reverseInvoice: (id) => requestWorkflowReturn(id, "return-invoice"),

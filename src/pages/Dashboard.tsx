@@ -3,7 +3,8 @@ import { Icon } from "../icons"
 import { Disclosure, Metric, Panel, SectionHeader, StatGrid, TableContainer, Toolbar } from "../components/primitives"
 import { useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
-import { dateAZ, hit, num } from "../format"
+import { dateAZ, hit, num, money, monthAZ } from "../format"
+import { fleetSummary } from "../domain/fleetSummary"
 import { usePrefs } from "../i18n"
 import { useStore } from "../store"
 import { Badge, Empty, Meter, PageHead, Select, Tabs, useTitle } from "../ui"
@@ -33,7 +34,8 @@ function projectImage(name: string) {
 export default function Dashboard() {
   const { t } = usePrefs()
   useTitle(t("nav.overview"))
-  const { query, projects, smetas, reports, requests, materials, assets, journal, orders } = useStore()
+  const { query, projects, smetas, reports, requests, materials, assets, journal, orders, fuels } = useStore()
+  const fuelSummary = fleetSummary(fuels)
   const navigate = useNavigate()
   const [tab, setTab] = useState("qrafik")
   const [sheet, setSheet] = useState<Sheet>("project")
@@ -90,6 +92,11 @@ export default function Dashboard() {
               <Panel className="pad overview-weather-card"><SectionHeader><h2><Icon name="cloud" />Hava və sahə məlumatları</h2></SectionHeader><WeatherSummary compact /></Panel>
             </div>
           <div className="overview-main">
+            <Panel className="pad"><SectionHeader><h2>Texnika və yanacaq</h2><Link to="/aktivler">Texnikaya bax</Link></SectionHeader>
+              <p>{assets.length} texnika · bu ay {num(fuelSummary.current.liters, 2)} litr · {money(fuelSummary.current.amount)}</p>
+              <p className="muted">Növbəti ay üçün təxmini ehtiyac: {fuelSummary.forecast === null ? "hesablamaq üçün tamamlanmış ay məlumatı yoxdur" : `${num(fuelSummary.forecast, 2)} litr (${fuelSummary.sampleMonths} tamamlanmış ayın ortası)`}. Proqnoz sifariş yaratmır.</p>
+              <TableContainer><DataTable><thead><tr><th>Ay</th><th className="num">Litr</th><th className="num">Xərc</th></tr></thead><tbody>{fuelSummary.history.map(row => <tr key={row.period}><td>{monthAZ(row.period)}</td><td className="num">{num(row.liters, 2)}</td><td className="num">{money(row.amount)}</td></tr>)}</tbody></DataTable></TableContainer>
+            </Panel>
             <Panel className="overview-projects">
               <SectionHeader><h2>Layihələrin gedişi</h2><Link to="/layiheler">Hamısına bax<Icon name="chevron" /></Link></SectionHeader>
               <div className="overview-project-list">

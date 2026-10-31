@@ -2,6 +2,22 @@
 
 Bu fayl davam edən işi göstərir; yekun qəbul aktı deyil. Rəsmi xarici inteqrasiyalar bu icradan çıxarılıb.
 
+## 31 oktyabr 2026 daxili funksiyaların tamamlanması
+
+- Smeta idxalı: vərəq, başlıq sətri və sütun xəritəsi seçimi; sıfır qiymətin düzgün oxunması; Azərbaycan rəqəm formatı; m²/m³/kq/ədəd uyğunlaşdırması; səhv rəqəm, mənfi həcm, boş vahid və obyekt/bölmə daxilində dublikat bloklaması. Xətalı önbaxışdan qismən idxal edilmir. İcrası/gündəliyi və ya təsdiqli aktı olan smeta idxalla səssiz əvəz edilmir.
+- Nakopitel/F2/F3 üçün vahid naviqasiya girişi. F2 yaradılmasında hesabat ayı və bir/neçə ev seçimi; seçilməyən evlərin billedQty-si dəyişmir. 60 ev seçimi məhdud hündürlüklü, sürüşdürülən cədvəldədir.
+- Gündəlik hesabat təsdiqi və ölçmə ayrıldı. Adi təsdiq smeta/irəliləyiş/xərc dəyişmir. Ayrı ölçmə endpoint-i tenant, rol, status, müqavilə qalığı, HR saatları, texnika, yanacaq və bağlı maliyyə dövrünü yoxlayır; həcmi/irəliləyişi/xərci bir serializable tranzaksiyada yazır. Təkrar açar eyni nəticəni qaytarır; yeni açarla ikinci ölçmə bloklanır. Mövcud təsdiqli gündəliklər `legacy` işarəsi ilə təkrar ölçülmür.
+- Gündəlikdə 30-a qədər real şəkil: PNG/JPEG/WebP yüklənir, antivirusdan keçir və qorunan fayl ID-ləri saxlanır. Server başqa şirkətin, karantindəki və şəkil olmayan faylı gündəliyə bağlamağı rədd edir. Göndərilmiş/təsdiqli gündəliyin məzmunu generic API ilə dəyişdirilmir; təsdiq və ölçmə yalnız xüsusi endpoint-lərdədir. Sahənin tabel, texnika və qeyd tabları seçilmiş layihəyə görə süzülür.
+- BOQ-da marka/model/istehsalçı/mənşə və təsdiqləyən mənbə saxlanır. Atribut dəyişəndə yenidən təsdiq tələb olunur. “Bazaya yaz” təsdiq, sourceRow, tarix və mənbəni artıq itirmir. Tarif/region/kataloq qiyməti dəyişəndə təsdiq ləğv edilir.
+- Orijinal BOQ ixracında E/F/G/J/K məhdudiyyəti çıxarılıb: istifadəçi mənbə və qiymət sütunlarını seçir. Formula üzərinə yazmaq bloklanır. Texniki atributlar seçilərsə, şablona dörd yeni sütun əlavə etməyə ayrıca icazə və başlıq sətri tələb olunur. Mövcud sütunlar yerini dəyişmir; digər ZIP üzvləri dəyişmir. Daxili marja və attributeSource çıxışa əlavə edilmir.
+- İcmalda real yanacaq qeydlərindən altı aylıq tarixçə, cari ayın xərc/litr cəmi və tamamlanmış aylar üzrə proqnoz var. Cari natamam ay proqnoza daxil edilmir; müşahidə dövründə boş aylar sıfır sayılır. Məlumat yoxdursa proqnoz uydurulmur. Yanacaq kartı provayder qalığı bu hesablamaya daxil deyil.
+- Market hadisələri iştirakçı şirkətlərə tətbiqdaxili bildiriş və xarici provayderi gözləyən çıxış növbəsi yaradır. Mesaj məzmunu, qiymət və ERP məxfiliyi bildiriş mətninə çıxmır. Shell bazar bildirişlərini `/market` səhifəsinə yönləndirir.
+- API xətalarında serverin yaratdığı `X-Request-ID` var; gözlənilməz 500 xətası daxili məlumatı istifadəçiyə qaytarmır. İstifadəçi mesajında izləmə nömrəsi görünür.
+
+Yoxlama: 98 frontend testi, 72 backend testi, 1 HTTP e2e testi və izolə olunmuş PostgreSQL sxemində 32 qəbul yoxlaması keçdi. TypeScript və Nest build keçdi. İki əlavə miqrasiya lokal bazaya tətbiq edildi. Brauzerdə vahid naviqasiya, F2 ay/ev seçimi və gündəlik şəkil forması yoxlandı. 390 px mobil görünüşdə səhifə eni 390 px-dir; konsolda xəta yoxdur. Qəbul JSON-u son icra vaxtını saxlayır. Bu nəticələr konkret yoxlanan axınlara aiddir; Word-dəki bütün modullar üçün istehsal qəbul aktı deyil.
+
+Xarici inteqrasiya sərhədi dəyişməyib: tam AI/OCR/tender portalı, canlı hava, e-poçt/SMS göndərmə və onlayn ödəniş/webhook qoşulmayıb. Vergi, real komissiya tarifləri və digər açıq biznes qərarları uydurulmayıb.
+
 ## Son icra: istifadəçinin beş addımı və bildiriş paneli
 
 1. **Market frontend/backend/DB:** `/market` açıq kataloq, aktiv şirkət, hüquqi qeydiyyat, məhsul/moderasiya, RFQ, versiyalı təklif, sifariş, sənədli çatdırılma, qismən qəbul/mübahisə/qaytarma, ERP bağlantısı, komissiya/bank qəbzi və qəbul icazəsi ekranları əlavə edildi. İzolyasiya olunmuş iki şirkətlə canlı brauzerdə RFQ → təklif → sifariş → təsdiq → çatdırılma → “Tam qəbul” yoxlandı. Main bazaya test sifarişi yazılmadı.

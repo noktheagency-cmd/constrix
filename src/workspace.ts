@@ -73,6 +73,11 @@ export const EXTRA_COSTS = ["Köməkçi material", "Nəqliyyat", "Yükləmə və
 export const SEAT_ROLES = ["Direktor", "Layihə rəhbəri", "Smeta mühəndisi", "Satınalma", "Anbardar", "Mühasib", "Kadrlar", "Hüquqşünas", "Sahə rəisi"]
 
 export type Line = {
+  brand?: string
+  model?: string
+  manufacturer?: string
+  origin?: string
+  attributeSource?: string
   sourceRow?: number | null
   id: string
   sheet: string

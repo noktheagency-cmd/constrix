@@ -1,0 +1,3 @@
+ALTER TABLE "DailyReport" ADD COLUMN "photos" TEXT[] NOT NULL DEFAULT ARRAY[]::TEXT[];
+ALTER TABLE "DailyReport" ADD COLUMN "measuredAt" TEXT NOT NULL DEFAULT 'legacy';
+ALTER TABLE "DailyReport" ADD COLUMN "measuredBy" TEXT NOT NULL DEFAULT '';

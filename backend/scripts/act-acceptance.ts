@@ -33,5 +33,26 @@ export async function verifyActs(db:PrismaClient,ctx:TenantCtx,projectId:string,
  const originalDebt=await db.payable.findFirstOrThrow({where:{organizationId,poId:purchase.id}});assert.equal(originalDebt.status,'legv');const contra=await db.payable.findFirstOrThrow({where:{organizationId,poId:`REVERSAL:${originalDebt.id}`}});assert.equal(contra.amount.toString(),'-28');check('concurrent purchase reversal posts one stock-out and preserves matching debt contra-entry');
  await service.receivePurchase(user,purchase.id,{key:randomUUID(),locationId});assert.equal(await db.stockLot.count({where:{organizationId,materialId:material.id}}),2);check('reapproved corrected purchase gets a new source lot and posting cycle');
  const lot=await db.stockLot.findFirstOrThrow({where:{organizationId,materialId:material.id,qty:{gt:0}}});await db.stockLot.update({where:{id:lot.id},data:{qty:2}});await assert.rejects(()=>service.reversePurchase(user,purchase.id,{key:randomUUID(),reason:'QA used stock'}));assert.equal((await db.purchaseAct.findUniqueOrThrow({where:{id:purchase.id}})).status,'tesdiq');assert.equal((await db.material.findUniqueOrThrow({where:{id:material.id}})).qty.toString(),'4');check('insufficient source lot blocks reversal and rolls back all effects');
+ const daily=await db.dailyReport.create({data:{organizationId,projectId,date:day,weather:'gunesli',crew:0,status:'gonderilib',author:'QA',measuredAt:'',lines:{create:{sort:1,smetaLineId:source.id,qty:1}}}});
+ await db.smetaLine.update({where:{id:source.id},data:{doneQty:5}});
+ const progressBefore=(await db.project.findUniqueOrThrow({where:{id:projectId}})).progress;
+ await service.daily(user,daily.id,{key:randomUUID()},false);
+ assert.equal((await db.smetaLine.findUniqueOrThrow({where:{id:source.id}})).doneQty.toString(),'5');
+ assert.equal((await db.project.findUniqueOrThrow({where:{id:projectId}})).progress,progressBefore);check('daily report approval does not change measured work or project progress');
+ await assert.rejects(()=>records.update({route:'reports',delegate:'dailyReport'},daily.id,{status:'qaralama'},user));
+ await assert.rejects(()=>records.remove({route:'reports',delegate:'dailyReport'},daily.id,user));check('confirmed daily report cannot bypass workflow through generic API');
+ const measure={key:randomUUID()};await Promise.all([service.daily(user,daily.id,measure,true),service.daily(user,daily.id,measure,true)]);
+ assert.equal((await db.smetaLine.findUniqueOrThrow({where:{id:source.id}})).doneQty.toString(),'6');
+ assert.equal((await db.project.findUniqueOrThrow({where:{id:projectId}})).progress,60);
+ await assert.rejects(()=>service.daily(user,daily.id,{key:randomUUID()},true));check('concurrent measurement records quantity and project progress once');
+ const excess=await db.dailyReport.create({data:{organizationId,projectId,date:day,weather:'gunesli',crew:0,status:'tesdiq',author:'QA',measuredAt:'',lines:{create:{sort:1,smetaLineId:source.id,qty:5}}}});
+ await assert.rejects(()=>service.daily(user,excess.id,{key:randomUUID()},true));assert.equal((await db.smetaLine.findUniqueOrThrow({where:{id:source.id}})).doneQty.toString(),'6');check('over-measurement rolls back and does not exceed contracted quantity');
+ await assert.rejects(()=>service.daily({...user,role:'site'},daily.id,{key:randomUUID()},true));check('field role cannot approve or measure daily work');
+ const photo=await db.blobFile.create({data:{organizationId,uploadedBy:ctx.accountId,name:'qa-photo.png',mime:'image/png',kind:'project',size:8,sha256:'qa-photo',original:Uint8Array.from([137,80,78,71,13,10,26,10]),scanStatus:'clean',scanNote:'QA fixture'}});
+ const reportBody={projectId,date:day,weather:'gunesli',crew:0,status:'qaralama',author:'QA',photos:[photo.id],lines:[{smetaLineId:source.id,qty:1}]};
+ const reportSpec={route:'reports',delegate:'dailyReport',children:[{field:'lines',foreignKey:'reportId'}]};
+ const withPhoto:any=await records.create(reportSpec,reportBody,user);assert.deepEqual(withPhoto.photos,[photo.id]);
+ await db.blobFile.update({where:{id:photo.id},data:{scanStatus:'quarantined'}});await assert.rejects(()=>records.create(reportSpec,reportBody,user));
+ await assert.rejects(()=>records.create(reportSpec,{...reportBody,photos:['foreign-photo']},user));check('daily photos persist by protected ID and reject quarantined or foreign files');
  return checks;
 }

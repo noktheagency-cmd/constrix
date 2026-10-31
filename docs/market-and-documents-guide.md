@@ -36,8 +36,18 @@ Layihə qovluğunda `npm run dev` işlədin. `[AFEZ] READY` yazısını gözləy
 
 - Orijinal 3 fayl bütün vərəqləri ilə **Excel mənbəsi** tabında saxlanır.
 - AZCDG BOQ qiymət ixracı: qiymət mənbəsini/tarixini yoxlayın, aktual sətirləri təsdiqləyin, **Bazaya yaz**, sonra **Excel mənbəsi → Qiymətləri orijinal şablonda yüklə**.
-- Yalnız uyğun orijinal sətirlərin J/K qiymət xanaları dəyişir. Başqa vərəqlər, düsturlar, üslublar, şəkillər və əlaqələr saxlanır. Excel açıldıqda hesablamanı yeniləyir. Mənbədəki əvvəlki `#REF!` və digər formula xətaları avtomatik düzəldilmiş sayılmır.
-- Yeni və ya birmənalı uyğunlaşmayan sətri orijinal şablona səssiz yazmaq əvəzinə ixrac dayandırılır. Alış və Nakopitel üçün orijinalı yükləmək tam arxivi verir; J/K qiymət ixracı AZCDG-yə aiddir.
+- Standart xəritə E/F/G iş adı/vahid/miqdar və J/K material/işçilikdir. **İxrac sütunları və texniki atributlar** bölməsində başqa şablonun sütunlarını seçmək olar. Sütunlar fərqli olmalıdır və düstur olan xanaya yazmaq mümkün deyil.
+- BOQ sətrində **Texniki atributlar və mənbə** bölməsinə marka, model, istehsalçı, mənşə və təsdiqləyən sənəd yazılır. Mənbəsiz atribut saxlanmır; dəyişiklikdən sonra yenidən təsdiq və **Bazaya yaz** lazımdır.
+- Atribut ixracını seçdikdə başlıq sətrini və müştərinin yeni sütuna icazəsini qeyd edin. Dörd sütun cədvəlin sağında əlavə olunur; mövcud sütunlar yerini dəyişmir. Şablon dəyişdirilə bilməzsə atribut seçimini söndürün. Daxili marja və atribut sübutu çıxışa yazılmır.
+- Yeni və ya birmənalı uyğunlaşmayan sətri orijinal şablona səssiz yazmaq əvəzinə ixrac dayandırılır. Başqa vərəqlər, düsturlar, üslublar, şəkillər və əlaqələr saxlanır. Mənbənin əvvəlki formula xətaları avtomatik düzəldilmir.
+- Smeta idxalında vərəqi, başlıq sətrini və sütunları seçib önbaxışa baxın. Xəta və dublikat varsa əvvəl mənbəni düzəldin; xətalı fayl qismən idxal edilmir. İcrası başlamış smetanı dəyişmək üçün idxalla əvəzləmə əvəzinə dəyişiklik sənədindən istifadə edin.
+
+## Sahə gündəliyi və aktlaşdırma
+
+- Gündəlikdə bir neçə şəkil seçilə bilir. Yükləmə və antivirus tamamlanana qədər saxlamayın; problemli fayl üçün görünən xəta verilir. Hesabatda yalnız şirkətə aid, yoxlanmış şəkillər saxlanır.
+- **Təsdiqlə** gündəliyin məzmununu kilidləyir. Həcm və layihə faizi ayrıca **Ölçülmüş həcmi təsdiqlə** ilə yazılır. Bu əməliyyat qalıq həcmi, işçi saatlarını, texnika və yanacaq qalığını serverdə yoxlayır. Təkrar klik ikinci həcm/xərc yaratmır. Köhnə gündəliklər yenidən ölçülmür.
+- **İş həcmləri və aktlaşdırma → Forma-2** yaradılarkən hesabat ayını və lazım olan evləri seçin. Ev seçimi boşdursa bütün evlər konsolidasiya olunur. Forma-3 eyni modulun başlığından açılır.
+- İcmalın **Texnika və yanacaq** kartında cari ayın sərfi/xərci, altı aylıq tarixçə və tamamlanmış ayların orta sərfi görünür. Proqnoz faktiki sifariş yaratmır; kart provayderinin qalığını əvəz etmir.
 
 ## Yoxlamaları təkrarlamaq
 
