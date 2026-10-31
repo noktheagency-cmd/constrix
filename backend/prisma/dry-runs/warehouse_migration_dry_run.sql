@@ -13,12 +13,12 @@ ORDER BY "organizationId", "status";
 
 -- B. Existing payable identifiers: count exact act ID and legacy act-number matches.
 SELECT a."organizationId", a."id" AS act_id, a."number" AS act_number,
-       p."supplier", p."status" AS payable_status, COUNT(*) AS payable_rows,
+       p."poId" AS payable_act_reference, p."supplier", p."status" AS payable_status, COUNT(*) AS payable_rows,
        SUM(p."amount") AS payable_amount
 FROM "PurchaseAct" a
 JOIN "Payable" p ON p."organizationId" = a."organizationId"
  AND (p."poId" = a."id" OR p."poId" = a."number")
-GROUP BY a."organizationId", a."id", a."number", p."supplier", p."status"
+GROUP BY a."organizationId", a."id", a."number", p."poId", p."supplier", p."status"
 HAVING COUNT(*) > 1 OR p."poId" = a."number"
 ORDER BY a."organizationId", a."number", p."supplier";
 

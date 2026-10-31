@@ -2,7 +2,7 @@
 
 **Versiya:** 0.1\
 **Əhatə:** MVP planı, məlumat/endpoint sərhədləri və qəbul ssenariləri\
-**Status:** İlk qismən qəbul vertikal dilimi kodlaşdırılıb; migration tətbiq edilməyib. Növbəti mərhələnin backlog-u, qərar cədvəli və UAT planı [növbəti plan sənədində](./constrix-warehouse-next-plan.md) verilib.\
+**Status:** Qəbul/dispute, stok reconciliation, bilateral transfer və layihə təyinatı kodlanıb; migration 003–007 lokal `afez_db`-yə tətbiq edilib və `cbc18a3` commit-i `origin/main`-ə push olunub. Test tenant UAT-ı və real snapshot reconciliation açıqdır; ardıcıllıq [növbəti plan sənədində](./constrix-warehouse-next-plan.md) verilib.\
 **Əlaqəli sənəd:** [İlkin plan](./constrix-procurement-warehouse-plan.md)
 
 ## 1. Bu spesifikasiya nəyə xidmət edir
@@ -222,11 +222,11 @@ Hər addım ayrıca PR/commit ölçüsündə saxlanmalıdır. Production hesabı
 - Hər qəbulda yalnız həmin dəfə qəbul edilən miqdar `Stock`, `Material`, `Movement`, `StockLot` və supplier borcuna təsir edir. Təkrar sorğular üçün body hash idempotent saxlanır.
 - Alış aktı ekranı qalıq miqdarı və qəbul tarixçəsini göstərir. Qəbul input-u sıfırdan başlayır ki, istifadəçi faktiki miqdarı özü daxil etsin.
 - Tam qəbulun geri ləğvi bütün həmin akt qəbullarının stok/lot/borc yazılışlarını yoxlayır; borc ödənibsə və ya stok istifadə edilibsə ləğv rədd olunur. Əməliyyat aktı “Ləğv” statusuna keçir.
-- Reversal səbəbi və icra edən şəxs receipt tarixçəsində də görünür; migration tətbiq olunana qədər bu sahələr database mühitində aktiv deyil.
+- Reversal səbəbi və icra edən şəxs receipt tarixçəsində görünür; migration 003–007 lokal DB-yə tətbiq edilib. Başqa mühitlərin migration statusu ayrıca yoxlanmalıdır.
 
 Bu dilim hələ tam buraxılışa hazır deyil. Əvəz mal qəbulunda stoka daxil olur, borc yaratmır və mübahisəni bağlayır; sənədli supplier krediti maliyyə təsdiqindən sonra mənfi açıq payable yaradır; qalıq miqdarı direktor səbəb və təsdiqlə bağlaya bilər. Supplier üzrə yekun bağlanma, ödəniş bölgüsü, açılış qalığı reconciliation, material tələbi/təsdiq zənciri, rol redaksiyasının tam yoxlanması və legacy dry-run növbəti mərhələdədir.
 
-### Növbəti planlama mərhələsi: qəbul dilimini MVP-yə çevirmək
+### Növbəti mərhələ: test-tenant UAT və data reconciliation
 
 İndi hazırlanmalı olan növbəti planlama paketi:
 
@@ -237,4 +237,4 @@ Bu dilim hələ tam buraxılışa hazır deyil. Əvəz mal qəbulunda stoka daxi
 5. **UAT checklist:** ilk qismən qəbul, ikinci qəbul, tamamlama, iki supplier-dən biri gecikəndə qalıq, eyni key replay, fərqli body ilə replay, over-receipt, ödənmiş borcla reversal, anbardan artıq istifadə edilmiş lotla reversal.
 6. **Backlog parçalanması:** database migration, backend command, UI/history, report/reconciliation və rol redaksiyası üçün ayrıca tapşırıqlar və asılılıqlar.
 
-Migration deploy edilməyib və real məlumat yazılmayıb. Bu dilim üçün frontend və backend TypeScript yoxlamaları, həmçinin Prisma schema validation uğurlu olub; UAT və DB migration-ı tətbiq etmək ayrıca buraxılış addımıdır. Növbəti mərhələnin işi və ardıcıllığı [ayrıca sənəddə](./constrix-warehouse-next-plan.md) izlənir.
+Migration 003–007 yalnız konfiqurasiya olunmuş lokal `afez_db`-yə tətbiq edilib; production və müştəri tenant-a toxunulmayıb. Frontend-də 98, backend-də 83 test və typecheck uğurludur. Read-only preflight lokal seed məlumatında uyğunsuzluqlar göstərib; bu nəticələr production açılış qalığı kimi qəbul edilməməlidir. Test tenant UAT-ı, real snapshot dry-run-ı və owner imzası [növbəti plan sənədində](./constrix-warehouse-next-plan.md) izlənir.

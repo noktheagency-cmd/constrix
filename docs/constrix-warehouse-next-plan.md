@@ -1,8 +1,8 @@
 # CONSTRIX — Növbəti plan: qismən qəbul MVP-sinin tamamlanması
 
 **Versiya:** 0.1\
-**Tarix:** 31.10.2026\
-**Status:** Supplier üzrə read-only uzlaşma görünüşü və tanınan hərəkətlər üçün ledger diaqnostikası əlavə edildi; migration dry-run SQL-i hazırlandı. Migration icra edilməyib. UAT, real snapshot üzərində dry-run, rol yoxlaması və açılış qalığının müştəri ilə təsdiqi açıqdır.\
+**Tarix:** 01.11.2026\
+**Status:** Supplier üzrə read-only uzlaşma və stok diaqnostikası, dispute resolution və layihə təyinatı kodlanıb. Migration 003–007 lokal `afez_db` bazasına tətbiq olunub, Prisma statusu aktualdır; dəyişikliklər `cbc18a3` commit-i ilə `origin/main`-ə push edilib. Avtomatlaşdırılmış yoxlamalar keçib. Lokal seed bazasında read-only preflight icra edildi; real test tenant UAT-ı, müştəri snapshot dry-run-ı və qalıq fərqlərinin izahı açıqdır.\
 **Əlaqəli sənədlər:** [İlkin plan](./constrix-procurement-warehouse-plan.md), [MVP spesifikasiyası](./constrix-warehouse-mvp-implementation-spec.md)
 
 ## 1. Məqsəd
@@ -28,16 +28,16 @@ Bu plan anbarlararası transferi, material məsuluna təhvili, sərfiyyatı, pod
 - Anbar `Uzlaşdırma` tabı `Material.qty`, `Stock` və `StockLot` cəmlərini material/anbar üzrə müqayisə edir; hərəkət sayı və son tarixi kontekst kimi verir.
 - `Uzlaşdırma` tabı indi `medaxil`, `mexaric` və `transfer` hərəkətlərinin xalis cəmini göstərir; naməlum/istiqaməti tanınmayan hərəkətləri sayır və `Stock − tanınan net hərəkət` residualını yalnız təxmin kimi verir.
 - Alış aktlarında supplier üzrə qalıq, qəbul, mübahisə, pending kredit və rol icazəsi olanlarda açıq borc read-only cədvəli göstərilir. Supplier-i hüquqi/maliyyə cəhətdən bağlama və payment allocation əməliyyatı yoxdur.
-- `backend/prisma/dry-runs/warehouse_migration_dry_run.sql` read-only preflight sorğularını saxlayır; hədəf DB seçilmədiyinə görə icra olunmayıb.
+- `backend/prisma/dry-runs/warehouse_migration_dry_run.sql` read-only preflight sorğularını saxlayır; 01.11.2026-da lokal `afez_db` seed bazasında icra edildi. Nəticələr: 58 alış aktı hamısı qaralamadır; akt nömrəsi/ID-si ilə uyğun payable tapılmadı; 12 materialda `Material.qty`/`Stock`/`StockLot` fərqi var; 5 movement tipindən `cixis` və `qebul` hazırkı xalis hesablamada tanınmır; 15 material-anbar cütündə inferred residual mövcuddur. Bunlar diaqnostikadır, düzəliş deyil.
 - Təkrar command üçün body hash/idempotency, audit və qəbul tarixçəsi endpoint-i mövcuddur.
 - UI qismən qəbul və qalan sifariş miqdarını göstərir.
-- Schema üçün migration faylı hazırlanıb; database-ə tətbiq olunmayıb.
+- Migration 003–007 lokal `afez_db`-yə tətbiq olunub. Müştəri/test/production mühitləri ayrıca seçilməyib və migration olunmayıb.
 
 ### Növbəti mərhələdə qalanlar
 
 1. Supplier read-only uzlaşma paneli var; supplier üzrə settlement/close əməliyyatı və payment allocation ayrıca maliyyə qaydası, owner təsdiqi və workflow tələb edir.
 2. Açıq borc/miqdarın avtomatik bağlanma hüquqi qaydası və supplier adlarının canonical ID-yə birləşdirilməsi açıqdır.
-3. Reversal tarixi/istifadəçi/səbəbi receipt tarixçəsində görünür. Bu dəyişiklik migration tətbiq edilməyənə qədər DB-də aktiv deyil.
+3. Reversal tarixi/istifadəçisi/səbəbi kodda və migration olunmuş lokal DB sxemində aktivdir; test tenant UAT-ı gözləyir.
 4. Read-only `Material.qty`/`Stock`/`StockLot` və tanınan movement net reconciliation görünüşü var; açılış qalığının təsdiqi və unsupported legacy hərəkətlərin fərqlərinin həlli qalıb.
 5. Köhnə təsdiqli alış aktlarının və borcların təhlükəsiz migration/review qaydası.
 6. UAT, rol redaksiyası və buraxılış yoxlama siyahısı.
@@ -82,10 +82,10 @@ Bu başlanğıc seçimləridir; müştəri tərəfindən təsdiq olunmayınca ko
 | 4 | P0 | Stok reconciliation və read model | **Diaqnostika hazırdır:** material cəmi/Stock/StockLot, tanınan movement net, unsupported tip sayı və inferred residual görünür. Opening balance owner təsdiqi və historical fərqlərin qərarı açıqdır. | 2 |
 | 5 | P1 | UI və role redaction | Anbardar faktiki qəbul üçün lazım olan sahələri görür; qiymət/borc redaktə edə bilmir; təchizatçı və maliyyə rolları öz səlahiyyətində işləyir. | 1, 3 |
 | 6 | P1 | Material tələbi və rəhbər təsdiqi | Tələb qaralaması, submit, approve/reject/return, audit və təsdiqdən öncə düzəliş serverdə qorunur. | 4 |
-| 7 | P0 | UAT və migration dry-run | Checklist genişləndirilib; test tenant UAT və seçilmiş DB snapshot-da dry-run hələ icra olunmayıb. Nəticə owner-ə təqdim edilir və unresolved sətirlər manual review-a ayrılır. | 3–6 |
-| 8 | Buraxılış | Migration/deploy qərarı | Yalnız dry-run nəticəsi nəzərdən keçirildikdən və backup/rollback hazır olduqdan sonra tətbiq pəncərəsi seçilir. | 7 və ayrıca buraxılış təsdiqi |
+| 7 | P0 | UAT və data reconciliation | Lokal read-only preflight tamamlandı, amma seed məlumatında 12 material uyğunsuzluğu, 2 tanınmayan movement tipi və 15 inferred residual var; owner review və müştəri/test snapshot dry-run açıqdır. Project assignment və transfer icazələri üçün UAT ssenariləri də icra edilməlidir. | 3–6 |
+| 8 | Buraxılış | Test/pilot/prod rollout | Backup, UAT imzası, unresolved fərqlər üçün qərar və rollback planı qəbul ediləndən sonra hədəf mühitdə migration statusu yoxlanır; artıq lokal DB-də tətbiq olunan migration-lar uyğun mühitə ayrıca deploy edilir. | 7 və ayrıca buraxılış təsdiqi |
 
-**Buraxılış qapısı:** 1–7 addımları tamamlanmadan prod database migration və stok yaradan əməliyyat açılmır. Migration SQL-in mövcud olması onun tətbiqinə razılıq sayılmır.
+**Buraxılış qapısı:** Lokal dev DB-də migration tətbiqi production/test tenant rollout-u sayılmır. 1–7 addımları, backup/rollback və owner imzası tamamlanmadan production migration və stok yaradan əməliyyat açılmır.
 
 ## 5. Data/schema review checklist
 
@@ -136,13 +136,16 @@ Rollout ardıcıllığı: backup təsdiqi → migration dry-run nəticəsinin n�
 | U18 | Anbardar/warehouse supplier reconciliation açır | Miqdar və status görünür, payable amount cavabdan və UI-dan gizlidir. |
 | U19 | Transfer və naməlum movement type reconciliation | Transfer iki anbar arasında xalis sıfırdır; tanınmayan type ayrıca sayılır və opening residual kimi təqdim edilmir. |
 | U20 | Hədəf tenant snapshot-da dry-run SQL | Yalnız SELECT nəticələri çıxır; DB-də row/table dəyişmir; unresolved keyfiyyət fərqləri manual review siyahısına düşür. |
+| U21 | Layihəyə göndərən təyin olunub, qəbul edən təyin olunmayıb | Göndərən transferi aça/göndərə bilir; qəbul icazəsi olmayan hesab qəbul və ya ləğv etmir. |
+| U22 | Mənbə və təyinat layihəsinin müxtəlif üzvləri təsdiqləyir | Hər iki tərəfin səlahiyyəti yoxlanır; eyni hesabın iki tərəfi təsdiqləməsi rədd edilir; layihə/anbar qalıqları düzgün yenilənir. |
 
 ## 8. Növbəti icra addımları
 
-Kod səviyyəsində read-only supplier uzlaşması, xalis tanınan movement və inferred residual görünüşü, həmçinin read-only SQL preflight hazırdır. Frontend-də 98 test, backend-də 76 test və yeni supplier/reconciliation testləri keçib. Bu mock/unit yoxlamaları test tenant UAT-ını əvəz etmir; real test tenant və DB snapshot-da yoxlama hələ açıqdır.
+Kod səviyyəsində read-only supplier uzlaşması, xalis tanınan movement və inferred residual görünüşü hazırdır. Frontend-də 98 test, backend-də 83 test keçib; typecheck uğurludur; migration 003–007 lokal DB-də tətbiq edilib. Bu mock/unit yoxlamaları test tenant UAT-ını əvəz etmir. Lokal preflight yalnız seed məlumatını əhatə edir və müştəri açılış qalığı üçün əsas sayıla bilməz.
 
-1. UAT ssenarilərini test tenant/database-ə seed edib nəticələri yoxlamaq; U15–U20 daxil olmaqla resolution, rol redaksiyası və transfer hesabatını əhatə etmək.
-2. SQL preflight-ı yalnız seçilmiş test/production snapshot-da `READ ONLY` rejimində işlədib CSV/nəticə çıxışını arxivləmək. Hazırda hədəf database seçilməyib və sorğular işlədilməyib.
-3. Supplier adlarının eyniləşdirilməsi, borcun akt/supplier üzrə yığılması, settlement və payment allocation üçün maliyyə owner qərarını almaq; bu qərarlardan əvvəl write əməliyyatı əlavə etməmək.
-4. Opening residualı rəsmi açılış qalığı kimi qəbul etməzdən əvvəl sahibin təsdiq etdiyi opening balances və unsupported legacy movement mapping-i toplamaq.
-5. UAT və dry-run nəticələri qəbul ediləndən sonra ayrıca migration pəncərəsi, backup/rollback və pilot planı hazırlamaq. Migration tətbiqi ayrıca buraxılış addımı olaraq qalır.
+1. İzolyasiya olunmuş test tenant və test istifadəçiləri seçmək; real əməliyyatları seed və production məlumatı üzərində aparmamaq.
+2. U1–U22-ni test tenant-da icra edib nəticə, audit event, payable, stok/lot, layihə icazəsi və signer-i təsdiqləmək.
+3. Supplier/təchizatçı adları, ödəniş bölgüsü və qanuni settlement qaydaları üçün maliyyə owner qərarlarını yazılı almaq.
+4. Real müştəri snapshot-ını ayrıca seçib backup/hash, `READ ONLY` preflight və CSV nəticəsini əldə etmək; bu yerli seed preflight onun əvəzi deyil.
+5. `cixis`/`qebul` hərəkətləri, `Material.qty`/`Stock`/`StockLot` fərqləri və inferred residuallar üçün owner təsdiqli mapping/opening balance toplamaq; avtomatik düzəliş etməmək.
+6. UAT imzası, snapshot dry-run, backup/rollback və pilot istifadəçi siyahısı qəbul ediləndən sonra hədəf mühitin migration statusunu yoxlayıb ayrıca rollout pəncərəsi təyin etmək.
