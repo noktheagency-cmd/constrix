@@ -1,6 +1,6 @@
 {
   "passed": true,
-  "isolatedSchema": "market_qa_ea175f77e98040e0a31d7d1ff37e1ff2",
+  "isolatedSchema": "market_qa_48f4816db9ce425bba14a663a7791d1c",
   "checks": [
     "approved public catalogue; no subscription required",
     "uninvited company cannot read private RFQ",
@@ -28,7 +28,7 @@
     "unpaid invoice reversal preserves original and matching contra-entry",
     "paid invoice requires payment reconciliation and cannot be silently reversed",
     "concurrent purchase reversal posts one stock-out and preserves matching debt contra-entry",
-    "reapproved corrected purchase gets a new source lot and posting cycle",
+    "a new purchase act creates a new source lot after prior receipt reversal",
     "insufficient source lot blocks reversal and rolls back all effects",
     "daily report approval does not change measured work or project progress",
     "confirmed daily report cannot bypass workflow through generic API",
@@ -37,5 +37,5 @@
     "field role cannot approve or measure daily work",
     "daily photos persist by protected ID and reject quarantined or foreign files"
   ],
-  "checkedAt": "2026-10-31T12:43:18.370Z"
+  "checkedAt": "2026-10-31T20:08:23.216Z"
 }

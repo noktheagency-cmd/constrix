@@ -2,7 +2,7 @@
 
 **Versiya:** 0.1\
 **Əhatə:** MVP planı, məlumat/endpoint sərhədləri və qəbul ssenariləri\
-**Status:** Qəbul/dispute, stok reconciliation, bilateral transfer və layihə təyinatı kodlanıb; migration 003–007 lokal `afez_db`-yə tətbiq edilib və `cbc18a3` commit-i `origin/main`-ə push olunub. Test tenant UAT-ı və real snapshot reconciliation açıqdır; ardıcıllıq [növbəti plan sənədində](./constrix-warehouse-next-plan.md) verilib.\
+**Status:** Qəbul/dispute, stok reconciliation, bilateral transfer və layihə təyinatı kodlanıb; migration 003–007 lokal `afez_db`-yə tətbiq edilib və dəyişikliklər `origin/main`-ə push olunub. DB acceptance: transfer 5/5, market 17, akt 15 yoxlama; web 98/98, backend 83/83 və typecheck uğurludur. Test tenant UI UAT-ı və real snapshot reconciliation açıqdır; ardıcıllıq [növbəti plan sənədində](./constrix-warehouse-next-plan.md) verilib.\
 **Əlaqəli sənəd:** [İlkin plan](./constrix-procurement-warehouse-plan.md)
 
 ## 1. Bu spesifikasiya nəyə xidmət edir
@@ -237,4 +237,4 @@ Bu dilim hələ tam buraxılışa hazır deyil. Əvəz mal qəbulunda stoka daxi
 5. **UAT checklist:** ilk qismən qəbul, ikinci qəbul, tamamlama, iki supplier-dən biri gecikəndə qalıq, eyni key replay, fərqli body ilə replay, over-receipt, ödənmiş borcla reversal, anbardan artıq istifadə edilmiş lotla reversal.
 6. **Backlog parçalanması:** database migration, backend command, UI/history, report/reconciliation və rol redaksiyası üçün ayrıca tapşırıqlar və asılılıqlar.
 
-Migration 003–007 yalnız konfiqurasiya olunmuş lokal `afez_db`-yə tətbiq edilib; production və müştəri tenant-a toxunulmayıb. Frontend-də 98, backend-də 83 test və typecheck uğurludur. Read-only preflight lokal seed məlumatında uyğunsuzluqlar göstərib; bu nəticələr production açılış qalığı kimi qəbul edilməməlidir. Test tenant UAT-ı, real snapshot dry-run-ı və owner imzası [növbəti plan sənədində](./constrix-warehouse-next-plan.md) izlənir.
+Migration 003–007 yalnız konfiqurasiya olunmuş lokal `afez_db`-yə tətbiq edilib; production və müştəri tenant-a toxunulmayıb. Web 98/98, backend 83/83, TypeScript yoxlamaları və izolyasiya olunmuş DB acceptance keçib: transfer 5/5, market 17, akt 15. Read-only preflight lokal seed məlumatında uyğunsuzluqlar göstərib; bu nəticələr production açılış qalığı kimi qəbul edilməməlidir. Müştəri test tenant UI UAT-ı, real snapshot dry-run-ı və owner imzası [növbəti plan sənədində](./constrix-warehouse-next-plan.md) izlənir.

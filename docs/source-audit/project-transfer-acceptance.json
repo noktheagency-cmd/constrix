@@ -1,0 +1,11 @@
+{
+  "passed": true,
+  "checks": [
+    "director assigns distinct source-sender and target-receiver permissions",
+    "unassigned user cannot sign the source side and failed attempt leaves transfer unchanged",
+    "tenant isolation, distinct signer rule, and missing destination permission are enforced",
+    "second signer receives transfer; stock, lot lineage, movement, and both project locations reconcile",
+    "deactivated assignment blocks subsequent source signature"
+  ],
+  "checkedAt": "2026-10-31T20:10:41.038Z"
+}

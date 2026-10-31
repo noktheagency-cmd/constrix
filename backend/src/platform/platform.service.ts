@@ -89,6 +89,15 @@ function day(value: unknown) {
   return date;
 }
 
+function todayInBaku() {
+  return new Intl.DateTimeFormat('sv-SE', {
+    timeZone: 'Asia/Baku',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(new Date());
+}
+
 function required(value: unknown, label: string) {
   const raw = text(value);
   if (!raw) throw new BadRequestException(`${label} yazılmalıdır`);
@@ -188,7 +197,7 @@ export class PlatformService {
     const lines=book.lines.filter(l=>l.confirmed&&!l.stale);if(!lines.length)throw new BadRequestException('İxrac üçün təsdiqli aktual qiymət yoxdur');
     const sheets=await this.prisma.sourceSheet.findMany({where:{workbookId:id}}),template=new XlsxTemplate(Buffer.from(source.original)),replacements=new Map<string,string>(),changes:unknown[]=[];
     for(const line of lines){
-      if(!/^\d{4}-\d{2}-\d{2}$/.test(line.pricedOn)||line.pricedOn>new Date().toISOString().slice(0,10))throw new BadRequestException('Təsdiqli qiymətin tarixi yoxlanmalıdır');
+      if(!/^\d{4}-\d{2}-\d{2}$/.test(line.pricedOn)||line.pricedOn>todayInBaku())throw new BadRequestException('Təsdiqli qiymətin tarixi yoxlanmalıdır');
       const sheet=sheets.find(s=>s.name===line.sheet);if(!sheet)throw new BadRequestException(`${line.name}: orijinal vərəq tapılmadı`);
       const rows=sheet.rows as {number:number;cells:{column:string;value:unknown}[]}[];
       const matches=rows.filter(r=>{const val=(column:string)=>r.cells.find(c=>c.column===column)?.value;return (!line.sourceRow||r.number===line.sourceRow)&&String(val(columns.name)||'').trim()===line.name.trim()&&String(val(columns.unit)||'').trim()===line.unit.trim()&&Number(val(columns.qty))===line.qty.toNumber()});

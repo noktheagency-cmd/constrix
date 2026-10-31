@@ -2,7 +2,7 @@
 
 **Versiya:** 0.1\
 **Tarix:** 01.11.2026\
-**Status:** Supplier üzrə read-only uzlaşma və stok diaqnostikası, dispute resolution və layihə təyinatı kodlanıb. Migration 003–007 lokal `afez_db` bazasına tətbiq olunub, Prisma statusu aktualdır; dəyişikliklər `cbc18a3` commit-i ilə `origin/main`-ə push edilib. Avtomatlaşdırılmış yoxlamalar keçib. Lokal seed bazasında read-only preflight icra edildi; real test tenant UAT-ı, müştəri snapshot dry-run-ı və qalıq fərqlərinin izahı açıqdır.\
+**Status:** Supplier üzrə read-only uzlaşma və stok diaqnostikası, dispute resolution və layihə təyinatı kodlanıb. Migration 003–007 lokal `afez_db` bazasına tətbiq olunub; dəyişikliklər `cbc18a3` və `d97a154` commit-ləri ilə `origin/main`-ə push edilib. Web 98/98, backend 83/83, hər iki TypeScript yoxlaması uğurludur. DB acceptance: layihə transferi 5/5, market 17 və akt 15 yoxlaması keçib; hamısı izolyasiya olunmuş və sonda silinən schema-larda icra olunub. Lokal seed bazasında read-only preflight icra edildi. Müştəri/test tenant UI UAT-ı, müştəri snapshot dry-run-ı və qalıq fərqlərinin owner tərəfindən izahı açıqdır.\
 **Əlaqəli sənədlər:** [İlkin plan](./constrix-procurement-warehouse-plan.md), [MVP spesifikasiyası](./constrix-warehouse-mvp-implementation-spec.md)
 
 ## 1. Məqsəd
@@ -32,6 +32,9 @@ Bu plan anbarlararası transferi, material məsuluna təhvili, sərfiyyatı, pod
 - Təkrar command üçün body hash/idempotency, audit və qəbul tarixçəsi endpoint-i mövcuddur.
 - UI qismən qəbul və qalan sifariş miqdarını göstərir.
 - Migration 003–007 lokal `afez_db`-yə tətbiq olunub. Müştəri/test/production mühitləri ayrıca seçilməyib və migration olunmayıb.
+- `backend/scripts/project-transfer-acceptance.ts` təsadüfi PostgreSQL schema-sında göndərən/qəbul edən səlahiyyətini, ikinci imza qaydasını, tenant ayrılığını, deaktiv təyinatı və stok/lot/movement nəticələrini 5/5 yoxlayır; sonda schema-nı silir.
+- Project transfer UAT nəticəsi təkrarlana bilən audit üçün [project-transfer-acceptance.json](./source-audit/project-transfer-acceptance.json) faylında saxlanır.
+- `backend/scripts/market-acceptance.ts` real Prisma schema-sında 17 market və 15 akt acceptance yoxlamasını işlədir; qismən qəbul, mübahisə/əvəz, reversal, tenant qoruması və UI export-u əhatə edir.
 
 ### Növbəti mərhələdə qalanlar
 
@@ -82,7 +85,7 @@ Bu başlanğıc seçimləridir; müştəri tərəfindən təsdiq olunmayınca ko
 | 4 | P0 | Stok reconciliation və read model | **Diaqnostika hazırdır:** material cəmi/Stock/StockLot, tanınan movement net, unsupported tip sayı və inferred residual görünür. Opening balance owner təsdiqi və historical fərqlərin qərarı açıqdır. | 2 |
 | 5 | P1 | UI və role redaction | Anbardar faktiki qəbul üçün lazım olan sahələri görür; qiymət/borc redaktə edə bilmir; təchizatçı və maliyyə rolları öz səlahiyyətində işləyir. | 1, 3 |
 | 6 | P1 | Material tələbi və rəhbər təsdiqi | Tələb qaralaması, submit, approve/reject/return, audit və təsdiqdən öncə düzəliş serverdə qorunur. | 4 |
-| 7 | P0 | UAT və data reconciliation | Lokal read-only preflight tamamlandı, amma seed məlumatında 12 material uyğunsuzluğu, 2 tanınmayan movement tipi və 15 inferred residual var; owner review və müştəri/test snapshot dry-run açıqdır. Project assignment və transfer icazələri üçün UAT ssenariləri də icra edilməlidir. | 3–6 |
+| 7 | P0 | UAT və data reconciliation | İzolyasiya olunmuş DB acceptance ssenariləri keçib. Müştəri/test tenant UI UAT-ı və snapshot dry-run hələ açıqdır; lokal seed məlumatındakı 12 material uyğunsuzluğu, 2 tanınmayan movement tipi və 15 inferred residual owner review tələb edir. | 3–6 |
 | 8 | Buraxılış | Test/pilot/prod rollout | Backup, UAT imzası, unresolved fərqlər üçün qərar və rollback planı qəbul ediləndən sonra hədəf mühitdə migration statusu yoxlanır; artıq lokal DB-də tətbiq olunan migration-lar uyğun mühitə ayrıca deploy edilir. | 7 və ayrıca buraxılış təsdiqi |
 
 **Buraxılış qapısı:** Lokal dev DB-də migration tətbiqi production/test tenant rollout-u sayılmır. 1–7 addımları, backup/rollback və owner imzası tamamlanmadan production migration və stok yaradan əməliyyat açılmır.
@@ -141,10 +144,10 @@ Rollout ardıcıllığı: backup təsdiqi → migration dry-run nəticəsinin n�
 
 ## 8. Növbəti icra addımları
 
-Kod səviyyəsində read-only supplier uzlaşması, xalis tanınan movement və inferred residual görünüşü hazırdır. Frontend-də 98 test, backend-də 83 test keçib; typecheck uğurludur; migration 003–007 lokal DB-də tətbiq edilib. Bu mock/unit yoxlamaları test tenant UAT-ını əvəz etmir. Lokal preflight yalnız seed məlumatını əhatə edir və müştəri açılış qalığı üçün əsas sayıla bilməz.
+Kod səviyyəsində read-only supplier uzlaşması, xalis tanınan movement və inferred residual görünüşü hazırdır. Web 98/98, backend 83/83 və hər iki TypeScript yoxlaması keçib; migration 003–007 lokal DB-də tətbiq edilib. DB üzərində acceptance: transfer 5/5, market 17 və akt 15 ssenari uğurludur. Bunlar test tenant UI UAT-ını və müştəri məlumatı ilə yoxlamanı əvəz etmir. Lokal preflight yalnız seed məlumatını əhatə edir və müştəri açılış qalığı üçün əsas sayıla bilməz.
 
-1. İzolyasiya olunmuş test tenant və test istifadəçiləri seçmək; real əməliyyatları seed və production məlumatı üzərində aparmamaq.
-2. U1–U22-ni test tenant-da icra edib nəticə, audit event, payable, stok/lot, layihə icazəsi və signer-i təsdiqləmək.
+1. İzolyasiya olunmuş test tenant və test istifadəçiləri seçmək; real əməliyyatları seed və production məlumatı üzərində aparmamaq. DB service acceptance bu addımın server tərəfini yoxlayıb; ekran axını hələ yoxlanmayıb.
+2. U1–U22-ni test tenant UI/API-da icra edib nəticə, audit event, payable, stok/lot, layihə icazəsi və signer-i təsdiqləmək.
 3. Supplier/təchizatçı adları, ödəniş bölgüsü və qanuni settlement qaydaları üçün maliyyə owner qərarlarını yazılı almaq.
 4. Real müştəri snapshot-ını ayrıca seçib backup/hash, `READ ONLY` preflight və CSV nəticəsini əldə etmək; bu yerli seed preflight onun əvəzi deyil.
 5. `cixis`/`qebul` hərəkətləri, `Material.qty`/`Stock`/`StockLot` fərqləri və inferred residuallar üçün owner təsdiqli mapping/opening balance toplamaq; avtomatik düzəliş etməmək.
