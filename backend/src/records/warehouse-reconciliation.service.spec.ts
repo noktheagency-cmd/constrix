@@ -24,7 +24,9 @@ describe('warehouse reconciliation ledger diagnostics', () => {
           { materialId: 'm1', locationId: 'loc-a', type: 'mexaric', from: null, _sum: { qty: new Prisma.Decimal(2) }, _count: { _all: 1 }, _max: { date: '2026-10-02' } },
           { materialId: 'm1', locationId: 'loc-b', type: 'transfer', from: 'loc-a', _sum: { qty: new Prisma.Decimal(3) }, _count: { _all: 1 }, _max: { date: '2026-10-03' } },
           { materialId: 'm1', locationId: 'loc-a', type: 'adjustment', from: null, _sum: { qty: new Prisma.Decimal(1) }, _count: { _all: 1 }, _max: { date: '2026-10-04' } },
-        ]), count: jest.fn().mockResolvedValue(4),
+          { materialId: 'm1', locationId: 'loc-a', type: 'qebul', from: null, _sum: { qty: new Prisma.Decimal(4) }, _count: { _all: 1 }, _max: { date: '2026-10-05' } },
+          { materialId: 'm1', locationId: 'loc-b', type: 'cixis', from: null, _sum: { qty: new Prisma.Decimal(1) }, _count: { _all: 1 }, _max: { date: '2026-10-06' } },
+        ]), count: jest.fn().mockResolvedValue(6),
       },
       location: { findMany: jest.fn().mockResolvedValue([{ id: 'loc-a', name: 'Mərkəz' }, { id: 'loc-b', name: 'Sahə' }]) },
     };
@@ -33,8 +35,8 @@ describe('warehouse reconciliation ledger diagnostics', () => {
 
     const report = await service.report(user);
     const places = report.items[0].places;
-    expect(places.find((row) => row.locationId === 'loc-a')).toMatchObject({ knownNetMovementQty: 7, inferredOpeningResidualQty: 3, unsupportedMovementCount: 1 });
-    expect(places.find((row) => row.locationId === 'loc-b')).toMatchObject({ knownNetMovementQty: 3, inferredOpeningResidualQty: 2 });
-    expect(report.summary).toMatchObject({ movementRowCount: 4, unsupportedMovementCount: 1, mismatchCount: 0 });
+    expect(places.find((row) => row.locationId === 'loc-a')).toMatchObject({ knownNetMovementQty: 11, inferredOpeningResidualQty: -1, unsupportedMovementCount: 1 });
+    expect(places.find((row) => row.locationId === 'loc-b')).toMatchObject({ knownNetMovementQty: 2, inferredOpeningResidualQty: 3 });
+    expect(report.summary).toMatchObject({ movementRowCount: 6, unsupportedMovementCount: 1, legacyAliasMovementCount: 2, mismatchCount: 0 });
   });
 });

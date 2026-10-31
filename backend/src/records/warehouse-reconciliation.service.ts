@@ -55,13 +55,13 @@ export class WarehouseReconciliationService {
       materialTotals(row.materialId).lots = materialTotals(row.materialId).lots.plus(qty);
       placeTotals(row.materialId, row.locationId).lots = placeTotals(row.materialId, row.locationId).lots.plus(qty);
     }
-    let unsupportedMovementCount=0;
+    let unsupportedMovementCount=0, legacyAliasMovementCount=0;
     for (const row of movements) {
       if (!row.materialId || !materialById.has(row.materialId)) { unlinkedMovementCount += row._count._all; continue; }
       const qty=row._sum.qty??new Prisma.Decimal(0);
       const apply=(locationId:string|null,delta:Prisma.Decimal)=>{const place=placeTotals(row.materialId!,locationId);place.movements+=row._count._all;place.netMovement=place.netMovement.plus(delta);if(row._max.date&&(!place.lastMovement||row._max.date>place.lastMovement))place.lastMovement=row._max.date;};
-      if(row.type==='medaxil')apply(row.locationId,qty);
-      else if(row.type==='mexaric')apply(row.locationId,qty.negated());
+      if(row.type==='medaxil'||row.type==='qebul') { apply(row.locationId,qty); if(row.type==='qebul')legacyAliasMovementCount+=row._count._all; }
+      else if(row.type==='mexaric'||row.type==='cixis') { apply(row.locationId,qty.negated()); if(row.type==='cixis')legacyAliasMovementCount+=row._count._all; }
       else if(row.type==='transfer'){
         apply(row.locationId,qty);
         if(row.from&&placeById.has(row.from))apply(row.from,qty.negated());
@@ -109,6 +109,7 @@ export class WarehouseReconciliationService {
         lotRowCount,
         movementRowCount,
         unsupportedMovementCount,
+        legacyAliasMovementCount,
         unlinkedStockQty: unlinkedStockQty.toNumber(),
         unlinkedLotQty: unlinkedLotQty.toNumber(),
         unlinkedMovementCount,

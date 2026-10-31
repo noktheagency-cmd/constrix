@@ -2,7 +2,7 @@
 
 **Versiya:** 0.1\
 **Tarix:** 01.11.2026\
-**Status:** Supplier üzrə read-only uzlaşma və stok diaqnostikası, dispute resolution və layihə təyinatı kodlanıb. Migration 003–007 lokal `afez_db` bazasına tətbiq olunub; dəyişikliklər `cbc18a3` və `d97a154` commit-ləri ilə `origin/main`-ə push edilib. Web 98/98, backend 83/83, hər iki TypeScript yoxlaması uğurludur. DB acceptance: layihə transferi 5/5, market 17 və akt 15 yoxlaması keçib; hamısı izolyasiya olunmuş və sonda silinən schema-larda icra olunub. Lokal seed bazasında read-only preflight icra edildi. Müştəri/test tenant UI UAT-ı, müştəri snapshot dry-run-ı və qalıq fərqlərinin owner tərəfindən izahı açıqdır.\
+**Status:** Supplier üzrə read-only uzlaşma və stok diaqnostikası, dispute resolution və layihə təyinatı kodlanıb. Migration 003–007 lokal `afez_db`-yə tətbiq olunub; dəyişikliklər `cbc18a3`, `d97a154` və `9cf8c91` commit-ləri ilə `origin/main`-ə push edilib. Web 98/98, backend 83/83 və TypeScript yoxlamaları uğurludur. DB acceptance: transfer 5/5, market 17, akt 15 yoxlaması keçib. 29.10 tarixli, əvvəl restore-u yoxlanmış backup ayrıca müvəqqəti DB-yə bərpa edildi, migration-lar klona tətbiq edildi və read-only preflight uğurla işlədi; clone silindi. Müştəri/test tenant UI UAT-ı və qalıq fərqlərinin owner tərəfindən izahı açıqdır.\
 **Əlaqəli sənədlər:** [İlkin plan](./constrix-procurement-warehouse-plan.md), [MVP spesifikasiyası](./constrix-warehouse-mvp-implementation-spec.md)
 
 ## 1. Məqsəd
@@ -26,9 +26,10 @@ Bu plan anbarlararası transferi, material məsuluna təhvili, sərfiyyatı, pod
 - Qalan sifariş miqdarını bağlamaq direktor sorğusu, səbəb və ayrıca direktor təsdiqi tələb edir; bağlanan miqdar stoka düşmür.
 - Resolution sorğusu və qərarı audit/idempotency ilə saxlanır. Təsdiqli kredit və qalıq bağlama reversal-i bloklayır; əvəz mal olan qəbulu avtomatik reversal etmək mümkün deyil.
 - Anbar `Uzlaşdırma` tabı `Material.qty`, `Stock` və `StockLot` cəmlərini material/anbar üzrə müqayisə edir; hərəkət sayı və son tarixi kontekst kimi verir.
-- `Uzlaşdırma` tabı indi `medaxil`, `mexaric` və `transfer` hərəkətlərinin xalis cəmini göstərir; naməlum/istiqaməti tanınmayan hərəkətləri sayır və `Stock − tanınan net hərəkət` residualını yalnız təxmin kimi verir.
+- `Uzlaşdırma` tabı `medaxil`/`qebul` daxilolmalarını, `mexaric`/`cixis` çıxışlarını və `transfer` hərəkətlərini xalis hesablayır; köhnə aliasların sayını ayrıca göstərir. Naməlum tipləri sayır və `Stock − tanınan net hərəkət` residualını yalnız təxmin kimi verir. Tarixi movement sətirləri dəyişdirilmir.
 - Alış aktlarında supplier üzrə qalıq, qəbul, mübahisə, pending kredit və rol icazəsi olanlarda açıq borc read-only cədvəli göstərilir. Supplier-i hüquqi/maliyyə cəhətdən bağlama və payment allocation əməliyyatı yoxdur.
-- `backend/prisma/dry-runs/warehouse_migration_dry_run.sql` read-only preflight sorğularını saxlayır; 01.11.2026-da lokal `afez_db` seed bazasında icra edildi. Nəticələr: 58 alış aktı hamısı qaralamadır; akt nömrəsi/ID-si ilə uyğun payable tapılmadı; 12 materialda `Material.qty`/`Stock`/`StockLot` fərqi var; 5 movement tipindən `cixis` və `qebul` hazırkı xalis hesablamada tanınmır; 15 material-anbar cütündə inferred residual mövcuddur. Bunlar diaqnostikadır, düzəliş deyil.
+- `backend/prisma/dry-runs/warehouse_migration_dry_run.sql` read-only preflight sorğularını saxlayır. 29.10 backup klonunda əvvəlki preflight zamanı 58 alış aktının hamısı qaralama idi, uyğun payable tapılmadı, 12 materialda `Material.qty`/`Stock`/`StockLot` fərqi var idi. Həmin köhnə preflight `qebul`/`cixis` aliaslarını xalis hesablamaya daxil etmədiyi üçün 15 residual göstəricisi bu mapping dəyişməsindən sonra yenidən ölçülməlidir. Əvvəlki run-da `cixis` 1, `qebul` 2 sətir idi; bu tiplər indi hesabatda istiqamətə görə hesablanır, DB-dəki mənbə tipi isə olduğu kimi qalır. Bunlar diaqnostikadır, düzəliş deyil.
+- Snapshot preflight-ın yığcam nəticəsi [warehouse-snapshot-preflight-2026-10-29.json](./source-audit/warehouse-snapshot-preflight-2026-10-29.json) faylında saxlanır. Mənbə backup-ın restore yoxlaması 166 cədvəl və 26,409 sətir üzrə əvvəlcədən uğurlu olub.
 - Təkrar command üçün body hash/idempotency, audit və qəbul tarixçəsi endpoint-i mövcuddur.
 - UI qismən qəbul və qalan sifariş miqdarını göstərir.
 - Migration 003–007 lokal `afez_db`-yə tətbiq olunub. Müştəri/test/production mühitləri ayrıca seçilməyib və migration olunmayıb.
@@ -85,7 +86,7 @@ Bu başlanğıc seçimləridir; müştəri tərəfindən təsdiq olunmayınca ko
 | 4 | P0 | Stok reconciliation və read model | **Diaqnostika hazırdır:** material cəmi/Stock/StockLot, tanınan movement net, unsupported tip sayı və inferred residual görünür. Opening balance owner təsdiqi və historical fərqlərin qərarı açıqdır. | 2 |
 | 5 | P1 | UI və role redaction | Anbardar faktiki qəbul üçün lazım olan sahələri görür; qiymət/borc redaktə edə bilmir; təchizatçı və maliyyə rolları öz səlahiyyətində işləyir. | 1, 3 |
 | 6 | P1 | Material tələbi və rəhbər təsdiqi | Tələb qaralaması, submit, approve/reject/return, audit və təsdiqdən öncə düzəliş serverdə qorunur. | 4 |
-| 7 | P0 | UAT və data reconciliation | İzolyasiya olunmuş DB acceptance ssenariləri keçib. Müştəri/test tenant UI UAT-ı və snapshot dry-run hələ açıqdır; lokal seed məlumatındakı 12 material uyğunsuzluğu, 2 tanınmayan movement tipi və 15 inferred residual owner review tələb edir. | 3–6 |
+| 7 | P0 | UAT və data reconciliation | İzolyasiya olunmuş DB acceptance və 29.10 snapshot klonunda read-only dry-run keçib. `qebul`/`cixis` mapping-i yeniləndikdən sonra snapshot residuallarının təkrar hesablanması, owner opening-balance təsdiqi və müştəri test tenant UI UAT-ı açıqdır; əvvəlki snapshot run-da 12 material uyğunsuzluğu və 3 legacy alias sətiri aşkarlanmışdı. | 3–6 |
 | 8 | Buraxılış | Test/pilot/prod rollout | Backup, UAT imzası, unresolved fərqlər üçün qərar və rollback planı qəbul ediləndən sonra hədəf mühitdə migration statusu yoxlanır; artıq lokal DB-də tətbiq olunan migration-lar uyğun mühitə ayrıca deploy edilir. | 7 və ayrıca buraxılış təsdiqi |
 
 **Buraxılış qapısı:** Lokal dev DB-də migration tətbiqi production/test tenant rollout-u sayılmır. 1–7 addımları, backup/rollback və owner imzası tamamlanmadan production migration və stok yaradan əməliyyat açılmır.
@@ -144,11 +145,11 @@ Rollout ardıcıllığı: backup təsdiqi → migration dry-run nəticəsinin n�
 
 ## 8. Növbəti icra addımları
 
-Kod səviyyəsində read-only supplier uzlaşması, xalis tanınan movement və inferred residual görünüşü hazırdır. Web 98/98, backend 83/83 və hər iki TypeScript yoxlaması keçib; migration 003–007 lokal DB-də tətbiq edilib. DB üzərində acceptance: transfer 5/5, market 17 və akt 15 ssenari uğurludur. Bunlar test tenant UI UAT-ını və müştəri məlumatı ilə yoxlamanı əvəz etmir. Lokal preflight yalnız seed məlumatını əhatə edir və müştəri açılış qalığı üçün əsas sayıla bilməz.
+Kod səviyyəsində read-only supplier uzlaşması, xalis tanınan movement və inferred residual görünüşü hazırdır. Web testləri 98/98, backend testləri 83/83, web build/typecheck və backend TypeScript yoxlaması keçib. Migration 003–007 lokal DB-də tətbiq edilib. DB acceptance: transfer 5/5, market 17 və akt 15 yoxlaması uğurludur. 29.10 backup klonunda əvvəlki read-only preflight uğurla tamamlanıb; alias mapping yenilənəndən sonra klon preflight-ı təkrar açmaq cəhdi PostgreSQL-in köhnə Windows shared-memory blokuna görə başlamadı, ona görə yeni qalıq rəqəmləri hələ yoxdur. Bu yoxlamalar müştəri test tenant UI UAT-ını əvəz etmir. Snapshot-da görünən qalıqlar biznes sahibinin açılış balansı və hərəkət mapping təsdiqi olmadan düzəldilməməlidir.
 
 1. İzolyasiya olunmuş test tenant və test istifadəçiləri seçmək; real əməliyyatları seed və production məlumatı üzərində aparmamaq. DB service acceptance bu addımın server tərəfini yoxlayıb; ekran axını hələ yoxlanmayıb.
 2. U1–U22-ni test tenant UI/API-da icra edib nəticə, audit event, payable, stok/lot, layihə icazəsi və signer-i təsdiqləmək.
 3. Supplier/təchizatçı adları, ödəniş bölgüsü və qanuni settlement qaydaları üçün maliyyə owner qərarlarını yazılı almaq.
-4. Real müştəri snapshot-ını ayrıca seçib backup/hash, `READ ONLY` preflight və CSV nəticəsini əldə etmək; bu yerli seed preflight onun əvəzi deyil.
-5. `cixis`/`qebul` hərəkətləri, `Material.qty`/`Stock`/`StockLot` fərqləri və inferred residuallar üçün owner təsdiqli mapping/opening balance toplamaq; avtomatik düzəliş etməmək.
+4. Müştərinin aktual test snapshot-ını ayrıca təsdiqləmək; hazırda mövcud 29.10 backup snapshot-dır və bugünkü production vəziyyətinə bərabər sayılmır.
+5. Yeni mapping ilə 29.10 snapshot read-only preflight-ını təkrar ölçmək; `Material.qty`/`Stock`/`StockLot` fərqləri və inferred residuallar üçün owner təsdiqli opening balance toplamaq; avtomatik düzəliş etməmək.
 6. UAT imzası, snapshot dry-run, backup/rollback və pilot istifadəçi siyahısı qəbul ediləndən sonra hədəf mühitin migration statusunu yoxlayıb ayrıca rollout pəncərəsi təyin etmək.

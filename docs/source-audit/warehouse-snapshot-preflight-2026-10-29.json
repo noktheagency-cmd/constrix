@@ -1,0 +1,57 @@
+{
+  "source": "afez-2026-10-29T14-46-31-035Z.dump",
+  "sourceVerifiedAt": "2026-10-29T14:48:16.408Z",
+  "sha256": "4e20dfd72289f9ee31fcc9dbc60792336206b53771c822fb8909770be6f062ef",
+  "migrationsApplied": [
+    "202610310003_partial_purchase_receipts",
+    "202610310004_purchase_dispute_resolutions",
+    "202610310005_stock_reservations",
+    "202610310006_bilateral_shipments",
+    "202610310007_project_assignments"
+  ],
+  "readOnlyPreflight": true,
+  "isolatedDatabase": true,
+  "metrics": [
+    {
+      "metric": "inferred_residual_location_count",
+      "label": "negative",
+      "value": 2
+    },
+    {
+      "metric": "inferred_residual_location_count",
+      "label": "nonzero",
+      "value": 15
+    },
+    {
+      "metric": "inferred_residual_location_count",
+      "label": "positive",
+      "value": 13
+    },
+    {
+      "metric": "material_stock_lot_mismatches",
+      "label": "all",
+      "value": 12
+    },
+    {
+      "metric": "payable_act_matches",
+      "label": "all",
+      "value": 0
+    },
+    {
+      "metric": "purchase_act_status",
+      "label": "qaralama",
+      "value": 58
+    },
+    {
+      "metric": "unsupported_movement_type",
+      "label": "cixis",
+      "value": 1
+    },
+    {
+      "metric": "unsupported_movement_type",
+      "label": "qebul",
+      "value": 2
+    }
+  ],
+  "checkedAt": "2026-10-31T20:16:40.2728655Z"
+}

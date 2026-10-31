@@ -52,7 +52,7 @@ GROUP BY m."organizationId", m."id", m."name", m."unit", m."qty"
 HAVING COALESCE(SUM(s.qty), 0) <> m."qty" OR COALESCE(SUM(l.qty), 0) <> COALESCE(SUM(s.qty), 0)
 ORDER BY m."organizationId", m."name";
 
--- E. Movement type coverage. Only medaxil/mexaric/transfer can be netted by the current read model.
+-- E. Movement type coverage. medaxil/mexaric/transfer and legacy qebul/cixis are directionally netted.
 SELECT "organizationId", "type", COUNT(*) AS movement_rows,
        COUNT(*) FILTER (WHERE "materialId" IS NULL) AS unlinked_material_rows,
        COUNT(*) FILTER (WHERE "locationId" IS NULL) AS unlinked_location_rows,
@@ -65,8 +65,8 @@ ORDER BY "organizationId", "type";
 -- It may include opening stock AND unrecorded/unsupported legacy movements.
 WITH net AS (
   SELECT "organizationId", "materialId", "locationId",
-         SUM(CASE WHEN "type" = 'medaxil' THEN "qty"
-                  WHEN "type" = 'mexaric' THEN -"qty"
+         SUM(CASE WHEN "type" IN ('medaxil', 'qebul') THEN "qty"
+                  WHEN "type" IN ('mexaric', 'cixis') THEN -"qty"
                   WHEN "type" = 'transfer' THEN "qty"
                   ELSE 0 END) AS known_net_qty
   FROM "Movement"
