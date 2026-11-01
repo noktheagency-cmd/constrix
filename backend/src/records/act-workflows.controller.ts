@@ -16,6 +16,11 @@ export class ActWorkflowsController{
  @Get(':id/purchase-receipts') receipts(@Req()req:{user:AuthUser},@Param('id')id:string){return this.workflows.purchaseReceipts(req.user,id);}
  @Get(':id/purchase-dispute-resolutions') disputeResolutions(@Req()req:{user:AuthUser},@Param('id')id:string){return this.workflows.purchaseDisputeResolutions(req.user,id);}
  @Get('purchase-supplier-reconciliation') supplierReconciliation(@Req()req:{user:AuthUser}){return this.workflows.purchaseSupplierReconciliation(req.user);}
+ @Post(':id/close-purchase-supplier') closeSupplier(@Req()req:{user:AuthUser},@Param('id')id:string,@Body()body:Record<string,unknown>){return this.workflows.closePurchaseSupplier(req.user,id,body);}
+ @Get('supplier-payment-options') supplierPaymentOptions(@Req()req:{user:AuthUser}){return this.workflows.supplierPaymentOptions(req.user);}
+ @Get('supplier-payments') supplierPayments(@Req()req:{user:AuthUser}){return this.workflows.supplierPayments(req.user);}
+ @Post('supplier-payments') createSupplierPayment(@Req()req:{user:AuthUser},@Body()body:Record<string,unknown>){return this.workflows.createSupplierPayment(req.user,body);}
+ @Post('supplier-payments/:id/approve') approveSupplierPayment(@Req()req:{user:AuthUser},@Param('id')id:string,@Body()body:Record<string,unknown>){return this.workflows.approveSupplierPayment(req.user,id,body);}
  @Post(':id/request-purchase-dispute-resolution') requestDisputeResolution(@Req()req:{user:AuthUser},@Param('id')id:string,@Body()body:Record<string,unknown>){return this.workflows.requestPurchaseDisputeResolution(req.user,id,body);}
  @Post(':id/review-purchase-dispute-resolution') reviewDisputeResolution(@Req()req:{user:AuthUser},@Param('id')id:string,@Body()body:Record<string,unknown>){return this.workflows.reviewPurchaseDisputeResolution(req.user,id,body);}
 }

@@ -77,9 +77,11 @@ export class ShipmentWorkflowsService {
         const stock = await tx.stock.findFirst({ where: { organizationId: ctx.orgId!, materialId: line.materialId, locationId: fromLocationId } });
         const requestReservations = await tx.stockReservation.findMany({ where: { organizationId: ctx.orgId!, materialId: line.materialId, locationId: fromLocationId, status: 'active' } });
         const transferLines = await tx.shipmentLine.findMany({ where: { materialId: line.materialId, shipment: { organizationId: ctx.orgId!, fromLocationId, status: { in: ['waiting_sender', 'sent'] } } } });
+        const custodyHolds = await tx.materialHandover.findMany({ where: { organizationId: ctx.orgId!, materialId: line.materialId, locationId: fromLocationId, status: { in: ['waiting_custodian', 'accepted'] } } });
         const reserved = requestReservations.reduce((sum, row) => sum.plus(row.qty), new Prisma.Decimal(0));
         const inTransfer = transferLines.reduce((sum, row) => sum.plus(row.qty), new Prisma.Decimal(0));
-        const free = (stock?.qty || new Prisma.Decimal(0)).minus(reserved).minus(inTransfer);
+        const inCustody = custodyHolds.reduce((sum, row) => sum.plus(row.status === 'accepted' ? row.remainingQty : row.qty), new Prisma.Decimal(0));
+        const free = (stock?.qty || new Prisma.Decimal(0)).minus(reserved).minus(inTransfer).minus(inCustody);
         const wanted = new Prisma.Decimal(line.qty);
         if (free.lessThan(wanted)) throw new BadRequestException(`${material.name}: sərbəst qalıq ${Prisma.Decimal.max(0, free).toString()} ${material.unit}, transfer miqdarı ${wanted.toString()} ${material.unit}`);
       }
@@ -149,7 +151,8 @@ export class ShipmentWorkflowsService {
         const stock = await tx.stock.findFirst({ where: { organizationId: ctx.orgId!, materialId: line.materialId, locationId: from.id } });
         const reserved = await tx.stockReservation.findMany({ where: { organizationId: ctx.orgId!, materialId: line.materialId, locationId: from.id, status: 'active' } });
         const otherShipments = await tx.shipmentLine.findMany({ where: { materialId: line.materialId, shipmentId: { not: id }, shipment: { organizationId: ctx.orgId!, fromLocationId: from.id, status: { in: ['waiting_sender', 'sent'] } } } });
-        const protectedQty = reserved.reduce((sum, item) => sum.plus(item.qty), new Prisma.Decimal(0)).plus(otherShipments.reduce((sum, item) => sum.plus(item.qty), new Prisma.Decimal(0)));
+        const custodyHolds = await tx.materialHandover.findMany({ where: { organizationId: ctx.orgId!, materialId: line.materialId, locationId: from.id, status: { in: ['waiting_custodian', 'accepted'] } } });
+        const protectedQty = reserved.reduce((sum, item) => sum.plus(item.qty), new Prisma.Decimal(0)).plus(otherShipments.reduce((sum, item) => sum.plus(item.qty), new Prisma.Decimal(0))).plus(custodyHolds.reduce((sum, item) => sum.plus(item.status === 'accepted' ? item.remainingQty : item.qty), new Prisma.Decimal(0)));
         if (!stock || stock.qty.minus(line.qty).lessThan(protectedQty)) throw new ConflictException(`${line.material}: göndərilən miqdar artıq sərbəst deyil; stok uzlaşdırılması lazımdır`);
         const sourceLots = await tx.stockLot.findMany({ where: { organizationId: ctx.orgId!, materialId: line.materialId, locationId: from.id, qty: { gt: 0 } }, orderBy: [{ createdAt: 'asc' }, { id: 'asc' }] });
         let left = new Prisma.Decimal(line.qty);

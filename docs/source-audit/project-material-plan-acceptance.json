@@ -1,0 +1,15 @@
+{
+  "passed": true,
+  "checks": [
+    "smeta materials + engineer work-volume coefficients + QRP create one approved 55-unit plan without stock writes",
+    "real partial purchase receipt and replacement commands automatically reconcile plan; disputed goods never satisfy demand",
+    "overdelivery is shown separately; actual purchase reversal automatically reopens demand without double counting",
+    "supplier return changes remaining demand on physical dispatch, independent of later finance credit",
+    "approved consumption stays a separate indicator and does not create duplicate procurement need",
+    "source changes flag stale plans; approval rejects stale snapshot; revision supersedes previous baseline and retains history",
+    "foreign IDs, unit mismatch, duplicate source rows and unauthorized plan writes are blocked atomically",
+    "same material in another project stays isolated; only received cross-project transfer net affects demand; internal and sent transfers do not; self approval and actual foreign sources fail"
+  ],
+  "checkedAt": "2026-11-01T21:35:11.120Z",
+  "isolated": true
+}

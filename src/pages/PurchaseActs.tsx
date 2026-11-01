@@ -11,7 +11,7 @@ import { Icon } from "../icons"
 import { usePrefs } from "../i18n"
 import { useStore } from "../store"
 import { api } from "../api"
-import { Badge, Drawer, Empty, Field, PageHead, RowMenu, Select, Tabs, useTitle } from "../ui"
+import { Badge, Drawer, Empty, Field, Modal, PageHead, RowMenu, Select, Tabs, useTitle } from "../ui"
 import { MarketDocuments, MarketDownload } from "../components/MarketDocuments"
 
 type Tab = "aktlar" | "umumi" | "elave" | "source" | "supplier"
@@ -39,10 +39,23 @@ export default function PurchaseActs() {
   const [tab, setTab] = useState<Tab>("aktlar")
   const [reading, setReading] = useState<Reading>(null)
   const [error, setError] = useState("")
-  const [supplierReport,setSupplierReport]=useState<{generatedAt:string;rows:{actId:string;actNumber:string;date:string;status:string;supplier:string;orderedQty:number;receivedQty:number;payableQty:number;closedQty:number;remainingQty:number;openDisputedQty:number;pendingCreditQty:number;netOpenPayable?:number;payableCount?:number}[]}|null>(null)
+  const [supplierReport,setSupplierReport]=useState<{generatedAt:string;rows:{actId:string;actNumber:string;date:string;status:string;supplier:string;orderedQty:number;receivedQty:number;payableQty:number;closedQty:number;remainingQty:number;openDisputedQty:number;pendingCreditQty:number;netOpenPayable?:number;payableCount?:number;supplierQuantityClosed?:boolean;supplierClosedAt?:string|null;supplierClosedBy?:string|null;supplierClosureEvidenceRef?:string|null}[]}|null>(null)
   const [supplierBusy,setSupplierBusy]=useState(false)
   const [supplierRefresh,setSupplierRefresh]=useState(0)
+  const [closureTarget,setClosureTarget]=useState<{actId:string;actNumber:string;supplier:string}|null>(null)
+  const [closureEvidence,setClosureEvidence]=useState("")
+  const [closureNote,setClosureNote]=useState("")
+  const [closureBusy,setClosureBusy]=useState(false)
   const [receiveLocation, setReceiveLocation] = useState(locations.find((item) => item.id === "LOC-MERKEZ")?.id || locations[0]?.id || "")
+  useEffect(() => {
+    if (!locations.length) {
+      if (receiveLocation) setReceiveLocation("")
+      return
+    }
+    if (!locations.some((item) => item.id === receiveLocation)) {
+      setReceiveLocation(locations.find((item) => item.id === "LOC-MERKEZ")?.id || locations[0].id)
+    }
+  }, [locations, receiveLocation])
   const rows = purchaseActs.filter((item) => hit(query, item.number, item.objectName, item.person, item.project, item.note))
   const act = reading?.kind === "act" ? purchaseActs.find((item) => item.id === reading.id) : undefined
   const ledger = useMemo(
@@ -67,6 +80,8 @@ export default function PurchaseActs() {
   )
 
   useEffect(()=>{if(tab!=="supplier")return;let active=true;setSupplierBusy(true);void api<typeof supplierReport>("/api/act-workflows/purchase-supplier-reconciliation").then(row=>{if(active)setSupplierReport(row)}).catch(()=>{if(active)setSupplierReport(null)}).finally(()=>{if(active)setSupplierBusy(false)});return()=>{active=false}},[tab,purchaseActs,supplierRefresh])
+
+  async function closeSupplierQuantity(){if(!closureTarget||!closureEvidence.trim())return;setClosureBusy(true);setError("");try{await api(`/api/act-workflows/${encodeURIComponent(closureTarget.actId)}/close-purchase-supplier`,{method:"POST",body:JSON.stringify({supplier:closureTarget.supplier,evidenceRef:closureEvidence.trim(),note:closureNote.trim(),key:crypto.randomUUID()})});setClosureTarget(null);setClosureEvidence("");setClosureNote("");setSupplierRefresh(value=>value+1)}catch(e){setError(e instanceof Error?e.message:"Supplier uzlaşması bağlanmadı")}finally{setClosureBusy(false)}}
 
   return (
     <div className="forma-page">
@@ -94,8 +109,9 @@ export default function PurchaseActs() {
       {tab === "source" && <SourceWorkbookViewer kind="purchase" />}
       {tab === "supplier" && <>
         <Toolbar><span className="muted">Alış aktı, supplier, qəbul edilmiş miqdar, açıq mübahisə və borc üzrə read-only uzlaşma.</span><Button type="button" className="ghost" disabled={supplierBusy} onClick={()=>setSupplierRefresh(value=>value+1)}>{supplierBusy?"Yenilənir…":"Yenilə"}</Button></Toolbar>
-        <TableContainer className="wide"><DataTable><thead><tr><th>Supplier / akt</th><th>Status</th><th className="num">Sifariş</th><th className="num">Qəbul</th><th className="num">Qalıq</th><th className="num">Mübahisə</th><th className="num">Pending kredit</th>{["director","procurement","accountant"].includes(actor.role)&&<th className="num">Açıq borc</th>}</tr></thead><tbody>{supplierReport?.rows.map((row,index)=><tr key={`${row.actId}-${row.supplier}-${index}`}><td><b>{row.supplier}</b><div className="muted">{row.actNumber} · {dateAZ(row.date)}</div></td><td><Badge status={row.status}/></td><td className="num">{num(row.orderedQty,3)}</td><td className="num">{num(row.receivedQty,3)}</td><td className="num">{num(row.remainingQty,3)}</td><td className="num">{num(row.openDisputedQty,3)}</td><td className="num">{num(row.pendingCreditQty,3)}</td>{["director","procurement","accountant"].includes(actor.role)&&<td className="num">{money(row.netOpenPayable||0)}</td>}</tr>)}</tbody></DataTable>{supplierReport&&supplierReport.rows.length===0&&<Empty title="Supplier uzlaşması yoxdur" text="Alış aktı və supplier sətirləri bu şirkətdə tapılmadı."/>}</TableContainer>
-        <p className="muted">Bu panel uzlaşma göstəricisidir; payment allocation və supplier-i hüquqi/maliyyə baxımından “bağla” əməliyyatı bu buraxılışa daxil deyil.</p>
+        <TableContainer className="wide"><DataTable><thead><tr><th>Supplier / akt</th><th>Status</th><th className="num">Sifariş</th><th className="num">Qəbul</th><th className="num">Qalıq</th><th className="num">Mübahisə</th><th className="num">Pending kredit</th>{["director","procurement","accountant"].includes(actor.role)&&<th className="num">Açıq borc</th>}<th>Miqdar uzlaşması</th></tr></thead><tbody>{supplierReport?.rows.map((row,index)=><tr key={`${row.actId}-${row.supplier}-${index}`}><td><b>{row.supplier}</b><div className="muted">{row.actNumber} · {dateAZ(row.date)}</div></td><td><Badge status={row.status}/></td><td className="num">{num(row.orderedQty,3)}</td><td className="num">{num(row.receivedQty,3)}</td><td className="num">{num(row.remainingQty,3)}</td><td className="num">{num(row.openDisputedQty,3)}</td><td className="num">{num(row.pendingCreditQty,3)}</td>{["director","procurement","accountant"].includes(actor.role)&&<td className="num">{money(row.netOpenPayable||0)}</td>}<td>{row.supplierQuantityClosed?<><Badge status="Miqdar uzlaşıb"/><div className="muted">{row.supplierClosedBy} · {row.supplierClosureEvidenceRef}</div></>:actor.role==="director"&&row.remainingQty===0&&row.openDisputedQty===0&&row.pendingCreditQty===0?<Button type="button" className="small" onClick={()=>{setClosureTarget({actId:row.actId,actNumber:row.actNumber,supplier:row.supplier});setClosureEvidence("");setClosureNote("")}}>Miqdar uzlaşmasını bağla</Button>:<span className="muted">Açıq</span>}</td></tr>)}</tbody></DataTable>{supplierReport&&supplierReport.rows.length===0&&<Empty title="Supplier uzlaşması yoxdur" text="Alış aktı və supplier sətirləri bu şirkətdə tapılmadı."/>}</TableContainer>
+        <p className="muted">Miqdar uzlaşmasının bağlanması supplier-in alış aktı üzrə fiziki qəbulunu sənədləyir. Açıq borc ayrıca Maliyyə bölməsində ödənişlə azaldılır.</p>
+        {closureTarget&&<Modal title={`${closureTarget.supplier} · ${closureTarget.actNumber}`} onClose={()=>{if(!closureBusy)setClosureTarget(null)}}><div className="form"><Field label="Uzlaşma sənədinin istinadı"><Input value={closureEvidence} onChange={event=>setClosureEvidence(event.target.value)} maxLength={200} placeholder="Təhvil/qəbul aktı, məktub və ya protokol №" /></Field><Field label="Qeyd"><Input value={closureNote} onChange={event=>setClosureNote(event.target.value)} maxLength={500} placeholder="İstəyə görə" /></Field><p className="muted">Bu təsdiq yalnız miqdar uzlaşmasını bağlayır; ödəniş və borc qalıqları dəyişmir.</p><Button type="button" disabled={closureBusy||!closureEvidence.trim()} onClick={()=>void closeSupplierQuantity()}>{closureBusy?"Yadda saxlanır…":"Uzlaşmanı təsdiqlə"}</Button></div></Modal>}
       </>}
       {tab === "aktlar" && (
         <TableContainer className="wide">

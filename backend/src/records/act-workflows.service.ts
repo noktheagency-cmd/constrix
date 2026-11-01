@@ -1,6 +1,6 @@
 import {BadRequestException,ConflictException,ForbiddenException,Injectable,NotFoundException} from '@nestjs/common';
 import {Prisma} from '@prisma/client';
-import {createHash} from 'node:crypto';
+import {createHash,randomUUID} from 'node:crypto';
 import {AuthUser} from '../auth/auth.service';
 import {PrismaService} from '../prisma/prisma.service';
 import {TenantService} from '../platform/tenant.service';
@@ -10,8 +10,8 @@ import {serializable} from '../prisma/serializable';
 @Injectable()
 export class ActWorkflowsService{
  constructor(private readonly prisma:PrismaService,private readonly tenant:TenantService){}
- private async context(user:AuthUser,purchase=false){
-  const ctx=await this.tenant.load(user);this.tenant.allow(ctx,purchase?'catalog':'boq');
+ private async context(user:AuthUser,purchase=false,purchaseArea:'catalog'|'warehouse'='catalog'){
+  const ctx=await this.tenant.load(user);this.tenant.allow(ctx,purchase?purchaseArea:'boq');
   if(!can(user.role,purchase?'supply':'acts'))throw new ForbiddenException('Bu əməliyyat rolunuza uyğun deyil');
   return {...ctx,orgId:this.tenant.requireOrg(ctx)};
  }
@@ -52,6 +52,7 @@ export class ActWorkflowsService{
      const piles=material?await tx.stock.findMany({where:{organizationId,materialId:material.id}}):[];
      const reservedByStock=new Map<string,Prisma.Decimal>();for(const reservation of material?await tx.stockReservation.findMany({where:{organizationId,materialId:material.id,status:'active'}}):[])reservedByStock.set(reservation.locationId,(reservedByStock.get(reservation.locationId)||new Prisma.Decimal(0)).plus(reservation.qty));
      for(const line of material?await tx.shipmentLine.findMany({where:{materialId:material.id,shipment:{organizationId,fromLocationId:{in:piles.map(row=>row.locationId)},status:{in:['waiting_sender','sent']}}},include:{shipment:{select:{fromLocationId:true}}}}):[]){const locationId=line.shipment.fromLocationId;if(locationId)reservedByStock.set(locationId,(reservedByStock.get(locationId)||new Prisma.Decimal(0)).plus(line.qty));}
+     for(const handover of material?await tx.materialHandover.findMany({where:{organizationId,materialId:material.id,locationId:{in:piles.map(row=>row.locationId)},status:{in:['waiting_custodian','accepted']}}}):[])reservedByStock.set(handover.locationId,(reservedByStock.get(handover.locationId)||new Prisma.Decimal(0)).plus(handover.status==='accepted'?handover.remainingQty:handover.qty));
      const free=(stock:typeof piles[number])=>stock.qty.minus(reservedByStock.get(stock.locationId)||new Prisma.Decimal(0));
      const pile=piles.find(stock=>stock.locationId===site?.id&&free(stock).greaterThanOrEqualTo(fuel))||piles.find(stock=>stock.locationId==='LOC-MERKEZ'&&free(stock).greaterThanOrEqualTo(fuel));
      if(!material||!pile||material.qty.lessThan(fuel))throw new BadRequestException('Dizel qalığı moto-saatı örtmür');
@@ -100,7 +101,7 @@ export class ActWorkflowsService{
   });
  }
  async receivePurchase(user:AuthUser,id:string,body:Record<string,unknown>){
-  const ctx=await this.context(user,true),key=this.key(body.key),locationId=String(body.locationId||''),
+  const ctx=await this.context(user,true,'warehouse'),key=this.key(body.key),locationId=String(body.locationId||''),
    receivedAt=String(body.receivedAt||new Date().toISOString()),linesInput=Array.isArray(body.lines)?body.lines as Record<string,unknown>[]:[];
   if(!linesInput.length)throw new BadRequestException('Qəbul edilən sətir miqdarlarını daxil edin');
   if(!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?Z$/.test(receivedAt)||Number.isNaN(Date.parse(receivedAt)))throw new BadRequestException('Qəbul tarixi düzgün deyil');
@@ -132,6 +133,7 @@ export class ActWorkflowsService{
     if(disputed.greaterThan(0)&&!input.disputeReason)throw new BadRequestException(`${row.materialName}: mübahisəli miqdar üçün səbəb yazın`);
     hasActivity=true;
     let replacement= new Prisma.Decimal(0);
+    let receiptLotId:string|null=null;
     if(accepted.greaterThan(0)){
     const disputes=await tx.purchaseReceiptLine.findMany({where:{purchaseLineId:row.id,disputeStatus:'acıq',disputedQty:{gt:0},receipt:{organizationId:ctx.orgId,actId:id,reversedAt:null}},orderBy:{receipt:{createdAt:'asc'}}});
     let replacementLeft=accepted;
@@ -144,11 +146,11 @@ export class ActWorkflowsService{
     await tx.material.update({where:{id:material.id},data:{qty:{increment:accepted}}});
     await tx.purchaseActLine.update({where:{id:row.id},data:{materialId:material.id}});
     await tx.movement.create({data:{organizationId:ctx.orgId,materialId:material.id,material:material.name,locationId,type:'medaxil',qty:accepted,unit:row.unit,project:act.project,date:receivedAt.slice(0,10),by:user.name,from:`${act.number}:${receipt.id}`}});
-    const lot=await tx.stockLot.create({data:{organizationId:ctx.orgId,materialId:material.id,locationId,code:material.id,batch:`${act.number}:${receipt.id}`,qty:accepted,unitCost:row.amount.div(row.qty),qr:`PA:${row.id}:${key}`}});lots.push({id:lot.id,materialId:material.id,locationId,qty:accepted.toString(),unit:row.unit});
+    const lot=await tx.stockLot.create({data:{organizationId:ctx.orgId,materialId:material.id,locationId,code:material.id,batch:`${act.number}:${receipt.id}`,qty:accepted,unitCost:row.amount.div(row.qty),qr:`PA:${row.id}:${key}`}});receiptLotId=lot.id;lots.push({id:lot.id,materialId:material.id,locationId,qty:accepted.toString(),unit:row.unit});
     if(billable.greaterThan(0)){const alreadyPayable=row.payableQty||new Prisma.Decimal(0),previousDue=row.amount.mul(alreadyPayable).div(row.qty).toDecimalPlaces(2),cumulativeDue=row.amount.mul(alreadyPayable.plus(billable)).div(row.qty).toDecimalPlaces(2),lineAmount=cumulativeDue.minus(previousDue);const supplier=row.firmName||'Təchizatçı göstərilməyib';amounts.set(supplier,(amounts.get(supplier)||new Prisma.Decimal(0)).plus(lineAmount));net=net.plus(lineAmount);}
     if(accepted.greaterThan(0))await tx.purchaseActLine.update({where:{id:row.id},data:{receivedQty:{increment:accepted},payableQty:{increment:accepted.minus(replacement)}}});
     }
-    const receiptLine=await tx.purchaseReceiptLine.create({data:{receiptId:receipt.id,purchaseLineId:row.id,acceptedQty:accepted,replacementQty:replacement,disputedQty:disputed,disputeStatus:disputed.greaterThan(0)?'acıq':'yoxdur',note:input.note,disputeReason:input.disputeReason}});receiptLines.push({id:receiptLine.id,purchaseActLineId:row.id,acceptedQty:accepted.toString(),replacementQty:replacement.toString(),disputedQty:disputed.toString(),disputeStatus:disputed.greaterThan(0)?'acıq':'yoxdur',disputeReason:input.disputeReason});
+    const receiptLine=await tx.purchaseReceiptLine.create({data:{receiptId:receipt.id,purchaseLineId:row.id,acceptedQty:accepted,replacementQty:replacement,disputedQty:disputed,disputeStatus:disputed.greaterThan(0)?'acıq':'yoxdur',note:input.note,disputeReason:input.disputeReason}});if(receiptLotId)await tx.stockLot.update({where:{id:receiptLotId},data:{purchaseReceiptLineId:receiptLine.id}});receiptLines.push({id:receiptLine.id,purchaseActLineId:row.id,acceptedQty:accepted.toString(),replacementQty:replacement.toString(),disputedQty:disputed.toString(),disputeStatus:disputed.greaterThan(0)?'acıq':'yoxdur',disputeReason:input.disputeReason});
    }
    if(!hasActivity)throw new BadRequestException('Ən azı bir sətirdə qəbul və ya mübahisəli miqdar daxil edin');
    for(const [supplier,amount]of amounts){const payable=await tx.payable.create({data:{organizationId:ctx.orgId,supplier,poId:act.id,amount,status:'acik',date:receivedAt.slice(0,10)}});payables.push(payable.id);}
@@ -208,10 +210,11 @@ export class ActWorkflowsService{
  }
  async purchaseSupplierReconciliation(user:AuthUser){
   const seat=(await this.tenant.load(user)).seat,ctx=await this.resolutionContext(user,seat==='muhasib'?'finance':'warehouse');
-  const [acts,payables,resolutions]=await Promise.all([
+  const [acts,payables,resolutions,closures]=await Promise.all([
    this.prisma.purchaseAct.findMany({where:{organizationId:ctx.orgId},include:{lines:true,receipts:{where:{reversedAt:null},include:{lines:true}}},orderBy:{date:'desc'}}),
    this.prisma.payable.findMany({where:{organizationId:ctx.orgId}}),
    this.prisma.purchaseDisputeResolution.findMany({where:{organizationId:ctx.orgId,kind:'credit'},select:{id:true,actId:true,purchaseLineId:true,qty:true,status:true,payableId:true}}),
+   this.prisma.purchaseSupplierClosure.findMany({where:{organizationId:ctx.orgId}}),
   ]);
   const creditPayableById=new Map(resolutions.filter(row=>row.payableId).map(row=>[row.payableId!,row]));
   const result:Record<string,unknown>[]=[];
@@ -219,17 +222,89 @@ export class ActWorkflowsService{
    const suppliers=[...new Set(act.lines.map(line=>(line.firmName||'Təchizatçı göstərilməyib').trim()))];
    for(const supplier of suppliers){
     const lines=act.lines.filter(line=>(line.firmName||'Təchizatçı göstərilməyib').trim()===supplier),lineIds=new Set(lines.map(line=>line.id));
-    const openDisputed=act.receipts.flatMap(receipt=>receipt.lines).filter(line=>lineIds.has(line.purchaseLineId)&&line.disputeStatus==='acıq').reduce((sum,line)=>sum.plus(line.disputedQty.minus(line.resolvedQty)),new Prisma.Decimal(0));
+    const receiptRows=act.receipts.flatMap(receipt=>receipt.lines).filter(line=>lineIds.has(line.purchaseLineId));
+    const openDisputed=receiptRows.filter(line=>line.disputeStatus==='acıq').reduce((sum,line)=>sum.plus(line.disputedQty.minus(line.resolvedQty)),new Prisma.Decimal(0));
+    const receiptMismatch=act.status==='tesdiq'&&act.receipts.length===0||lines.some(line=>{const rows=receiptRows.filter(row=>row.purchaseLineId===line.id),accepted=rows.reduce((sum,row)=>sum.plus(row.acceptedQty),new Prisma.Decimal(0)),billable=rows.reduce((sum,row)=>sum.plus(row.acceptedQty.minus(row.replacementQty)),new Prisma.Decimal(0));return !accepted.equals(line.receivedQty)||!billable.equals(line.payableQty);});
     const pendingCreditQty=resolutions.filter(row=>row.actId===act.id&&lineIds.has(row.purchaseLineId)&&row.status==='pending').reduce((sum,row)=>sum.plus(row.qty),new Prisma.Decimal(0));
     const relevantPayables=payables.filter(row=>(row.poId===act.id&&row.supplier.trim()===supplier)||creditPayableById.get(row.id)?.actId===act.id&&lines.some(line=>line.id===creditPayableById.get(row.id)?.purchaseLineId));
     const openPayable=relevantPayables.filter(row=>row.status==='acik').reduce((sum,row)=>sum.plus(row.amount),new Prisma.Decimal(0));
     const orderedQty=lines.reduce((sum,line)=>sum.plus(line.qty),new Prisma.Decimal(0)),receivedQty=lines.reduce((sum,line)=>sum.plus(line.receivedQty),new Prisma.Decimal(0)),closedQty=lines.reduce((sum,line)=>sum.plus(line.closedQty),new Prisma.Decimal(0)),payableQty=lines.reduce((sum,line)=>sum.plus(line.payableQty),new Prisma.Decimal(0));
     const remainingQty=Prisma.Decimal.max(0,orderedQty.minus(receivedQty).minus(closedQty));
-    const status=openDisputed.greaterThan(0)?'mübahisə açıq':remainingQty.greaterThan(0)?'miqdar açıq':openPayable.isNegative()?'kredit açıq':openPayable.greaterThan(0)?'borc açıq':'uzlaşıb';
-    result.push({actId:act.id,actNumber:act.number,date:act.date,status,supplier,orderedQty:orderedQty.toNumber(),receivedQty:receivedQty.toNumber(),payableQty:payableQty.toNumber(),closedQty:closedQty.toNumber(),remainingQty:remainingQty.toNumber(),openDisputedQty:openDisputed.toNumber(),pendingCreditQty:pendingCreditQty.toNumber(),...(['director','procurement','accountant'].includes(user.role)?{netOpenPayable:openPayable.toNumber(),payableCount:relevantPayables.length}:{})});
+    const status=receiptMismatch?'manual uzlaşdırma tələb olunur':openDisputed.greaterThan(0)?'mübahisə açıq':remainingQty.greaterThan(0)?'miqdar açıq':openPayable.isNegative()?'kredit açıq':openPayable.greaterThan(0)?'borc açıq':'uzlaşıb';
+    const closure=closures.find(row=>row.actId===act.id&&row.supplier===supplier);
+    result.push({actId:act.id,actNumber:act.number,date:act.date,status,manualReconciliationRequired:receiptMismatch,supplier,orderedQty:orderedQty.toNumber(),receivedQty:receivedQty.toNumber(),payableQty:payableQty.toNumber(),closedQty:closedQty.toNumber(),remainingQty:remainingQty.toNumber(),openDisputedQty:openDisputed.toNumber(),pendingCreditQty:pendingCreditQty.toNumber(),supplierQuantityClosed:Boolean(closure),supplierClosedAt:closure?.closedAt.toISOString()||null,supplierClosedBy:closure?.closedBy||null,supplierClosureEvidenceRef:closure?.evidenceRef||null,...(['director','procurement','accountant'].includes(user.role)?{netOpenPayable:openPayable.toNumber(),payableCount:relevantPayables.length}:{})});
    }
   }
   return {generatedAt:new Date().toISOString(),rows:result};
+ }
+ async closePurchaseSupplier(user:AuthUser,actId:string,body:Record<string,unknown>){
+  const ctx=await this.resolutionContext(user,'warehouse');if(ctx.seat!=='direktor')throw new ForbiddenException('Supplier üzrə miqdar uzlaşmasını yalnız direktor bağlayır');
+  const supplier=String(body.supplier||'').trim(),evidenceRef=String(body.evidenceRef||'').trim(),note=String(body.note||'').trim(),key=this.key(body.key);
+  if(!supplier||supplier.length>200||!evidenceRef||evidenceRef.length>200||note.length>500)throw new BadRequestException('Supplier adı və uzlaşma sənədinin istinadı tələb olunur');
+  const requestHash=createHash('sha256').update(JSON.stringify({actId,supplier,evidenceRef,note})).digest('hex');
+  return serializable(this.prisma,async tx=>{
+   await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${ctx.orgId}))`;
+   const replay=await tx.operationReceipt.findUnique({where:{organizationId_key:{organizationId:ctx.orgId,key}}});if(replay){if(replay.requestHash!==requestHash||replay.accountId!==ctx.accountId)throw new ConflictException('Əməliyyat açarı təkrarlanır');return {actId,replayed:true};}
+   const act=await tx.purchaseAct.findFirst({where:{id:actId,organizationId:ctx.orgId},include:{lines:true,receipts:{where:{reversedAt:null},include:{lines:true}}}});if(!act)throw new NotFoundException('Alış aktı tapılmadı');
+   const lines=act.lines.filter(line=>(line.firmName||'Təchizatçı göstərilməyib').trim()===supplier);if(!lines.length)throw new NotFoundException('Bu aktda supplier tapılmadı');
+   const lineIds=new Set(lines.map(line=>line.id)),remaining=lines.reduce((sum,line)=>sum.plus(Prisma.Decimal.max(0,line.qty.minus(line.receivedQty).minus(line.closedQty))),new Prisma.Decimal(0)),overrun=lines.some(line=>line.receivedQty.plus(line.closedQty).greaterThan(line.qty));
+   const receiptLines=act.receipts.flatMap(receipt=>receipt.lines).filter(line=>lineIds.has(line.purchaseLineId));
+   const receiptMismatch=lines.some(line=>{const rows=receiptLines.filter(row=>row.purchaseLineId===line.id),accepted=rows.reduce((sum,row)=>sum.plus(row.acceptedQty),new Prisma.Decimal(0)),billable=rows.reduce((sum,row)=>sum.plus(row.acceptedQty.minus(row.replacementQty)),new Prisma.Decimal(0));return !accepted.equals(line.receivedQty)||!billable.equals(line.payableQty);});
+   const disputes=receiptLines.filter(line=>line.disputeStatus==='acıq').reduce((sum,line)=>sum.plus(line.disputedQty.minus(line.resolvedQty)),new Prisma.Decimal(0));
+   const pending=await tx.purchaseDisputeResolution.findMany({where:{organizationId:ctx.orgId,actId,purchaseLineId:{in:[...lineIds]},kind:'credit',status:'pending'}});
+   if(remaining.greaterThan(0)||overrun||receiptMismatch||disputes.greaterThan(0)||pending.length)throw new ConflictException('Supplier uzlaşması üçün sifariş qalığı, qəbul tarixçəsi, açıq mübahisə və pending kreditlər uzlaşmalıdır');
+   if(await tx.purchaseSupplierClosure.findUnique({where:{organizationId_actId_supplier:{organizationId:ctx.orgId,actId,supplier}}}))throw new ConflictException('Bu supplier üzrə miqdar uzlaşması artıq bağlanıb');
+   const closure=await tx.purchaseSupplierClosure.create({data:{organizationId:ctx.orgId,actId,supplier,evidenceRef,note,closedBy:user.name,closedById:ctx.accountId}});
+   await tx.auditEntry.create({data:{organizationId:ctx.orgId,at:new Date().toISOString(),actor:user.name,role:user.role,action:'Supplier üzrə alış miqdar uzlaşması bağlandı',detail:JSON.stringify({actId,supplier,evidenceRef,note,closureId:closure.id,openPayableNotSettled:true})}});
+   await tx.operationReceipt.create({data:{organizationId:ctx.orgId,accountId:ctx.accountId,key,requestHash,command:'close-purchase-supplier-quantity',changedBooks:{actId,supplier,closureId:closure.id} as Prisma.InputJsonValue}});
+   return {actId,supplier,closureId:closure.id,quantityClosed:true,payableSettled:false,replayed:false};
+  });
+ }
+ async supplierPaymentOptions(user:AuthUser){
+  const ctx=await this.resolutionContext(user,'finance');if(!['direktor','muhasib'].includes(ctx.seat||''))throw new ForbiddenException('Ödəniş reyestri maliyyə səlahiyyəti tələb edir');
+  const [payables,acts]=await Promise.all([this.prisma.payable.findMany({where:{organizationId:ctx.orgId,status:'acik',amount:{gt:0}},orderBy:[{date:'asc'},{createdAt:'asc'}]}),this.prisma.purchaseAct.findMany({where:{organizationId:ctx.orgId},select:{id:true,number:true,project:true,date:true}})]);
+  const actMap=new Map(acts.map(act=>[act.id,act]));
+  return {generatedAt:new Date().toISOString(),payables:payables.map(row=>({id:row.id,supplier:row.supplier,poId:row.poId,actNumber:actMap.get(row.poId)?.number||row.poId,project:actMap.get(row.poId)?.project||'',date:row.date,amount:row.amount.toNumber()}))};
+ }
+ async supplierPayments(user:AuthUser){
+  const ctx=await this.resolutionContext(user,'finance');if(!['direktor','muhasib'].includes(ctx.seat||''))throw new ForbiddenException('Ödəniş reyestri maliyyə səlahiyyəti tələb edir');
+  const rows=await this.prisma.supplierPayment.findMany({where:{organizationId:ctx.orgId},include:{allocations:{include:{payable:true}}},orderBy:{createdAt:'desc'},take:500});
+  return rows.map(row=>({id:row.id,supplier:row.supplier,date:row.date,method:row.method,reference:row.reference,amount:row.amount.toNumber(),note:row.note,status:row.status,createdBy:row.createdBy,approvedBy:row.approvedBy,allocations:row.allocations.map(item=>({payableId:item.payableId,poId:item.payable.poId,amount:item.amount.toNumber()}))}));
+ }
+ async createSupplierPayment(user:AuthUser,body:Record<string,unknown>){
+  const ctx=await this.resolutionContext(user,'finance');if(!['direktor','muhasib'].includes(ctx.seat||''))throw new ForbiddenException('Ödəniş yalnız maliyyə səlahiyyəti ilə hazırlanır');
+  const supplier=String(body.supplier||'').trim(),date=String(body.date||''),method=String(body.method||''),reference=String(body.reference||'').trim(),note=String(body.note||'').trim(),key=this.key(body.key),id=String(body.id||randomUUID()),amountText=String(body.amount||'');
+  const inputs=Array.isArray(body.allocations)?body.allocations as Record<string,unknown>[]:[];
+  const parsedDate=new Date(`${date}T00:00:00.000Z`);
+  if(!/^[a-zA-Z0-9_-]{8,80}$/.test(id)||!supplier||supplier.length>200||!/^\d{4}-\d{2}-\d{2}$/.test(date)||Number.isNaN(parsedDate.getTime())||parsedDate.toISOString().slice(0,10)!==date||!/^\d{1,12}(?:\.\d{1,2})?$/.test(amountText)||!new Prisma.Decimal(amountText).greaterThan(0)||!['bank','cash','other'].includes(method)||!reference||reference.length>160||note.length>500||!inputs.length||inputs.length>100)throw new BadRequestException('Supplier, düzgün tarix, müsbət məbləğ, üsul, sənəd istinadı və bölgülər tələb olunur');
+  const allocations=inputs.map(item=>({payableId:String(item.payableId||''),amountText:String(item.amount||'')})).sort((a,b)=>a.payableId.localeCompare(b.payableId));
+  if(allocations.some(item=>!item.payableId||!/^\d{1,12}(?:\.\d{1,2})?$/.test(item.amountText)||!new Prisma.Decimal(item.amountText).greaterThan(0))||new Set(allocations.map(item=>item.payableId)).size!==allocations.length)throw new BadRequestException('Bölgü sətirləri unikal, müsbət və qəpik dəqiqliyində olmalıdır');
+  const amount=allocations.reduce((sum,item)=>sum.plus(item.amountText),new Prisma.Decimal(0)).toDecimalPlaces(2),requestedAmount=new Prisma.Decimal(amountText).toDecimalPlaces(2);if(!amount.equals(requestedAmount))throw new BadRequestException('Ödəniş məbləği bölgülərin cəminə bərabər olmalıdır');
+  const requestHash=createHash('sha256').update(JSON.stringify({supplier,date,method,reference,note,amount:requestedAmount.toString(),allocations:allocations.map(item=>[item.payableId,item.amountText])})).digest('hex');
+  return serializable(this.prisma,async tx=>{
+   await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${ctx.orgId}))`;
+   const replay=await tx.operationReceipt.findUnique({where:{organizationId_key:{organizationId:ctx.orgId,key}}});if(replay){if(replay.requestHash!==requestHash||replay.accountId!==ctx.accountId)throw new ConflictException('Əməliyyat açarı təkrarlanır');const result=replay.changedBooks as {paymentId?:string}|null;return {id:result?.paymentId||id,replayed:true};}
+   for(const item of allocations){const payable=await tx.payable.findFirst({where:{id:item.payableId,organizationId:ctx.orgId}});if(!payable||payable.status!=='acik'||payable.supplier.trim()!==supplier||!payable.amount.greaterThan(0)||new Prisma.Decimal(item.amountText).greaterThan(payable.amount))throw new ConflictException('Bölgü supplier, açıq müsbət borc və ya qalıq məbləği ilə uyğun deyil');}
+   const payment=await tx.supplierPayment.create({data:{id,organizationId:ctx.orgId,supplier,date,method,reference,amount,note,createdBy:user.name,createdById:ctx.accountId,allocations:{create:allocations.map(item=>({payableId:item.payableId,amount:new Prisma.Decimal(item.amountText)}))}}});
+   await tx.auditEntry.create({data:{organizationId:ctx.orgId,at:new Date().toISOString(),actor:user.name,role:user.role,action:'Supplier ödənişi qaralaması yaradıldı',detail:JSON.stringify({paymentId:payment.id,supplier,date,amount:amount.toString(),allocations})}});
+   await tx.operationReceipt.create({data:{organizationId:ctx.orgId,accountId:ctx.accountId,key,requestHash,command:'create-supplier-payment',changedBooks:{paymentId:payment.id,status:payment.status} as Prisma.InputJsonValue}});
+   return {id:payment.id,status:payment.status,amount:amount.toNumber(),replayed:false};
+  });
+ }
+ async approveSupplierPayment(user:AuthUser,id:string,body:Record<string,unknown>){
+  const ctx=await this.resolutionContext(user,'finance');if(!['direktor','muhasib'].includes(ctx.seat||''))throw new ForbiddenException('Ödəniş təsdiqi yalnız maliyyə səlahiyyəti ilə edilir');
+  const key=this.key(body.key),requestHash=createHash('sha256').update(`approve-supplier-payment:${id}`).digest('hex');
+  return serializable(this.prisma,async tx=>{
+   await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${ctx.orgId}))`;
+   const replay=await tx.operationReceipt.findUnique({where:{organizationId_key:{organizationId:ctx.orgId,key}}});if(replay){if(replay.requestHash!==requestHash||replay.accountId!==ctx.accountId)throw new ConflictException('Əməliyyat açarı təkrarlanır');return {id,replayed:true};}
+   const payment=await tx.supplierPayment.findFirst({where:{id,organizationId:ctx.orgId},include:{allocations:true}});if(!payment)throw new NotFoundException('Ödəniş tapılmadı');if(payment.status!=='draft')throw new ConflictException('Ödəniş qaralama deyil');
+   const allocated=payment.allocations.reduce((sum,item)=>sum.plus(item.amount),new Prisma.Decimal(0));if(!allocated.equals(payment.amount))throw new ConflictException('Ödəniş və borc bölgüsü bərabər deyil');
+   for(const allocation of payment.allocations){const payable=await tx.payable.findFirst({where:{id:allocation.payableId,organizationId:ctx.orgId}});if(!payable||payable.status!=='acik'||payable.supplier.trim()!==payment.supplier||!payable.amount.greaterThanOrEqualTo(allocation.amount))throw new ConflictException('Təsdiqədək borc dəyişib; bölgünü yeniləyin');const remain=payable.amount.minus(allocation.amount);await tx.payable.update({where:{id:payable.id},data:{amount:remain,status:remain.isZero()?'odenilib':'acik'}});}
+   const approvedAt=new Date(),updated=await tx.supplierPayment.update({where:{id},data:{status:'approved',approvedBy:user.name,approvedById:ctx.accountId,approvedAt}});
+   await tx.auditEntry.create({data:{organizationId:ctx.orgId,at:approvedAt.toISOString(),actor:user.name,role:user.role,action:'Supplier ödənişi təsdiqləndi',detail:JSON.stringify({paymentId:id,supplier:payment.supplier,amount:payment.amount.toString(),allocations:payment.allocations.map(item=>({payableId:item.payableId,amount:item.amount.toString()}))})}});
+   await tx.operationReceipt.create({data:{organizationId:ctx.orgId,accountId:ctx.accountId,key,requestHash,command:'approve-supplier-payment',changedBooks:{paymentId:id,status:updated.status,allocations:payment.allocations.map(item=>item.payableId)} as Prisma.InputJsonValue}});
+   return {id,status:updated.status,replayed:false};
+  },120000);
  }
  async requestPurchaseDisputeResolution(user:AuthUser,id:string,body:Record<string,unknown>){
   const ctx=await this.resolutionContext(user,'warehouse');
@@ -316,7 +391,7 @@ export class ActWorkflowsService{
    const payableIds=effects.flatMap(effect=>effect.payables),allLots=effects.flatMap(effect=>effect.lots);
    const payables=await tx.payable.findMany({where:{organizationId:ctx.orgId,id:{in:payableIds}}});if(payables.length!==payableIds.length||payables.some(p=>p.status!=='acik'))throw new BadRequestException('Ödənilmiş və ya dəyişdirilmiş borcu əvvəl maliyyədə uzlaşdırın');
    for(const effect of allLots){const qty=new Prisma.Decimal(effect.qty),lot=await tx.stockLot.findFirst({where:{id:effect.id,organizationId:ctx.orgId}}),stock=await tx.stock.findFirst({where:{materialId:effect.materialId,locationId:effect.locationId,organizationId:ctx.orgId}}),material=await tx.material.findFirst({where:{id:effect.materialId,organizationId:ctx.orgId}});
-    const reservations=await tx.stockReservation.findMany({where:{organizationId:ctx.orgId,materialId:effect.materialId,locationId:effect.locationId,status:'active'}}),transfers=await tx.shipmentLine.findMany({where:{materialId:effect.materialId,shipment:{organizationId:ctx.orgId,fromLocationId:effect.locationId,status:{in:['waiting_sender','sent']}}}}),reserved=reservations.reduce((sum,row)=>sum.plus(row.qty),new Prisma.Decimal(0)).plus(transfers.reduce((sum,row)=>sum.plus(row.qty),new Prisma.Decimal(0)));
+    const [reservations,transfers,handovers]=await Promise.all([tx.stockReservation.findMany({where:{organizationId:ctx.orgId,materialId:effect.materialId,locationId:effect.locationId,status:'active'}}),tx.shipmentLine.findMany({where:{materialId:effect.materialId,shipment:{organizationId:ctx.orgId,fromLocationId:effect.locationId,status:{in:['waiting_sender','sent']}}}}),tx.materialHandover.findMany({where:{organizationId:ctx.orgId,materialId:effect.materialId,locationId:effect.locationId,status:{in:['waiting_custodian','accepted']}}})]),reserved=reservations.reduce((sum,row)=>sum.plus(row.qty),new Prisma.Decimal(0)).plus(transfers.reduce((sum,row)=>sum.plus(row.qty),new Prisma.Decimal(0))).plus(handovers.reduce((sum,row)=>sum.plus(row.status==='accepted'?row.remainingQty:row.qty),new Prisma.Decimal(0)));
     if(!lot||lot.qty.lessThan(qty)||!stock||stock.qty.minus(qty).lessThan(reserved)||!material||material.qty.lessThan(qty))throw new BadRequestException('Material artıq istifadə, rezerv və ya transferə ayrılıb; tam qaytarma üçün sərbəst qalıq çatmır');
     await tx.stockLot.update({where:{id:lot.id},data:{qty:{decrement:qty}}});await tx.stock.update({where:{id:stock.id},data:{qty:{decrement:qty}}});await tx.material.update({where:{id:material.id},data:{qty:{decrement:qty}}});
     await tx.movement.create({data:{organizationId:ctx.orgId,materialId:material.id,material:material.name,locationId:effect.locationId,type:'mexaric',qty,unit:effect.unit,project:act.project,date:new Date().toISOString().slice(0,10),by:user.name,from:`REVERSAL:${act.id}`}});

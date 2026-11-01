@@ -1,0 +1,12 @@
+{
+  "passed": true,
+  "checks": [
+    "separate tare case requires assigned custodian signature and computes overdue from explicitly entered due date",
+    "return balance closes only with warehouse and supplier representative/document confirmation",
+    "loss report needs documented evidence and manager approval; balance is resolved without stock or automatic payable"
+  ],
+  "checkedAt": "2026-11-01T20:14:55.806Z",
+  "migrations": [
+    "202611010010_returnable_packaging"
+  ]
+}

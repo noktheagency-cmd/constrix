@@ -129,6 +129,8 @@ export class RecordsService {
   }
 
   async create(spec: ResourceSpec, body: unknown,user:AuthUser) {
+    if(spec.route==='locations') throw new ForbiddenException('Anbarı struktur panelindən idarə edin; tarixçəli anbar silinmir');
+    if(spec.route==='locations' && isRow(body) && ('parentId' in body || 'responsibleAccountId' in body || 'parent' in body || 'children' in body || 'responsible' in body)) throw new ForbiddenException('İyerarxiya və məsul təyinatını anbar idarəetməsindən dəyişin');
     if(spec.route==='shipments')throw new ForbiddenException('Transfer sənədi yalnız imzalı transfer workflow ilə yaradılır');
     const organizationId=await this.scope.allow(user,spec.route);
     const data=await this.safeData(spec,this.bodyOf(body),organizationId,false);
@@ -157,6 +159,8 @@ export class RecordsService {
   }
 
   async update(spec: ResourceSpec, id: string, body: unknown,user:AuthUser) {
+    if(spec.route==='locations') throw new ForbiddenException('Anbarı struktur panelindən idarə edin; tarixçəli anbar silinmir');
+    if(spec.route==='locations' && isRow(body) && ('parentId' in body || 'responsibleAccountId' in body || 'parent' in body || 'children' in body || 'responsible' in body)) throw new ForbiddenException('İyerarxiya və məsul təyinatını anbar idarəetməsindən dəyişin');
     if(spec.route==='shipments')throw new ForbiddenException('Transfer sənədi yalnız transfer workflow ilə dəyişir');
     const before=await this.findOne(spec, id,user);
     if(spec.route==='audit')throw new ForbiddenException('Audit qeydi dəyişdirilə bilməz');
@@ -207,8 +211,10 @@ export class RecordsService {
           if(!new Prisma.Decimal(String((before as Row).qty)).equals(fresh.qty))throw new ConflictException('Stok başqa əməliyyatla dəyişib. Məlumatı yenidən yükləyin.');
           const reservations=await tx.stockReservation.findMany({where:{organizationId,materialId:fresh.materialId,locationId:fresh.locationId,status:'active'}});
           const transferHolds=await tx.shipmentLine.findMany({where:{materialId:fresh.materialId,shipment:{organizationId,fromLocationId:fresh.locationId,status:{in:['waiting_sender','sent']}}}});
-          const reserved=reservations.reduce((sum,item)=>sum.plus(item.qty),new Prisma.Decimal(0)).plus(transferHolds.reduce((sum,item)=>sum.plus(item.qty),new Prisma.Decimal(0)));
-          if((reservations.length||transferHolds.length)&&((data.materialId!==undefined&&data.materialId!==fresh.materialId)||(data.locationId!==undefined&&data.locationId!==fresh.locationId)))throw new ConflictException('Aktiv rezerv və ya transfer gözləyən stokun materialı/anbarı dəyişdirilə bilməz');
+          const custodyHolds=await tx.materialHandover.findMany({where:{organizationId,materialId:fresh.materialId,locationId:fresh.locationId,status:{in:['waiting_custodian','accepted']}}});
+          const custodyQty=custodyHolds.reduce((sum,item)=>sum.plus(item.status==='accepted'?item.remainingQty:item.qty),new Prisma.Decimal(0));
+          const reserved=reservations.reduce((sum,item)=>sum.plus(item.qty),new Prisma.Decimal(0)).plus(transferHolds.reduce((sum,item)=>sum.plus(item.qty),new Prisma.Decimal(0))).plus(custodyQty);
+          if((reservations.length||transferHolds.length||custodyQty.greaterThan(0))&&((data.materialId!==undefined&&data.materialId!==fresh.materialId)||(data.locationId!==undefined&&data.locationId!==fresh.locationId)))throw new ConflictException('Aktiv rezerv, transfer və ya məsul şəxsdə olan materialın materialı/anbarı dəyişdirilə bilməz');
           const nextQty=data.qty===undefined?fresh.qty:new Prisma.Decimal(String(data.qty));
           if(nextQty.lessThan(reserved))throw new ConflictException(`Bu anbarda ${reserved.toString()} vahid aktiv rezerv var; stok bundan aşağı salına bilməz`);
         }
@@ -235,6 +241,7 @@ export class RecordsService {
   }
 
   async remove(spec: ResourceSpec, id: string,user:AuthUser) {
+    if(spec.route==='locations') throw new ForbiddenException('Anbarı struktur panelindən idarə edin; tarixçəli anbar silinmir');
     if(spec.route==='shipments')throw new ForbiddenException('Transfer sənədi silinmir; gözləyən sənədi ləğv edin');
     const before=await this.findOne(spec, id,user);
     const organizationId=await this.scope.allow(user,spec.route);
@@ -245,7 +252,7 @@ export class RecordsService {
       if(spec.route==='stocks'){
         await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${organizationId}))`;
         const stock=await tx.stock.findFirst({where:{id,organizationId}});
-        if(stock){const reservations=await tx.stockReservation.findMany({where:{organizationId,materialId:stock.materialId,locationId:stock.locationId,status:'active'}});const transfers=await tx.shipmentLine.findMany({where:{materialId:stock.materialId,shipment:{organizationId,fromLocationId:stock.locationId,status:{in:['waiting_sender','sent']}}}});if(reservations.length||transfers.length)throw new ConflictException('Stok aktiv tələb rezervində və ya transferdədir; əvvəl sənədi tamamlayın və ya ləğv edin');}
+        if(stock){const [reservations,transfers,handovers]=await Promise.all([tx.stockReservation.findMany({where:{organizationId,materialId:stock.materialId,locationId:stock.locationId,status:'active'}}),tx.shipmentLine.findMany({where:{materialId:stock.materialId,shipment:{organizationId,fromLocationId:stock.locationId,status:{in:['waiting_sender','sent']}}}}),tx.materialHandover.findMany({where:{organizationId,materialId:stock.materialId,locationId:stock.locationId,status:{in:['waiting_custodian','accepted']}}})]);const custodyQty=handovers.reduce((sum,row)=>sum.plus(row.status==='accepted'?row.remainingQty:row.qty),new Prisma.Decimal(0));if(reservations.length||transfers.length||custodyQty.greaterThan(0))throw new ConflictException('Stok aktiv tələb rezervində, transferdə və ya material məsulunda qorunur; əvvəl sənədi tamamlayın və ya ləğv edin');}
       }
       if(spec.route==='requests'){
         await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${organizationId}))`;

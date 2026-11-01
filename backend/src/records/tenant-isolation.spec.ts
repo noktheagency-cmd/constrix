@@ -16,7 +16,7 @@ describe('legacy ERP tenant boundary',()=>{
   const db={material:model,$transaction:jest.fn(),auditEntry:{create:jest.fn()}};
   const tenant={load:jest.fn().mockResolvedValue({orgId:'org-a',seat:'direktor'}),allow:jest.fn(),requireOrg:jest.fn().mockReturnValue('org-a')};
   const scope=new TenantDataService(db as unknown as PrismaService,tenant as unknown as TenantService);
-  return {service:new RecordsService(db as unknown as PrismaService,scope),scope,db,model};
+  return {service:new RecordsService(db as unknown as PrismaService,scope),scope,db,model,tenant};
  };
  it('all generic root resources have a tenant field',()=>{
   for(const resource of resources){const model=Prisma.dmmf.datamodel.models.find(m=>m.name[0].toLowerCase()+m.name.slice(1)===resource.delegate);expect(model?.fields.some(f=>f.name==='organizationId')).toBe(true);}
@@ -59,5 +59,18 @@ describe('legacy ERP tenant boundary',()=>{
   const {service}=setup();const warehouse={...actor,role:'warehouse'} as AuthUser;
   expect(await service.findOne(spec,'a',warehouse)).toEqual({id:'a',name:'Own'});
   await expect(service.update(spec,'a',{price:1},warehouse)).rejects.toThrow(ForbiddenException);
+ });
+ it('warehouse can read purchase receipts without commercial fields but cannot edit the purchase act',async()=>{
+  const {service,db,tenant}=setup();
+  tenant.load.mockResolvedValue({orgId:'org-a',seat:'anbardar'});
+  const warehouse={...actor,role:'warehouse'} as AuthUser;
+  const purchaseAct={findMany:jest.fn().mockResolvedValue([{id:'pa-1',organizationId:'org-a',number:'UAT-1',net:100,lines:[{id:'line-1',materialName:'Cement',unitPrice:10,amount:100,cashPaid:20,firmName:'Supplier'}]}])};
+  Object.assign(db,{purchaseAct});
+  const purchaseSpec={route:'purchase-acts',delegate:'purchaseAct',children:[{field:'lines',foreignKey:'actId'}]};
+  const rows=await service.findAll(purchaseSpec,warehouse);
+  expect(tenant.allow).toHaveBeenCalledWith(expect.objectContaining({seat:'anbardar'}),'warehouse');
+  expect(rows).toEqual([{id:'pa-1',number:'UAT-1',lines:[{id:'line-1',materialName:'Cement'}]}]);
+  await expect(service.create(purchaseSpec,{number:'UAT-2',objectName:'UAT',date:'2026-11-02',status:'qaralama',net:1},warehouse)).rejects.toThrow(ForbiddenException);
+  expect(db.$transaction).not.toHaveBeenCalled();
  });
 });

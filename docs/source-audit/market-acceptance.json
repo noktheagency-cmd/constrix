@@ -1,6 +1,6 @@
 {
   "passed": true,
-  "isolatedSchema": "market_qa_48f4816db9ce425bba14a663a7791d1c",
+  "isolatedSchema": "market_qa_5940267c70644f26823fc1173221f5cc",
   "checks": [
     "approved public catalogue; no subscription required",
     "uninvited company cannot read private RFQ",
@@ -30,6 +30,10 @@
     "concurrent purchase reversal posts one stock-out and preserves matching debt contra-entry",
     "a new purchase act creates a new source lot after prior receipt reversal",
     "insufficient source lot blocks reversal and rolls back all effects",
+    "paid purchase payable blocks full reversal without changing stock",
+    "confirmed legacy purchase without receipt links is blocked from rereceipt and listed for manual reconciliation",
+    "foreign tenant act and foreign warehouse IDs cannot create purchase receipts",
+    "documented supplier credit is pending without payable, finance approval creates one negative payable, and resolved dispute cannot be credited twice",
     "daily report approval does not change measured work or project progress",
     "confirmed daily report cannot bypass workflow through generic API",
     "concurrent measurement records quantity and project progress once",
@@ -37,5 +41,5 @@
     "field role cannot approve or measure daily work",
     "daily photos persist by protected ID and reject quarantined or foreign files"
   ],
-  "checkedAt": "2026-10-31T20:08:23.216Z"
+  "checkedAt": "2026-11-01T19:51:00.564Z"
 }

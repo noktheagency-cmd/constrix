@@ -115,7 +115,7 @@ export class ProjectsService {
     });
     const memberships = await this.prisma.organizationMember.findMany({ where: { organizationId, accountId: { in: rows.map((row) => row.accountId) } }, select: { accountId: true, seatRole: true } });
     const seats = new Map(memberships.map((row) => [row.accountId, row.seatRole]));
-    return rows.map((row) => ({ accountId: row.accountId, name: row.account.name, email: row.account.email, seatRole: seats.get(row.accountId) || '', canSendTransfers: row.canSendTransfers, canReceiveTransfers: row.canReceiveTransfers, active: row.active, assignedBy: row.assignedBy, updatedAt: row.updatedAt }));
+    return rows.map((row) => ({ accountId: row.accountId, name: row.account.name, email: row.account.email, seatRole: seats.get(row.accountId) || '', canSendTransfers: row.canSendTransfers, canReceiveTransfers: row.canReceiveTransfers, canHoldMaterials: row.canHoldMaterials, canReviewMaterialUsage: row.canReviewMaterialUsage, canHoldReturnablePackaging: row.canHoldReturnablePackaging, active: row.active, assignedBy: row.assignedBy, updatedAt: row.updatedAt }));
   }
 
   async assign(projectId: string, body: Record<string, unknown>, user: AuthUser) {
@@ -126,19 +126,22 @@ export class ProjectsService {
     const accountId = String(body.accountId || '');
     const canSendTransfers = body.canSendTransfers;
     const canReceiveTransfers = body.canReceiveTransfers;
-    if (!accountId || typeof canSendTransfers !== 'boolean' || typeof canReceiveTransfers !== 'boolean' || (!canSendTransfers && !canReceiveTransfers)) throw new BadRequestException('Layihə üzvü və ən azı bir transfer səlahiyyəti seçilməlidir');
+    const canHoldMaterials = body.canHoldMaterials === undefined ? false : body.canHoldMaterials;
+    const canReviewMaterialUsage = body.canReviewMaterialUsage === undefined ? false : body.canReviewMaterialUsage;
+    const canHoldReturnablePackaging = body.canHoldReturnablePackaging === undefined ? false : body.canHoldReturnablePackaging;
+    if (!accountId || typeof canSendTransfers !== 'boolean' || typeof canReceiveTransfers !== 'boolean' || typeof canHoldMaterials !== 'boolean' || typeof canReviewMaterialUsage !== 'boolean' || typeof canHoldReturnablePackaging !== 'boolean' || (!canSendTransfers && !canReceiveTransfers && !canHoldMaterials && !canReviewMaterialUsage && !canHoldReturnablePackaging)) throw new BadRequestException('Layihə üzvü və ən azı bir transfer/təhvil/tara səlahiyyəti seçilməlidir');
     const member = await this.prisma.organizationMember.findFirst({ where: { organizationId, accountId }, select: { id: true, seatRole: true } });
     if (!member) throw new NotFoundException('İstifadəçi bu şirkətin aktiv üzvü deyil');
     if (!['sahe', 'layihe'].includes(member.seatRole)) throw new BadRequestException('Layihə transfer səlahiyyəti yalnız sahə və layihə üzvlərinə verilə bilər');
     const row = await this.prisma.projectAssignment.upsert({
       where: { organizationId_accountId_projectId: { organizationId, accountId, projectId } },
-      update: { canSendTransfers, canReceiveTransfers, active: true, assignedBy: ctx.accountId },
-      create: { organizationId, accountId, projectId, canSendTransfers, canReceiveTransfers, assignedBy: ctx.accountId },
+      update: { canSendTransfers, canReceiveTransfers, canHoldMaterials, canReviewMaterialUsage, canHoldReturnablePackaging, active: true, assignedBy: ctx.accountId },
+      create: { organizationId, accountId, projectId, canSendTransfers, canReceiveTransfers, canHoldMaterials, canReviewMaterialUsage, canHoldReturnablePackaging, assignedBy: ctx.accountId },
       include: { account: { select: { name: true, email: true } } },
     });
-    await this.tenant.audit(ctx, 'Layihəyə transfer səlahiyyəti təyin edildi', JSON.stringify({ projectId, accountId, canSendTransfers, canReceiveTransfers }));
+    await this.tenant.audit(ctx, 'Layihə üzrə transfer/təhvil/tara səlahiyyəti təyin edildi', JSON.stringify({ projectId, accountId, canSendTransfers, canReceiveTransfers, canHoldMaterials, canReviewMaterialUsage, canHoldReturnablePackaging }));
     const seat = await this.prisma.organizationMember.findFirst({ where: { organizationId, accountId }, select: { seatRole: true } });
-    return { accountId: row.accountId, name: row.account.name, email: row.account.email, seatRole: seat?.seatRole || '', canSendTransfers: row.canSendTransfers, canReceiveTransfers: row.canReceiveTransfers, active: row.active, assignedBy: row.assignedBy, updatedAt: row.updatedAt };
+    return { accountId: row.accountId, name: row.account.name, email: row.account.email, seatRole: seat?.seatRole || '', canSendTransfers: row.canSendTransfers, canReceiveTransfers: row.canReceiveTransfers, canHoldMaterials: row.canHoldMaterials, canReviewMaterialUsage: row.canReviewMaterialUsage, canHoldReturnablePackaging: row.canHoldReturnablePackaging, active: row.active, assignedBy: row.assignedBy, updatedAt: row.updatedAt };
   }
 
   async unassign(projectId: string, accountId: string, user: AuthUser) {

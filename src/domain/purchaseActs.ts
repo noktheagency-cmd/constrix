@@ -55,9 +55,10 @@ function lineAmount(qty: number, unitPrice: number, amount?: number | string) {
   return money2(qty * unitPrice)
 }
 
-function buildLines(form: PurchaseActForm["lines"]): PurchaseActLine[] | string {
+function buildLines(form: PurchaseActForm["lines"], existingLines: PurchaseActLine[] = []): PurchaseActLine[] | string {
   const lines: PurchaseActLine[] = []
-  for (const [index, row] of form.entries()) {
+  const usedIds = [...existingLines]
+  for (const row of form) {
     const name = String(row.materialName || "").trim()
     if (!name) return "Materialın adı boş ola bilməz."
     const qty = roundQty(row.qty)
@@ -65,8 +66,10 @@ function buildLines(form: PurchaseActForm["lines"]): PurchaseActLine[] | string 
     if (!(qty > 0)) return `${name}: miqdar düzgün deyil.`
     if (!(unitPrice >= 0) || Number.isNaN(unitPrice)) return `${name}: qiymət düzgün deyil.`
     const cash = row.cashPaid === undefined || row.cashPaid === null || row.cashPaid === "" ? null : money2(row.cashPaid)
+    const id = nextId("PAL", usedIds)
+    usedIds.push({ id } as PurchaseActLine)
     lines.push({
-      id: `PAL-${index + 1}`,
+      id,
       materialName: name,
       unit: String(row.unit || "").trim(),
       qty,
@@ -88,7 +91,7 @@ export function createPurchaseAct(state: AppState, form: PurchaseActForm, actor:
   const date = String(form.date || "").trim()
   if (!objectName) return fail("Obyektin adı vacibdir.")
   if (!date) return fail("Tarix vacibdir.")
-  const built = buildLines(form.lines)
+  const built = buildLines(form.lines, state.purchaseActs.flatMap((item) => item.lines))
   if (typeof built === "string") return fail(built)
   const project = form.projectId ? state.projects.find((item) => item.id === form.projectId) : undefined
   const seq = state.purchaseActs.length + 1
@@ -122,7 +125,7 @@ export function updatePurchaseAct(state: AppState, id: string, form: PurchaseAct
   const date = String(form.date || "").trim()
   if (!objectName) return fail("Obyektin adı vacibdir.")
   if (!date) return fail("Tarix vacibdir.")
-  const built = buildLines(form.lines)
+  const built = buildLines(form.lines, state.purchaseActs.flatMap((item) => item.lines))
   if (typeof built === "string") return fail(built)
   const project = form.projectId ? state.projects.find((item) => item.id === form.projectId) : undefined
   const next: PurchaseAct = {

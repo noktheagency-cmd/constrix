@@ -8,13 +8,14 @@ describe('purchase supplier reconciliation', () => {
   const act = {
     id: 'act-a', number: 'PA-001', date: '2026-10-01',
     lines: [{ id: 'line-a', firmName: 'Firma A', qty: new Prisma.Decimal(10), receivedQty: new Prisma.Decimal(5), payableQty: new Prisma.Decimal(5), closedQty: new Prisma.Decimal(0) }],
-    receipts: [{ lines: [{ purchaseLineId: 'line-a', disputedQty: new Prisma.Decimal(2), resolvedQty: new Prisma.Decimal(0), disputeStatus: 'acıq' }] }],
+    receipts: [{ lines: [{ purchaseLineId: 'line-a', acceptedQty: new Prisma.Decimal(5), replacementQty: new Prisma.Decimal(0), disputedQty: new Prisma.Decimal(2), resolvedQty: new Prisma.Decimal(0), disputeStatus: 'acıq' }] }],
   };
   const setup = (seat: string, role: string) => {
     const prisma = {
       purchaseAct: { findMany: jest.fn().mockResolvedValue([act]) },
       payable: { findMany: jest.fn().mockResolvedValue([{ id: 'pay-a', organizationId: 'org-a', poId: 'act-a', supplier: 'Firma A', amount: new Prisma.Decimal(50), status: 'acik' }]) },
       purchaseDisputeResolution: { findMany: jest.fn().mockResolvedValue([{ id: 'resolution-a', actId: 'act-a', purchaseLineId: 'line-a', qty: new Prisma.Decimal(1), status: 'pending', payableId: null }]) },
+      purchaseSupplierClosure: { findMany: jest.fn().mockResolvedValue([]) },
     };
     const tenant = { load: jest.fn().mockResolvedValue({ orgId: 'org-a', accountId: 'account-a', seat }), allow: jest.fn(), requireOrg: jest.fn().mockReturnValue('org-a') };
     return { prisma, service: new ActWorkflowsService(prisma as unknown as PrismaService, tenant as unknown as TenantService), user: { name: 'Test', role } as AuthUser };
@@ -31,6 +32,21 @@ describe('purchase supplier reconciliation', () => {
     const report = await service.purchaseSupplierReconciliation(user);
     expect(report.rows[0]).not.toHaveProperty('netOpenPayable');
     expect(report.rows[0]).not.toHaveProperty('payableCount');
+  });
+
+  it('flags confirmed legacy acts without receipt links for manual reconciliation', async () => {
+    const { prisma, service, user } = setup('satinalma', 'procurement');
+    prisma.purchaseAct.findMany.mockResolvedValue([{
+      id: 'legacy-act', number: 'PA-LEGACY', date: '2026-10-01', status: 'tesdiq',
+      lines: [{ id: 'legacy-line', firmName: 'Legacy supplier', qty: new Prisma.Decimal(10), receivedQty: new Prisma.Decimal(10), payableQty: new Prisma.Decimal(10), closedQty: new Prisma.Decimal(0) }],
+      receipts: [],
+    }]);
+    prisma.payable.findMany.mockResolvedValue([]);
+    prisma.purchaseDisputeResolution.findMany.mockResolvedValue([]);
+    prisma.purchaseSupplierClosure.findMany.mockResolvedValue([]);
+
+    const report = await service.purchaseSupplierReconciliation(user);
+    expect(report.rows[0]).toMatchObject({ status: 'manual uzlaşdırma tələb olunur', manualReconciliationRequired: true, remainingQty: 0 });
   });
 
   it('creates the credit payable only after finance approves a documented dispute', async () => {

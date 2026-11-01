@@ -1,0 +1,14 @@
+{
+  "passed": true,
+  "checkedAt": "2026-11-01T21:34:31.951Z",
+  "environment": "disposable local schema",
+  "evidence": "planner created a 55-unit baseline from smeta material 10 + engineer work 20 x 2 + QRP 5 in UI; distinct director approved in UI; purchase-act UI accepted 20 and disputed 5; warehouse plan UI then showed planned 55, accepted 20, supplied 20, remaining 35, consumed 0.",
+  "syntheticOnly": true,
+  "checks": [
+    "three-source plan entry",
+    "independent approval",
+    "partial purchase acceptance with disputed quantity excluded",
+    "project plan automatic receipt reconciliation"
+  ],
+  "originalFileImportUiTested": false
+}

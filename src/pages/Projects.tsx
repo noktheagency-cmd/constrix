@@ -1,3 +1,4 @@
+import { ProjectMaterialPlanPanel } from './ProjectMaterialPlanPanel'
 import { DataTable } from '../components/DataTable'
 import { Button, Input, Metric, SearchInput, StatGrid, TableContainer, Textarea, Toolbar } from "../components/primitives"
 import { useEffect, useState, type FormEvent } from "react"
@@ -22,7 +23,7 @@ const STATUSES: { id: string; label: string }[] = [
 const KINDS = ["İcazə", "Çizgi", "Əlavə iş", "Protokol", "Akt"]
 
 const emptyPaper: DocumentForm = { projectId: "", title: "", kind: "İcazə", date: "" }
-type ProjectTransferAssignment = { accountId: string; name: string; email: string; seatRole: string; canSendTransfers: boolean; canReceiveTransfers: boolean; active: boolean; assignedBy: string; updatedAt: string }
+type ProjectTransferAssignment = { accountId: string; name: string; email: string; seatRole: string; canSendTransfers: boolean; canReceiveTransfers: boolean; canHoldMaterials: boolean; canReviewMaterialUsage: boolean; canHoldReturnablePackaging: boolean; active: boolean; assignedBy: string; updatedAt: string }
 type ProjectMemberChoice = { accountId: string; name: string; seatRole: string }
 
 function passport(project: Project): NewProjectForm {
@@ -82,6 +83,9 @@ export default function Projects() {
   const [assignmentAccountId, setAssignmentAccountId] = useState("")
   const [assignmentCanSend, setAssignmentCanSend] = useState(false)
   const [assignmentCanReceive, setAssignmentCanReceive] = useState(true)
+  const [assignmentCanHoldMaterials, setAssignmentCanHoldMaterials] = useState(false)
+  const [assignmentCanReviewMaterialUsage, setAssignmentCanReviewMaterialUsage] = useState(false)
+  const [assignmentCanHoldReturnablePackaging, setAssignmentCanHoldReturnablePackaging] = useState(false)
   const [assignmentBusy, setAssignmentBusy] = useState(false)
   const [assignmentError, setAssignmentError] = useState("")
   const canSign = actor.role === "director" || actor.role === "pm"
@@ -113,11 +117,14 @@ export default function Projects() {
     setAssignmentBusy(true)
     setAssignmentError("")
     try {
-      const saved = await api<ProjectTransferAssignment>(`/api/projects/${encodeURIComponent(open.id)}/assignments`, { method: "POST", body: JSON.stringify({ accountId: assignmentAccountId, canSendTransfers: assignmentCanSend, canReceiveTransfers: assignmentCanReceive }) })
+      const saved = await api<ProjectTransferAssignment>(`/api/projects/${encodeURIComponent(open.id)}/assignments`, { method: "POST", body: JSON.stringify({ accountId: assignmentAccountId, canSendTransfers: assignmentCanSend, canReceiveTransfers: assignmentCanReceive, canHoldMaterials: assignmentCanHoldMaterials, canReviewMaterialUsage: assignmentCanReviewMaterialUsage, canHoldReturnablePackaging: assignmentCanHoldReturnablePackaging }) })
       setAssignmentRows((rows) => [saved, ...rows.filter((row) => row.accountId !== saved.accountId)])
       setAssignmentAccountId("")
       setAssignmentCanSend(false)
       setAssignmentCanReceive(true)
+      setAssignmentCanHoldMaterials(false)
+      setAssignmentCanReviewMaterialUsage(false)
+      setAssignmentCanHoldReturnablePackaging(false)
     } catch (reason) {
       setAssignmentError(reason instanceof ApiError ? reason.message : "Layihə səlahiyyəti saxlanmadı")
     } finally { setAssignmentBusy(false) }
@@ -203,6 +210,7 @@ export default function Projects() {
             { id: "reyestr", label: "Reyestr" },
             { id: "kart", label: "Kartlar" },
             { id: "hecm", label: "Həcm" },
+            { id: "materialplan", label: "Material tələbatı" },
             { id: "sened", label: "Sənədlər" },
             { id: "jurnal", label: "Jurnal" },
           ]}
@@ -224,6 +232,7 @@ export default function Projects() {
         <span className="muted">{tab === "sened" ? papers.length : tab === "jurnal" ? notes.length : rows.length} sətir</span>
       </Toolbar>
 
+      {tab === "materialplan" && <ProjectMaterialPlanPanel />}
       {tab === "kart" && rows.length === 0 && <Empty title="Layihə tapılmadı" text="Yeni layihə açın və ya filtri dəyişin." />}
       {tab === "kart" && (
         <div className="project-grid">
@@ -484,7 +493,7 @@ export default function Projects() {
             {assignmentError && <p className="form-error" role="alert">{assignmentError}</p>}
             {assignmentRows.filter((row) => row.active).map((row) => (
               <div className="check-row" key={row.accountId}>
-                <span>{row.name}<small className="muted"> · {row.seatRole} · {[row.canSendTransfers && "Göndərən", row.canReceiveTransfers && "Qəbul edən"].filter(Boolean).join(" + ")}</small></span>
+                <span>{row.name}<small className="muted"> · {row.seatRole} · {[row.canSendTransfers && "Göndərən", row.canReceiveTransfers && "Transfer qəbul edən", row.canHoldMaterials && "Material məsulu", row.canReviewMaterialUsage && "Sərfiyyat təsdiqləyən", row.canHoldReturnablePackaging && "Tara məsulu"].filter(Boolean).join(" + ")}</small></span>
                 <Button type="button" className="small ghost" disabled={assignmentBusy} onClick={() => void deactivateAssignment(row.accountId)}>Deaktiv et</Button>
               </div>
             ))}
@@ -495,11 +504,17 @@ export default function Projects() {
                   const assigned = assignmentRows.find((row) => row.accountId === accountId && row.active)
                   setAssignmentCanSend(assigned?.canSendTransfers || false)
                   setAssignmentCanReceive(assigned ? assigned.canReceiveTransfers : true)
+                  setAssignmentCanHoldMaterials(assigned?.canHoldMaterials || false)
+                  setAssignmentCanReviewMaterialUsage(assigned?.canReviewMaterialUsage || false)
+                  setAssignmentCanHoldReturnablePackaging(assigned?.canHoldReturnablePackaging || false)
                 }} options={assignmentMembers.map((member) => ({ value: member.accountId, label: `${member.name} · ${member.seatRole}` }))} placeholder="İstifadəçi seçin" />
               </Field>
               <label className="check-row"><span>Layihə anbarından göndərə bilər</span><Input type="checkbox" checked={assignmentCanSend} onChange={(event) => setAssignmentCanSend(event.target.checked)} /></label>
               <label className="check-row"><span>Layihə anbarına qəbul edə bilər</span><Input type="checkbox" checked={assignmentCanReceive} onChange={(event) => setAssignmentCanReceive(event.target.checked)} /></label>
-              <Button type="submit" disabled={assignmentBusy || !assignmentAccountId || (!assignmentCanSend && !assignmentCanReceive)}>Təyinatı saxla</Button>
+              <label className="check-row"><span>Layihədə materialı məsul şəxs kimi qəbul edə bilər</span><Input type="checkbox" checked={assignmentCanHoldMaterials} onChange={(event) => setAssignmentCanHoldMaterials(event.target.checked)} /></label>
+              <label className="check-row"><span>Layihə üzrə material sərfiyyatını təsdiqləyə bilər</span><Input type="checkbox" checked={assignmentCanReviewMaterialUsage} onChange={(event) => setAssignmentCanReviewMaterialUsage(event.target.checked)} /></label>
+              <label className="check-row"><span>Layihə üzrə qaytarılan tara üçün məsuldur</span><Input type="checkbox" checked={assignmentCanHoldReturnablePackaging} onChange={(event) => setAssignmentCanHoldReturnablePackaging(event.target.checked)} /></label>
+              <Button type="submit" disabled={assignmentBusy || !assignmentAccountId || (!assignmentCanSend && !assignmentCanReceive && !assignmentCanHoldMaterials && !assignmentCanReviewMaterialUsage && !assignmentCanHoldReturnablePackaging)}>Təyinatı saxla</Button>
             </form>
           </section>}
         </Drawer>

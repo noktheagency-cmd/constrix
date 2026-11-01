@@ -1,0 +1,12 @@
+{
+  "passed": true,
+  "checks": [
+    "legacy lots without exact receipt linkage are blocked; exact lots only, draft reservation, and independent manager approval are enforced",
+    "warehouse dispatch reduces stock, lot, and material exactly once; separate receiver and supplier signed document are required",
+    "only finance approval after supplier signature creates a negative open payable tied to the source purchase act"
+  ],
+  "checkedAt": "2026-11-01T20:15:24.888Z",
+  "migrations": [
+    "202611010011_supplier_goods_return"
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "passed": true,
+  "checks": [
+    "hierarchy supports nested locations, tenant members and rejects cycles, foreign parents/owners and warehouse administration",
+    "submission leaves stock unchanged; independent approval reduces stock/material/lots atomically; replay does not double post",
+    "approved count gain creates a traceable adjustment lot and movement without payable",
+    "stale snapshots, self approval and invalid counts are rejected; rejection never changes stock",
+    "active stock reservations prevent count adjustments without partial writes",
+    "cross-tenant IDs fail; a later invalid line rolls back earlier adjustments; zero count drains multiple lots exactly"
+  ],
+  "checkedAt": "2026-11-01T21:22:38.536Z",
+  "isolated": true
+}

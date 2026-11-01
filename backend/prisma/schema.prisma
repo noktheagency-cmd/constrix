@@ -263,6 +263,7 @@ model Client {
 }
 
 model Project {
+  materialPlans ProjectMaterialPlan[]
   id         String         @id @default(cuid())
   name       String
   clientName String
@@ -293,6 +294,8 @@ model Project {
   notes         ProjectNote[]
   projectFiles  ProjectFile[]
   assignments   ProjectAssignment[]
+  materialHandovers MaterialHandover[]
+  returnablePackagingCases ReturnablePackagingCase[]
   calcJobs      CalcJob[]
   tenders       TenderCase[]
   boqBooks      BoqBook[]
@@ -361,6 +364,7 @@ model User {
 }
 
 model Account {
+  responsibleWarehouses Location[] @relation("WarehouseResponsible")
   id           String   @id @default(cuid())
   email        String   @unique
   passwordHash String
@@ -374,6 +378,8 @@ model Account {
   updatedAt    DateTime              @updatedAt
   memberships  OrganizationMember[]
   projectAssignments ProjectAssignment[]
+  custodyHandovers MaterialHandover[] @relation("MaterialHandoverCustodian")
+  returnablePackagingCases ReturnablePackagingCase[] @relation("ReturnablePackagingCustodian")
 }
 
 model Crew {
@@ -522,6 +528,61 @@ model Payable {
   date      String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  allocations PayablePaymentAllocation[]
+}
+
+model PurchaseSupplierClosure {
+  id             String       @id @default(cuid())
+  organizationId String
+  actId          String
+  supplier       String
+  evidenceRef    String
+  note           String       @default("")
+  closedBy       String
+  closedById     String?
+  closedAt       DateTime     @default(now())
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  act            PurchaseAct @relation(fields: [actId], references: [id], onDelete: Restrict)
+
+  @@unique([organizationId, actId, supplier])
+  @@index([organizationId, closedAt])
+}
+
+model SupplierPayment {
+  id               String                    @id @default(cuid())
+  organizationId   String
+  supplier         String
+  date             String
+  method           String
+  reference        String
+  amount           Decimal                   @db.Decimal(14, 2)
+  note             String                    @default("")
+  status           String                    @default("draft")
+  createdBy        String
+  createdById      String?
+  approvedBy       String?
+  approvedById     String?
+  approvedAt       DateTime?
+  rejectionReason String?
+  createdAt        DateTime                  @default(now())
+  updatedAt        DateTime                  @updatedAt
+  organization     Organization              @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  allocations      PayablePaymentAllocation[]
+
+  @@index([organizationId, supplier, date])
+  @@index([organizationId, status, createdAt])
+}
+
+model PayablePaymentAllocation {
+  id         String         @id @default(cuid())
+  paymentId  String
+  payableId  String
+  amount     Decimal        @db.Decimal(14, 2)
+  payment    SupplierPayment @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  payable    Payable         @relation(fields: [payableId], references: [id], onDelete: Restrict)
+
+  @@unique([paymentId, payableId])
+  @@index([payableId])
 }
 
 model Supplier {
@@ -606,6 +667,8 @@ model PurchaseAct {
   lines          PurchaseActLine[]
   adjustments    PurchaseActAdjust[]
   receipts       PurchaseReceipt[]
+  goodsReturns   SupplierGoodsReturn[]
+  supplierClosures PurchaseSupplierClosure[]
 
   @@index([projectId])
   @@index([date])
@@ -651,6 +714,7 @@ model PurchaseReceipt {
   location       Location              @relation(fields: [locationId], references: [id], onDelete: Restrict)
   organization   Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   lines          PurchaseReceiptLine[]
+  goodsReturns   SupplierGoodsReturn[]
 
   @@index([organizationId, actId, createdAt])
   @@index([organizationId, locationId])
@@ -669,9 +733,67 @@ model PurchaseReceiptLine {
   disputeReason  String         @default("")
   receipt        PurchaseReceipt @relation(fields: [receiptId], references: [id], onDelete: Cascade)
   purchaseLine   PurchaseActLine @relation(fields: [purchaseLineId], references: [id], onDelete: Restrict)
+  stockLots      StockLot[]
+  goodsReturnLines SupplierGoodsReturnLine[]
 
   @@index([receiptId])
   @@index([purchaseLineId])
+}
+
+model SupplierGoodsReturn {
+  id                    String                     @id @default(cuid())
+  organizationId        String
+  purchaseActId         String
+  purchaseReceiptId     String
+  locationId            String
+  supplierName          String
+  reason                String
+  status                String                     @default("draft")
+  createdBy             String
+  createdById           String?
+  approvedBy            String?
+  approvedById          String?
+  approvedAt            DateTime?
+  dispatchedBy          String?
+  dispatchedById        String?
+  dispatchedAt          DateTime?
+  supplierRepName       String?
+  supplierDocumentRef   String?
+  supplierConfirmedBy   String?
+  supplierConfirmedById String?
+  supplierConfirmedAt   DateTime?
+  financeReviewedBy     String?
+  financeReviewedById   String?
+  financeReviewedAt     DateTime?
+  financeDecisionNote   String?
+  payableId             String?
+  createdAt             DateTime                   @default(now())
+  updatedAt             DateTime                   @updatedAt
+  organization          Organization               @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  purchaseAct           PurchaseAct                @relation(fields: [purchaseActId], references: [id], onDelete: Restrict)
+  purchaseReceipt       PurchaseReceipt            @relation(fields: [purchaseReceiptId], references: [id], onDelete: Restrict)
+  location              Location                   @relation(fields: [locationId], references: [id], onDelete: Restrict)
+  lines                 SupplierGoodsReturnLine[]
+
+  @@index([organizationId, status, createdAt])
+  @@index([organizationId, supplierName, purchaseActId])
+}
+
+model SupplierGoodsReturnLine {
+  id                    String              @id @default(cuid())
+  goodsReturnId         String
+  purchaseReceiptLineId String
+  stockLotId            String
+  materialId            String
+  qty                   Decimal             @db.Decimal(14, 3)
+  unitCost              Decimal             @db.Decimal(14, 4)
+  goodsReturn           SupplierGoodsReturn @relation(fields: [goodsReturnId], references: [id], onDelete: Cascade)
+  purchaseReceiptLine   PurchaseReceiptLine @relation(fields: [purchaseReceiptLineId], references: [id], onDelete: Restrict)
+  stockLot              StockLot             @relation(fields: [stockLotId], references: [id], onDelete: Restrict)
+
+  @@unique([goodsReturnId, purchaseReceiptLineId])
+  @@index([purchaseReceiptLineId])
+  @@index([stockLotId])
 }
 
 model PurchaseDisputeResolution {
@@ -950,6 +1072,11 @@ model ChangeLine {
 
 model Location {
   organizationId String?
+  parentId String?
+  responsibleAccountId String?
+  parent Location? @relation("WarehouseTree", fields: [parentId], references: [id], onDelete: Restrict)
+  children Location[] @relation("WarehouseTree")
+  responsible Account? @relation("WarehouseResponsible", fields: [responsibleAccountId], references: [id], onDelete: Restrict)
 
   id        String   @id @default(cuid())
   name      String
@@ -961,6 +1088,9 @@ model Location {
   stockReservations StockReservation[] @relation("ReservationLocation")
   outgoingShipments Shipment[] @relation("ShipmentFromLocation")
   incomingShipments Shipment[] @relation("ShipmentToLocation")
+  materialHandovers MaterialHandover[]
+  returnablePackagingCases ReturnablePackagingCase[]
+  supplierGoodsReturns SupplierGoodsReturn[]
 }
 
 model Material {
@@ -976,6 +1106,7 @@ model Material {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   stockReservations StockReservation[]
+  materialHandovers MaterialHandover[]
 }
 
 model Stock {
@@ -1060,6 +1191,125 @@ model ShipmentLine {
   @@index([shipmentId, sort])
 }
 
+model MaterialHandover {
+  id                 String       @id @default(cuid())
+  organizationId     String
+  projectId          String
+  locationId         String
+  materialId         String
+  custodianAccountId String
+  qty                Decimal      @db.Decimal(14, 3)
+  remainingQty       Decimal      @default(0) @db.Decimal(14, 3)
+  status             String       @default("waiting_custodian")
+  reason             String       @default("")
+  createdBy          String
+  createdById        String?
+  acceptedBy         String?
+  acceptedById       String?
+  acceptedAt         DateTime?
+  cancelledBy        String?
+  cancelledById      String?
+  cancelledAt        DateTime?
+  cancelReason       String?
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+  organization       Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  project            Project      @relation(fields: [projectId], references: [id], onDelete: Restrict)
+  location           Location     @relation(fields: [locationId], references: [id], onDelete: Restrict)
+  material           Material     @relation(fields: [materialId], references: [id], onDelete: Restrict)
+  custodian          Account      @relation("MaterialHandoverCustodian", fields: [custodianAccountId], references: [id], onDelete: Restrict)
+  actions            MaterialCustodyAction[]
+
+  @@index([organizationId, projectId, status])
+  @@index([organizationId, custodianAccountId, status])
+  @@index([organizationId, materialId, locationId, status])
+}
+
+model MaterialCustodyAction {
+  id             String          @id @default(cuid())
+  organizationId String
+  handoverId     String
+  kind           String
+  qty            Decimal         @db.Decimal(14, 3)
+  status         String          @default("pending")
+  reason         String
+  requestedBy    String
+  requestedById  String?
+  reviewedBy     String?
+  reviewedById   String?
+  reviewedAt     DateTime?
+  reviewReason   String?
+  movementId     String?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  organization   Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  handover       MaterialHandover @relation(fields: [handoverId], references: [id], onDelete: Restrict)
+
+  @@index([organizationId, handoverId, status])
+  @@index([organizationId, requestedById, status])
+}
+
+model ReturnablePackagingCase {
+  id                  String                       @id @default(cuid())
+  organizationId      String
+  supplierName        String
+  packageType         String
+  projectId           String
+  locationId          String
+  custodianAccountId  String
+  receivedQty         Decimal                      @db.Decimal(14, 3)
+  returnedQty         Decimal                      @default(0) @db.Decimal(14, 3)
+  resolvedQty         Decimal                      @default(0) @db.Decimal(14, 3)
+  dueAt               DateTime                     @db.Date
+  status              String                       @default("waiting_custodian")
+  note                String                       @default("")
+  createdBy           String
+  createdById         String?
+  acceptedBy          String?
+  acceptedById        String?
+  acceptedAt          DateTime?
+  createdAt           DateTime                     @default(now())
+  updatedAt           DateTime                     @updatedAt
+  organization        Organization                 @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  project             Project                      @relation(fields: [projectId], references: [id], onDelete: Restrict)
+  location            Location                     @relation(fields: [locationId], references: [id], onDelete: Restrict)
+  custodian           Account                      @relation("ReturnablePackagingCustodian", fields: [custodianAccountId], references: [id], onDelete: Restrict)
+  events              ReturnablePackagingEvent[]
+
+  @@index([organizationId, status, dueAt])
+  @@index([organizationId, custodianAccountId, status])
+  @@index([organizationId, supplierName, projectId])
+}
+
+model ReturnablePackagingEvent {
+  id                  String                 @id @default(cuid())
+  organizationId      String
+  caseId              String
+  kind                String
+  qty                 Decimal                @db.Decimal(14, 3)
+  status              String                 @default("pending")
+  reason              String
+  evidenceRef         String                 @default("")
+  requestedBy         String
+  requestedById       String?
+  reviewedBy          String?
+  reviewedById        String?
+  reviewedAt          DateTime?
+  supplierRepName     String?
+  supplierDocumentRef String?
+  warehouseReceivedBy String?
+  warehouseReceivedById String?
+  warehouseReceivedAt DateTime?
+  responsibilityNote String?
+  createdAt           DateTime               @default(now())
+  updatedAt           DateTime               @updatedAt
+  organization        Organization           @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  packagingCase       ReturnablePackagingCase @relation(fields: [caseId], references: [id], onDelete: Restrict)
+
+  @@index([organizationId, caseId, status])
+  @@index([organizationId, status, kind])
+}
+
 model PurchaseOrder {
   organizationId String?
 
@@ -1079,6 +1329,8 @@ model PurchaseOrder {
 }
 
 model MaterialRequest {
+  priority String @default("normal")
+  requiredOn String?
   organizationId String?
 
   id         String   @id @default(cuid())
@@ -1770,6 +2022,7 @@ enum FinancePartnerKind {
 }
 
 model Organization {
+  materialPlans ProjectMaterialPlan[]
   id             String           @id @default(cuid())
   kind           OrgKind
   name           String
@@ -1796,6 +2049,11 @@ model Organization {
   projects       Project[]
   members        OrganizationMember[]
   projectAssignments ProjectAssignment[]
+  materialHandovers MaterialHandover[]
+  returnablePackagingCases ReturnablePackagingCase[]
+  returnablePackagingEvents ReturnablePackagingEvent[]
+  materialCustodyActions MaterialCustodyAction[]
+  supplierGoodsReturns SupplierGoodsReturn[]
   products       CatalogProduct[]
   rules          TradeRule[]
   files          ProjectFile[]
@@ -1827,6 +2085,8 @@ model Organization {
   lots            StockLot[]
   warehousePolicy WarehousePolicy?
   purchaseReceipts PurchaseReceipt[]
+  supplierClosures PurchaseSupplierClosure[]
+  supplierPayments SupplierPayment[]
   stockReservations StockReservation[]
   tenders         TenderCase[]
   boqBooks        BoqBook[]
@@ -1864,6 +2124,9 @@ model ProjectAssignment {
   projectId         String
   canSendTransfers  Boolean      @default(false)
   canReceiveTransfers Boolean    @default(true)
+  canHoldMaterials Boolean      @default(false)
+  canReviewMaterialUsage Boolean @default(false)
+  canHoldReturnablePackaging Boolean @default(false)
   active            Boolean      @default(true)
   assignedBy        String
   createdAt         DateTime     @default(now())
@@ -3129,11 +3392,15 @@ model StockLot {
   unitCost       Decimal      @db.Decimal(14, 4)
   expiresOn      DateTime?    @db.Date
   qr             String       @unique
+  purchaseReceiptLineId String?
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  purchaseReceiptLine PurchaseReceiptLine? @relation(fields: [purchaseReceiptLineId], references: [id], onDelete: Restrict)
+  goodsReturnLines SupplierGoodsReturnLine[]
 
   @@index([organizationId, code])
+  @@index([purchaseReceiptLineId])
 }
 
 model CoopFinding {
@@ -3152,4 +3419,42 @@ model WarehousePolicy {
   organizationId String       @unique
   method         CostMethod   @default(orta)
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+}
+model WarehouseCount {
+  id String @id @default(cuid())
+  organizationId String
+  locationId String
+  status String @default("pending")
+  reason String
+  documentRef String
+  lines Json
+  createdById String
+  createdBy String
+  reviewedById String?
+  reviewedBy String?
+  reviewNote String?
+  createdAt DateTime @default(now())
+  reviewedAt DateTime?
+  @@index([organizationId, status])
+}
+
+model ProjectMaterialPlan {
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  project Project @relation(fields: [projectId], references: [id], onDelete: Restrict)
+  id String @id @default(cuid())
+  organizationId String
+  projectId String
+  version Int
+  status String @default("pending")
+  reference String
+  lines Json
+  createdById String
+  createdBy String
+  reviewedById String?
+  reviewedBy String?
+  reviewNote String?
+  createdAt DateTime @default(now())
+  reviewedAt DateTime?
+  @@unique([organizationId, projectId, version])
+  @@index([organizationId, projectId, status])
 }

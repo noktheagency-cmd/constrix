@@ -1,0 +1,12 @@
+{
+  "passed": true,
+  "checks": [
+    "one supplier can be closed while two suppliers remain independently open with their own quantities",
+    "supplier quantity closure is director-only, requires complete quantity/no open disputes, records evidence, and leaves finance balance unchanged",
+    "FIFO proposal excludes supplier credits; one payment allocates across two debts; no payable changes until finance approves, partial and full balances persist"
+  ],
+  "checkedAt": "2026-11-01T20:15:54.015Z",
+  "migrations": [
+    "202611010012_supplier_closure_and_payments"
+  ]
+}

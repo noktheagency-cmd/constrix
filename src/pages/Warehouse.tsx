@@ -1,3 +1,5 @@
+import { ProjectMaterialPlanPanel } from './ProjectMaterialPlanPanel'
+import { WarehouseControlPanel } from './WarehouseControlPanel'
 import { DataTable } from '../components/DataTable'
 import { Button, Disclosure, Input, TableContainer, Toolbar } from "../components/primitives"
 import { useEffect, useState, type FormEvent } from "react"
@@ -12,8 +14,11 @@ import { useStore } from "../store"
 import { Badge, Drawer, Empty, Field, Modal, PageHead, Select, StockBar, Tabs, useTitle } from "../ui"
 import { patch, uid, useWorkspace } from "../workspace"
 import { PassportPage } from "./platform"
+import { MaterialHandoverPanel } from "./MaterialHandoverPanel"
+import { ReturnablePackagingPanel } from "./ReturnablePackagingPanel"
+import { SupplierGoodsReturnPanel } from "./SupplierGoodsReturnPanel"
 
-type Tab = "qaliq" | "kritik" | "pasport" | "transfer" | "hereket" | "medaxil" | "mexaric" | "anbarlar" | "partiyalar" | "uzlasdirma" | "rezerv"
+type Tab = "materialplan" | "structure" | "inventory" | "qaliq" | "kritik" | "pasport" | "transfer" | "hereket" | "medaxil" | "mexaric" | "anbarlar" | "partiyalar" | "uzlasdirma" | "rezerv" | "custody" | "tara" | "supplierreturn"
 type Read =
   | { kind: "material"; id: string }
   | { kind: "move"; id: string }
@@ -27,7 +32,7 @@ const KIND: Record<string, string> = { merkez: "Mərkəz", zavod: "Zavod", sex: 
 const KINDS = Object.keys(KIND) as LocationKind[]
 const emptyMove = { materialId: "", type: "mexaric", qty: "", project: "", locationId: "LOC-MERKEZ", smetaLineId: "", note: "" }
 
-const WAREHOUSE_TABS: Tab[] = ["qaliq", "kritik", "pasport", "transfer", "medaxil", "mexaric", "hereket", "anbarlar", "partiyalar", "uzlasdirma", "rezerv"]
+const WAREHOUSE_TABS: Tab[] = ["materialplan", "structure", "inventory", "qaliq", "kritik", "pasport", "transfer", "medaxil", "mexaric", "hereket", "partiyalar", "uzlasdirma", "rezerv", "custody", "tara", "supplierreturn"]
 
 type ReconciliationReport = {
   generatedAt: string
@@ -44,15 +49,18 @@ export default function Warehouse() {
   useTitle(t("page.warehouse.title"))
   const { query, materials, movements, projects, smetas, locations, stocks, reservations, requests, shipments, stockMove, createShipment, advanceShipment, cancelShipment, addLocation, editLocation, removeLocation, actor } = useStore()
   const receiverOnly = actor.role === "site" || actor.role === "pm"
-  const visibleTabs: Tab[] = receiverOnly ? ["transfer"] : WAREHOUSE_TABS
+  const canCreateHandover = actor.role === "director" || actor.role === "warehouse"
+  const canManageSupplierReturns = actor.role === "director" || actor.role === "warehouse"
+  const canReviewMaterialUse = actor.role === "director" || actor.role === "pm" || actor.role === "site"
+  const visibleTabs: Tab[] = receiverOnly ? ["transfer", "custody", "tara"] : WAREHOUSE_TABS.filter((item) => !["custody", "tara", "supplierreturn", "structure", "inventory"].includes(item) || canCreateHandover)
   const [search, setSearch] = useSearchParams()
   const tabParam = search.get("tab")
   const [tab, setTab] = useState<Tab>(() => receiverOnly ? "transfer" : WAREHOUSE_TABS.includes(tabParam as Tab) ? (tabParam as Tab) : "qaliq")
   const [reading, setReading] = useState<Read | null>(null)
 
   useEffect(() => {
-    if (receiverOnly && tab !== "transfer") setTab("transfer")
-    else if (WAREHOUSE_TABS.includes(tabParam as Tab) && (!receiverOnly || tabParam === "transfer") && tabParam !== tab) setTab(tabParam as Tab)
+    if (receiverOnly && !["transfer", "custody", "tara"].includes(tab)) setTab("transfer")
+    else if (tabParam !== null && WAREHOUSE_TABS.includes(tabParam as Tab) && (!receiverOnly || ["transfer", "custody", "tara"].includes(tabParam)) && tabParam !== tab) setTab(tabParam as Tab)
   }, [tabParam, tab, receiverOnly])
 
   function openTab(next: string) {
@@ -60,8 +68,7 @@ export default function Warehouse() {
     setTab(value)
     setReading(null)
     setError("")
-    if (value === "pasport") setSearch({ tab: "pasport" })
-    else if (search.get("tab")) setSearch({})
+    setSearch({ tab: value })
   }
   const [form, setForm] = useState(emptyMove)
   const [origin, setOrigin] = useState("LOC-MERKEZ")
@@ -242,6 +249,9 @@ export default function Warehouse() {
     tab === "anbarlar" ? `${houses.length} anbar` :
     tab === "hereket" ? `${moves.length} hərəkət` :
     tab === "uzlasdirma" ? (reconciliation ? `${reconciliation.summary.mismatchCount} uyğunsuz material` : "Uzlaşdırma hesabatı") :
+    tab === "custody" ? "İmza və məsul şəxs balansı" :
+    tab === "tara" ? "Təchizatçı qablaşdırması və qaytarılma müddəti" :
+    tab === "supplierreturn" ? "Alış malının təchizatçıya sənədli qaytarılması" :
     tab === "rezerv" ? `${reservations.length} aktiv rezerv` :
     `${short} material minimumdan aşağı`
 
@@ -258,7 +268,7 @@ export default function Warehouse() {
           <Button type="button" onClick={() => openIntake(materials[0]?.id || "", "LOC-MERKEZ", "medaxil")}><Icon name="plus" /> Mədaxil</Button>
         ) : tab === "mexaric" ? (
           <Button type="button" onClick={() => openIntake(materials[0]?.id || "", "LOC-MERKEZ", "mexaric")}><Icon name="plus" /> Məxaric</Button>
-        ) : tab === "pasport" || tab === "uzlasdirma" || tab === "rezerv" ? null : (
+        ) : tab === "pasport" || tab === "uzlasdirma" || tab === "rezerv" || tab === "custody" || tab === "tara" || tab === "supplierreturn" ? null : (
           <Button type="button" onClick={() => openIntake()}><Icon name="plus" /> Hərəkət</Button>
         )}
       </PageHead>
@@ -275,13 +285,20 @@ export default function Warehouse() {
             { id: "medaxil", label: "Mədaxil" },
             { id: "mexaric", label: "Məxaric" },
             { id: "hereket", label: "Hərəkət" },
-            { id: "anbarlar", label: "Anbarlar" },
+
+            { id: "structure", label: "Anbar strukturu" },
+            { id: "inventory", label: "İnventarizasiya" },
             { id: "uzlasdirma", label: "Uzlaşdırma" },
             { id: "rezerv", label: "Rezerv" },
+            { id: "materialplan", label: "Plan tələbatı" },
+            { id: "custody", label: "Məsul şəxslər" },
+            { id: "tara", label: "Qaytarılan tara" },
+            { id: "supplierreturn", label: "Təchizatçıya qaytarma" },
           ].filter((option) => visibleTabs.includes(option.id as Tab))}
         />
         <span className="muted">{hint}</span>
       </Toolbar>
+      {(tab === "structure" || tab === "inventory") && <WarehouseControlPanel view={tab} director={actor.role === "director"} />}
       {tab === "pasport" && <PassportPage embedded materialFilter={materialCard?.name || ""} />}
       {tab === "uzlasdirma" && <>
         <Toolbar><span className="muted">Yalnız oxu · Material, Stock, lot və tanınan hərəkət cəmi müqayisə olunur.</span><Button type="button" className="ghost" disabled={reconciliationBusy} onClick={() => void reloadReconciliation()}>{reconciliationBusy ? "Yenilənir…" : "Yenilə"}</Button></Toolbar>
@@ -292,8 +309,12 @@ export default function Warehouse() {
           <p className="muted">Hesabat {dateAZ(reconciliation.generatedAt.slice(0, 10))} tarixində yaradılıb. Tanınan xalis hərəkət mədaxil/qəbul, məxaric/çıxış və anbar transferlərinin cəmidir. “Təxmini açılış/qalıq” = Stock − tanınan hərəkət qalıq göstəricisidir; ilkin açılış balansı owner tərəfindən təsdiqlənmədən bunu uçot açılışı kimi qəbul etmək olmaz.</p>
         </>}
       </>}
+      {tab === "materialplan" && <ProjectMaterialPlanPanel />}
+      {tab === "custody" && <MaterialHandoverPanel receiverOnly={receiverOnly} canCreate={canCreateHandover} canReviewUse={canReviewMaterialUse} />}
+      {tab === "tara" && <ReturnablePackagingPanel receiverOnly={receiverOnly} canCreate={canCreateHandover} canReview={actor.role === "director" || actor.role === "pm"} />}
+      {tab === "supplierreturn" && <SupplierGoodsReturnPanel canCreate={canManageSupplierReturns} canApprove={actor.role === "director"} canFinance={actor.role === "director" || actor.role === "accountant"} />}
       {tab === "rezerv" && <TableContainer><DataTable><thead><tr><th>Tələb</th><th>Layihə</th><th>Material</th><th>Mənbə anbar</th><th>Rezerv</th><th>Kim yaradıb</th><th>Tarix</th></tr></thead><tbody>{reservations.filter((row) => row.status === "active").filter((row) => { const request = requests.find((item) => item.id === row.requestId); const material = materials.find((item) => item.id === row.materialId); return hit(query, row.requestId, request?.project, material?.name, nameOf(row.locationId), row.createdBy) }).map((row) => { const request = requests.find((item) => item.id === row.requestId); const material = materials.find((item) => item.id === row.materialId); return <tr key={row.id}><td><b>{row.requestId}</b></td><td>{request?.project || "—"}</td><td>{material?.name || row.materialId}</td><td>{nameOf(row.locationId) || row.locationId}</td><td>{num(row.qty, 3)} {material?.unit || ""}</td><td>{row.createdBy}</td><td>{dateAZ(row.createdAt.slice(0, 10))}</td></tr> })}</tbody></DataTable>{reservations.filter((row) => row.status === "active").length === 0 && <Empty title="Aktiv rezerv yoxdur" text="Təsdiqlənmiş tələblər üçün ayrılmış stok burada görünəcək." />}</TableContainer>}
-      {tab !== "pasport" && (
+      {tab !== "pasport" && tab !== "supplierreturn" && (
       <>
       {tab === "partiyalar" && <>
         <Toolbar className="warehouse-lot-toolbar"><div><strong>Material partiyaları</strong><p className="muted">QR kodlar, qalıqlar və vahid maya dəyəri.</p></div><label>Maya üsulu<Select ariaLabel="Maya üsulu" value={method} onValueChange={(value) => void saveMethod(value)} options={[{value:"orta",label:"Orta çəkili"},{value:"fifo",label:"FIFO"}]} /></label></Toolbar>

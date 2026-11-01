@@ -18,7 +18,7 @@ export class TenantDataService {
   async allow(user:AuthUser,route:string){
     if(!user)throw new ForbiddenException('Giriş tələb olunur');
     const ctx=await this.tenant.load(user);
-    const groups:Record<string,string>={users:'members',crews:'people',people:'people',offices:'people',departments:'people',terminals:'people',attendance:'people',leaves:'people','hr-payments':'people','hr-moves':'people',payrolls:'finance',invoices:'finance',expenses:'finance',payables:'finance',periods:'finance',audit:'finance',materials:'warehouse',stocks:'warehouse',locations:'warehouse',movements:'warehouse',shipments:'weather',suppliers:'catalog',quotes:'catalog','purchase-orders':'orders','purchase-acts':'catalog',requests:'warehouse',smetas:'boq',contracts:'boq',acts:'boq',forma3:'boq',reports:'weather',journal:'weather',documents:'files',changes:'boq',projects:'orders',clients:'orders'};
+    const groups:Record<string,string>={users:'members',crews:'people',people:'people',offices:'people',departments:'people',terminals:'people',attendance:'people',leaves:'people','hr-payments':'people','hr-moves':'people',payrolls:'finance',invoices:'finance',expenses:'finance',payables:'finance',periods:'finance',audit:'finance',materials:'warehouse',stocks:'warehouse',locations:'warehouse',movements:'warehouse',shipments:'weather',suppliers:'catalog',quotes:'catalog','purchase-orders':'orders','purchase-acts':'warehouse',requests:'warehouse',smetas:'boq',contracts:'boq',acts:'boq',forma3:'boq',reports:'weather',journal:'weather',documents:'files',changes:'boq',projects:'orders',clients:'orders'};
     this.tenant.allow(ctx,groups[route]||'orders');
     return this.tenant.requireOrg(ctx);
   }

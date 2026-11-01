@@ -257,6 +257,7 @@ const copy = {
   "status.odenilib": ["Ödənilib", "Paid", "Оплачен"],
   "status.gonderilib": ["Göndərilib", "Sent", "Отправлен"],
   "status.qaralama": ["Qaralama", "Draft", "Черновик"],
+  "status.qismən": ["Qismən qəbul", "Partially received", "Принято частично"],
   "status.sahede": ["Sahədə", "On site", "На площадке"],
   "status.servis": ["Servisdə", "In service", "На сервисе"],
   "status.bos": ["Boş", "Idle", "Свободен"],

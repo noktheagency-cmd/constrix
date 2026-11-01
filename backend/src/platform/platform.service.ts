@@ -1710,13 +1710,14 @@ export class PlatformService {
         }
       }
       for (const { materialId, locationId, qty: used } of usedByPlace.values()) {
-        const [stock, reservations, transfers, placeLots] = await Promise.all([
+        const [stock, reservations, transfers, handovers, placeLots] = await Promise.all([
           tx.stock.findFirst({ where: { organizationId: orgId, materialId, locationId } }),
           tx.stockReservation.findMany({ where: { organizationId: orgId, materialId, locationId, status: 'active' } }),
           tx.shipmentLine.findMany({ where: { materialId, shipment: { organizationId: orgId, fromLocationId: locationId, status: { in: ['waiting_sender', 'sent'] } } } }),
+          tx.materialHandover.findMany({ where: { organizationId: orgId, materialId, locationId, status: { in: ['waiting_custodian', 'accepted'] } } }),
           tx.stockLot.findMany({ where: { organizationId: orgId, materialId, locationId, qty: { gt: 0 } } }),
         ]);
-        const protectedQty = reservations.reduce((sum, row) => sum.plus(row.qty), new Prisma.Decimal(0)).plus(transfers.reduce((sum, row) => sum.plus(row.qty), new Prisma.Decimal(0)));
+        const protectedQty = reservations.reduce((sum, row) => sum.plus(row.qty), new Prisma.Decimal(0)).plus(transfers.reduce((sum, row) => sum.plus(row.qty), new Prisma.Decimal(0))).plus(handovers.reduce((sum, row) => sum.plus(row.status === 'accepted' ? row.remainingQty : row.qty), new Prisma.Decimal(0)));
         const placeLotsQty = placeLots.reduce((sum, lot) => sum.plus(lot.qty), new Prisma.Decimal(0));
         if (stock ? stock.qty.minus(used).lessThan(protectedQty) : placeLotsQty.minus(used).lessThan(protectedQty)) {
           throw new BadRequestException('Partiya çıxışı aktiv tələb rezervi və ya transferdə olan miqdarı keçə bilməz');

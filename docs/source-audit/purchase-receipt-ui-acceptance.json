@@ -1,0 +1,428 @@
+{
+  "passed": true,
+  "overallUatComplete": false,
+  "checkedAt": "2026-11-02",
+  "environment": "disposable local schemas only; no customer data or external system writes",
+  "checks": [
+    {
+      "id": "U1-U2",
+      "passed": true,
+      "evidence": "AA-001: 100 ordered units were received as 60 then 40; UI showed partial status and remaining 40 after the first receipt, then approved status; DB showed two receipt rows, total stock/lot/movement 100 and payable 200 AZN."
+    },
+    {
+      "id": "U3",
+      "passed": true,
+      "evidence": "AA-002: attempted receipt of 11 against a 10-unit remainder was rejected with no receipt, stock or payable write; subsequent receipt of 1 succeeded and UI displayed the translated `Qismən qəbul` status."
+    },
+    {
+      "id": "U7-U15",
+      "passed": true,
+      "evidence": "AA-003: accepted 4 + 1, disputed 3 + 2, then accepted 5 replacement units. Disputed stock stayed out until replacement; all 5 disputed units resolved, 5 replacement units were marked no-debt, accepted/payable quantity was 5, payable was 50 AZN, and total physical stock was 10."
+    },
+    {
+      "id": "U14",
+      "passed": true,
+      "evidence": "AA-005: three receipts of 1 unit at 0.335 AZN each completed a 3-unit line. DB line and payable both totaled 1.01 AZN, with stock 3 and three receipt rows."
+    },
+    {
+      "id": "U17",
+      "passed": true,
+      "evidence": "AA-004: director requested and approved closure of the 10-unit remainder with a reason. DB showed approved decision, closedQty 10, status tesdiq, stock 0 and payable 0."
+    },
+    {
+      "id": "U6",
+      "passed": true,
+      "evidence": "UI act AA-001 had two suppliers. Supplier A received 5/5 and appeared 5 ordered / 5 received / 0 remaining with 50 AZN open payable; Supplier B remained 5 ordered / 0 received / 5 remaining, 0 AZN payable, and status 'miqdar açıq'. No cross-supplier closure occurred."
+    },
+    {
+      "id": "U23-U26",
+      "passed": true,
+      "evidence": "UI UAT: director sent 4 units to assigned custodian Rauf; Rauf signed, then submitted 2-unit consumption and 1-unit return requests; project supervisor Nigar approved both. Isolated DB ended with Stock/StockLot/Material=3, custody remainingQty=1, one approved consume and one approved return. No pending custody requests remained."
+    },
+    {
+      "id": "Warehouse route access smoke",
+      "passed": true,
+      "evidence": "Before the route-role mapping fix, Məsul şəxslər showed 403. After adding the custom routes to the role guard map, director UI could load project/custodian selectors and create the UAT handover; site custodian could sign and submit actions; PM could review. Qaytarılan tara and Təchizatçıya qaytarma screens also loaded without role-guard errors."
+    }
+  ],
+  "uiFixes": [
+    "PurchaseAct line IDs now remain unique across acts, allowing a second act to save and operate correctly.",
+    "Added Azerbaijani, English and Russian translations for the partial receipt status.",
+    "Added material-handovers, returnable-packaging and supplier-goods-returns to the global role-guard route map so the warehouse panels reach their service-level permission checks."
+  ],
+  "backendUnitChecks": {
+    "suite": "backend/src/records/act-workflows.spec.ts",
+    "passed": true,
+    "tests": "7/7",
+    "coverage": [
+      "same purchase receipt idempotency key and unchanged body return the prior result without creating another receipt",
+      "reusing the purchase receipt key with changed quantity is rejected with ConflictException",
+      "warehouse seat can post a purchase receipt; cashPaid does not reduce payable before finance approval"
+    ]
+  },
+  "backendAcceptance": {
+    "passed": true,
+    "checks": [
+      "U6: director closes only the fully delivered supplier; other suppliers retain independent open quantities and balances",
+      "U9: reversal is blocked when receipt stock has been consumed and the source lot cannot cover the full reversal",
+      "U10: paid payable blocks purchase reversal with stock unchanged",
+      "U12: confirmed legacy purchase without receipt links is blocked from rereceipt and appears as manual reconciliation required",
+      "U13: foreign tenant purchase act and warehouse IDs are rejected without receipt writes",
+      "U16: documented credit remains pending without a payable; finance approval creates one negative open payable; resolved dispute cannot be credited twice",
+      "U18: warehouse reconciliation returns quantities/status without payable amounts",
+      "U19: transfer balances net by location and unknown movement types are excluded from the inferred opening residual",
+      "U20: 2026-10-29 snapshot preflight is read-only and lists unresolved residual and material/stock-lot discrepancies for manual review"
+    ],
+    "sources": [
+      "docs/source-audit/market-acceptance.json (actChecks)",
+      "docs/source-audit/supplier-settlement-acceptance.json",
+      "backend/src/records/purchase-supplier-reconciliation.spec.ts",
+      "backend/src/records/warehouse-reconciliation.service.spec.ts",
+      "docs/source-audit/warehouse-snapshot-preflight-2026-10-29.json"
+    ]
+  },
+  "latestIsolatedAcceptanceRun": {
+    "checkedAt": "2026-11-02",
+    "passed": true,
+    "checks": {
+      "projectTransfer": "5/5",
+      "materialCustody": "4/4",
+      "returnablePackaging": "3/3",
+      "supplierGoodsReturn": "3/3",
+      "supplierSettlementAndPayment": "3/3",
+      "targetedJest": "12/12",
+      "backendBuild": "passed",
+      "frontendTypecheck": "passed"
+    },
+    "note": "Each DB acceptance script created and removed its own disposable schema. UI screens for material custody, returnable packaging, and supplier returns were opened and checked for forms, tables, role access, and empty states; these were smoke checks, not full end-to-end UI scenarios."
+  },
+  "uiScreenSmoke": [
+    {
+      "screen": "Məsul şəxslər / material custody",
+      "passed": true,
+      "evidence": "Director view loaded handover form, project/location/material/custodian selectors, approval queue, and custody register without 403."
+    },
+    {
+      "screen": "Qaytarılan tara",
+      "passed": true,
+      "evidence": "Loaded supplier receipt form, due-date field, return-signature fields, incident decision field, and register without 403."
+    },
+    {
+      "screen": "Təchizatçıya qaytarma",
+      "passed": true,
+      "evidence": "Loaded source-lot eligibility table, draft form, and return-document list without 403."
+    }
+  ],
+  "uiEndToEnd": [
+    {
+      "id": "U21-U22",
+      "passed": true,
+      "environment": "disposable local schema afez_full_ui_uat_20261102",
+      "evidence": "Rauf (U-03), assigned as sender to UAT Port, signed transfer TR-e0bb9c5a-0a48-4acc-ac61-d00f55844b88 for 5 kisə UAT Sement. Nigar (U-02), assigned as receiver to UAT Sahə, opened the signed route and accepted it in the UI. The UI showed 'Qəbul imzası qeydə alındı; stok hədəf anbara köçürüldü'; after refresh it displayed 'Təhvil alındı'. Isolated DB: shipment received, distinct sender/receiver IDs, source stock/lot 20→15, destination stock/lot 0→5, and one 5-unit transfer movement. Initial receiver view was stale until page refresh; refreshed UI exposed the signed document."
+    },
+    {
+      "id": "U27",
+      "passed": true,
+      "environment": "disposable local schema afez_full_ui_uat_20261102",
+      "evidence": "Director created a separate returnable-packaging receipt: 2 Poddon from UAT Supplier, assigned to Rauf for UAT Port, due 2026-12-02, document UAT-PKG-REC-001. Rauf signed receipt in the UI; the register showed 2 received, 2 open and the named custodian. Tara is held in its own register and is not mixed into material stock."
+    },
+    {
+      "id": "U8-U10",
+      "passed": true,
+      "environment": "disposable local schema afez_uat_remaining_20261102",
+      "evidence": "UI UAT2-PAID-001: accepted 5 units although source cashPaid was 20 AZN; payable remained 50 AZN. A later full reversal was blocked after 1 unit had been consumed, with the UI reporting insufficient free source-lot balance. After restoring the isolated fixture and marking its payable paid, reversal was blocked with the finance reconciliation message; no reversal posted in either attempt."
+    },
+    {
+      "id": "U12",
+      "passed": true,
+      "environment": "disposable local schema afez_uat_remaining_20261102",
+      "evidence": "UI UAT2-LEGACY-001 was a confirmed legacy act with no linked receipt rows. Submitting a reversal reason returned the manual reconciliation requirement; no rereceipt or stock/payable reversal was created. The list view did not proactively flag the legacy row, so visibility of that warning remains a UX follow-up."
+    },
+    {
+      "id": "U18-U19",
+      "passed": true,
+      "environment": "disposable local schema afez_uat_remaining_20261102",
+      "evidence": "Warehouse-role UI reconciliation showed only quantities/status and no price or payable amount. A 5-unit central-to-site transfer appeared as central -5 and site +5; an unknown movement was separately counted and excluded from known net movement. Stock/lot matched in both locations."
+    },
+    {
+      "id": "U11",
+      "passed": true,
+      "environment": "disposable local schema afez_uat_ui_followup_20261102",
+      "evidence": "After stopping the Nest watch process and starting the built backend against the disposable UAT schema, Kamran (warehouse role) opened the seeded purchase-act list. Act rows were visible; unit price, amount, cash-paid, and supplier fields were redacted, while receipt controls remained available. No write to the purchase act was made."
+    },
+    {
+      "id": "U16",
+      "passed": true,
+      "environment": "disposable local schema afez_uat_ui_followup_20261102",
+      "evidence": "Elvin submitted a documented supplier-credit request through the UI with a synthetic clean proof file; director approval was recorded in the UI. The 2-unit disputed quantity was resolved and a -10 AZN open payable was created only on approval. Fixture has 2 accepted units and 2 disputed units; test schema only."
+    },
+    {
+      "id": "U28",
+      "passed": true,
+      "environment": "disposable local schema afez_uat_ui_followup_20261102",
+      "evidence": "Rauf submitted and signed a 2-unit supplier-packaging return; Kamran recorded the clearly synthetic supplier representative and signed-document reference through the UI. The case closed with open balance 0. This is a synthetic screen test, not a customer/vendor signature."
+    },
+    {
+      "id": "U29",
+      "passed": true,
+      "environment": "disposable local schema afez_uat_ui_followup_20261102",
+      "evidence": "Rauf submitted a 1-unit loss incident with synthetic evidence; Elvin approved it through the UI with an explicit synthetic-only responsibility note. UI showed case closed/open 0 and “no automatic debt”; DB event status approved, resolvedQty 1, and no payable was linked or created."
+    },
+    {
+      "id": "U30-U33",
+      "passed": true,
+      "environment": "disposable local schema afez_uat_ui_followup_20261102",
+      "evidence": "Supplier-return UI listed only the receipt-linked UAT16 lot; the seeded legacy unlinked lot was absent. Elvin created a 1-unit draft; a second 2-unit reservation attempt was rejected because it exceeded the lot balance. A distinct director approved, Kamran (warehouse) dispatched, Elvin recorded a clearly synthetic supplier representative/document, and a different director account approved the 5 AZN credit. DB status finance_approved; actor IDs differ at approval/dispatch/supplier confirmation/finance stages as required; stock/material/lot decreased by 1 at dispatch, and finance approval wrote -5 AZN open payable. All records are synthetic and isolated."
+    }
+  ],
+  "notCoveredByThisUiRun": [
+    "U4-U5: the normal UI creates a fresh random operation key per submit and exposes no replay control; same-key/same-body and changed-body behavior remains covered by backend unit tests.",
+    "U13: normal tenant-scoped selectors cannot submit another tenant’s IDs; foreign-tenant rejection and no-write behavior are covered by backend acceptance tests.",
+    "U20: the application UI has no read-only importer/view for the 2026-10-29 dump; that target snapshot is covered by the separate read-only file-based preflight. No snapshot data was imported into the UI."
+  ],
+  "snapshotRowReview": {
+    "source": "afez-2026-10-29T14-46-31-035Z.dump",
+    "sha256": "4e20dfd72289f9ee31fcc9dbc60792336206b53771c822fb8909770be6f062ef",
+    "readOnly": true,
+    "customerSnapshotVerified": false,
+    "dataClassification": "Rows use seed-org-afez and seed-* IDs. Treat as sample/seed diagnostic data until the customer confirms provenance; these values are not owner-approved production balances.",
+    "ownerDecisionStatus": "pending for every row",
+    "materialDiscrepancies": [
+      {
+        "material": "Armatur A500 Ø16",
+        "unit": "ton",
+        "materialQty": "48",
+        "stockQty": "66",
+        "lotQty": "32",
+        "stockMinusMaterial": "+18",
+        "lotMinusStock": "-34"
+      },
+      {
+        "material": "Sement CEM II 42.5",
+        "unit": "ton",
+        "materialQty": "86",
+        "stockQty": "126",
+        "lotQty": "0",
+        "stockMinusMaterial": "+40",
+        "lotMinusStock": "-126"
+      },
+      {
+        "material": "Şüşə paket 24 mm",
+        "unit": "m²",
+        "materialQty": "180",
+        "stockQty": "180",
+        "lotQty": "0",
+        "stockMinusMaterial": "0",
+        "lotMinusStock": "-180"
+      },
+      {
+        "material": "Alüminium profil 60 mm",
+        "unit": "m",
+        "materialQty": "920",
+        "stockQty": "0",
+        "lotQty": "0",
+        "stockMinusMaterial": "-920",
+        "lotMinusStock": "0"
+      },
+      {
+        "material": "Çay qumu",
+        "unit": "m³",
+        "materialQty": "140",
+        "stockQty": "140",
+        "lotQty": "0",
+        "stockMinusMaterial": "0",
+        "lotMinusStock": "-140"
+      },
+      {
+        "material": "Çınqıl 5-20",
+        "unit": "m³",
+        "materialQty": "96",
+        "stockQty": "96",
+        "lotQty": "0",
+        "stockMinusMaterial": "0",
+        "lotMinusStock": "-96"
+      },
+      {
+        "material": "Güc kabeli 4x16",
+        "unit": "m",
+        "materialQty": "1800",
+        "stockQty": "1800",
+        "lotQty": "0",
+        "stockMinusMaterial": "0",
+        "lotMinusStock": "-1800"
+      },
+      {
+        "material": "Polietilen boru 110",
+        "unit": "m",
+        "materialQty": "640",
+        "stockQty": "0",
+        "lotQty": "0",
+        "stockMinusMaterial": "-640",
+        "lotMinusStock": "0"
+      },
+      {
+        "material": "Döşəmə kafeli 60x60",
+        "unit": "m²",
+        "materialQty": "860",
+        "stockQty": "860",
+        "lotQty": "0",
+        "stockMinusMaterial": "0",
+        "lotMinusStock": "-860"
+      },
+      {
+        "material": "Suvaq qarışığı",
+        "unit": "kisə",
+        "materialQty": "420",
+        "stockQty": "0",
+        "lotQty": "0",
+        "stockMinusMaterial": "-420",
+        "lotMinusStock": "0"
+      },
+      {
+        "material": "Bitum izolyasiya",
+        "unit": "rulon",
+        "materialQty": "75",
+        "stockQty": "75",
+        "lotQty": "0",
+        "stockMinusMaterial": "0",
+        "lotMinusStock": "-75"
+      },
+      {
+        "material": "Sendviç panel 80 mm",
+        "unit": "m²",
+        "materialQty": "310",
+        "stockQty": "0",
+        "lotQty": "0",
+        "stockMinusMaterial": "-310",
+        "lotMinusStock": "0"
+      }
+    ],
+    "residuals": [
+      {
+        "location": "Mərkəzi anbar",
+        "material": "Armatur A500 Ø16",
+        "unit": "ton",
+        "stockQty": "32",
+        "knownNetMovementQty": "20",
+        "residualQty": "+12"
+      },
+      {
+        "location": "Mərkəzi anbar",
+        "material": "Sement CEM II 42.5",
+        "unit": "ton",
+        "stockQty": "86",
+        "knownNetMovementQty": "0",
+        "residualQty": "+86"
+      },
+      {
+        "location": "Mərkəzi anbar",
+        "material": "Çınqıl 5-20",
+        "unit": "m³",
+        "stockQty": "96",
+        "knownNetMovementQty": "40",
+        "residualQty": "+56"
+      },
+      {
+        "location": "Mərkəzi anbar",
+        "material": "Güc kabeli 4x16",
+        "unit": "m",
+        "stockQty": "1800",
+        "knownNetMovementQty": "0",
+        "residualQty": "+1800"
+      },
+      {
+        "location": "Mərkəzi anbar",
+        "material": "Sendviç panel 80 mm",
+        "unit": "m²",
+        "stockQty": "0",
+        "knownNetMovementQty": "120",
+        "residualQty": "-120"
+      },
+      {
+        "location": "Mərkəzi anbar",
+        "material": "Çay qumu",
+        "unit": "m³",
+        "stockQty": "90",
+        "knownNetMovementQty": "60",
+        "residualQty": "+30"
+      },
+      {
+        "location": "Port Baku sahə anbarı",
+        "material": "Armatur A500 Ø16",
+        "unit": "ton",
+        "stockQty": "16",
+        "knownNetMovementQty": "-8",
+        "residualQty": "+24"
+      },
+      {
+        "location": "Port Baku sahə anbarı",
+        "material": "Fasad boyası ağ",
+        "unit": "kg",
+        "stockQty": "2400",
+        "knownNetMovementQty": "800",
+        "residualQty": "+1600"
+      },
+      {
+        "location": "Müvəqqəti meydança",
+        "material": "Şüşə paket 24 mm",
+        "unit": "m²",
+        "stockQty": "180",
+        "knownNetMovementQty": "0",
+        "residualQty": "+180"
+      },
+      {
+        "location": "Ağ Şəhər sahə anbarı",
+        "material": "Güc kabeli 4x16",
+        "unit": "m",
+        "stockQty": "0",
+        "knownNetMovementQty": "200",
+        "residualQty": "-200"
+      },
+      {
+        "location": "Ağ Şəhər sahə anbarı",
+        "material": "Döşəmə kafeli 60x60",
+        "unit": "m²",
+        "stockQty": "860",
+        "knownNetMovementQty": "252",
+        "residualQty": "+608"
+      },
+      {
+        "location": "Metro sahə anbarı",
+        "material": "Bitum izolyasiya",
+        "unit": "rulon",
+        "stockQty": "75",
+        "knownNetMovementQty": "30",
+        "residualQty": "+45"
+      },
+      {
+        "location": "Xırdalan armatur sexi",
+        "material": "Armatur A500 Ø16",
+        "unit": "ton",
+        "stockQty": "18",
+        "knownNetMovementQty": "-4",
+        "residualQty": "+22"
+      },
+      {
+        "location": "Ələt beton qovşağı",
+        "material": "Sement CEM II 42.5",
+        "unit": "ton",
+        "stockQty": "40",
+        "knownNetMovementQty": "16",
+        "residualQty": "+24"
+      },
+      {
+        "location": "Ələt beton qovşağı",
+        "material": "Çay qumu",
+        "unit": "m³",
+        "stockQty": "50",
+        "knownNetMovementQty": "-12",
+        "residualQty": "+62"
+      }
+    ],
+    "decisionTemplate": "For each row the customer owner must confirm provenance/source document, counted physical quantity and unit, target project/location, opening-balance treatment or correction, and named approver/date. No row is approved by this preflight."
+  },
+  "externalGates": [
+    "Owner decision and written sign-off for 12 material differences and 15 residual balances in the 2026-10-29 snapshot.",
+    "Customer-approved current test snapshot and target rollout window, backup/rollback plan, and pilot-user sign-off."
+  ]
+}

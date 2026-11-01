@@ -1,0 +1,20 @@
+{
+  "passed": true,
+  "checkedAt": "2026-11-01T21:48:44.161Z",
+  "syntheticOnly": true,
+  "environment": "disposable local PostgreSQL schema",
+  "checks": [
+    "project/date/status/urgency/requester filters exercised",
+    "central A free 5 after reservation 1, transfer hold 2, custody 1 and supplier-return hold 1; central B free 3",
+    "donor context showed physical 20, reserved 2, free 18 and approved plan remaining 12; donor was not directly selectable",
+    "UI proposed A5 B2; director edited to A4 B3 and changed note/due date",
+    "mixed bulk showed 1 success / 1 problem; zero-quantity row remained selected/pending with explicit error",
+    "problem repaired in UI to UAT Gravel, 3 kg, critical priority and due date; individual approval created 1 kg reservation with 2 kg uncovered",
+    "individual return/reject required reasons and completed without reservation writes",
+    "approved row persisted after panel reload; displayed 1 reserve / 2 awaiting supply"
+  ],
+  "databaseVerified": true,
+  "physicalStockChanged": false,
+  "payableCreated": false,
+  "crossProjectTransferExecution": "separate signed transfer flow; covered by prior project-transfer acceptance, not executed in this panel run"
+}

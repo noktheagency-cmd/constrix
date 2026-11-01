@@ -1,3 +1,4 @@
+import { DirectorRequestPanel } from './DirectorRequestPanel'
 import { DataTable } from '../components/DataTable'
 import { Button, Input, TableContainer, Toolbar } from "../components/primitives"
 import { useEffect, useState, type FormEvent } from "react"
@@ -12,7 +13,7 @@ import { Badge, Drawer, Empty, Field, Modal, PageHead, Select, Tabs, useTitle } 
 
 const emptyPo = { supplier: "", materialId: "", qty: "", amount: "", eta: "2026-10-02" }
 const emptyGear: GearForm = { name: "", category: "alet", place: "", qty: "1", unit: "ədəd", nextCheck: "2026-12-23" }
-type Tab = "teleb" | "teklif" | "sifaris" | "borc" | "techizatci" | "reyestr" | "yoxlama"
+type Tab = "director" | "teleb" | "teklif" | "sifaris" | "borc" | "techizatci" | "reyestr" | "yoxlama"
 type Shelf = "hamisi" | GearCategory
 type Reading = { kind: Tab | "gear"; id: string } | null
 const SHELVES: { id: Shelf; label: string }[] = [
@@ -62,10 +63,10 @@ export default function Supply() {
   useTitle(t("page.supply.title"))
   const {
     query, purchaseOrders, materials, requests, stocks, reservations, locations, quotes, payables, projects, gear, gearEvents, suppliers,
-    addPurchase, receivePo, convertRequest, coverRequest, addQuote, awardQuote, payPayable, rejectRequest, createRequest, decideRequests, resubmitReturnedRequest, actor,
+    addPurchase, receivePo, convertRequest, coverRequest, addQuote, awardQuote, payPayable, rejectRequest, createRequest, decideRequests, resubmitReturnedRequest, actor, reload:reloadBooks,
     addGear, sendGearCheck, startGearCheck, confirmGearCheck, finishGearCheck, returnGearCheck, replaceGear, acceptGear, obsoleteGear, loseGear,
   } = useStore()
-  const [tab, setTab] = useState<Tab>("teleb")
+  const [tab, setTab] = useState<Tab>(actor.role === "director" ? "director" : "teleb")
   const [shelf, setShelf] = useState<Shelf>("hamisi")
   const [reading, setReading] = useState<Reading>(null)
   const [composer, setComposer] = useState<"" | "teleb" | "teklif" | "sifaris" | "gear">("")
@@ -138,8 +139,9 @@ export default function Supply() {
       <Toolbar>
         <Tabs
           value={tab}
-          onChange={(id) => { setTab(id as Tab); setReading(null); setError(""); setSelectedRequests([]) }}
+          onChange={(id) => { if(tab === "director")reloadBooks(); setTab(id as Tab); setReading(null); setError(""); setSelectedRequests([]) }}
           options={[
+            ...(actor.role === "director" ? [{id:"director",label:"Rəhbər paneli"}] : []),
             { id: "teleb", label: "Tələb" },
             { id: "teklif", label: "Təklif" },
             { id: "sifaris", label: "Sifariş" },
@@ -150,6 +152,7 @@ export default function Supply() {
           ]}
         />
       </Toolbar>
+      {tab === "director" && actor.role === "director" && <DirectorRequestPanel />}
       {bulkFeedback && tab === "teleb" && <p className={bulkFeedback.failed ? "form-error" : "muted"}>{bulkFeedback.succeeded} təsdiqləndi · {bulkFeedback.failed} uğursuz{bulkFeedback.issues.length ? ` — ${bulkFeedback.issues.join("; ")}` : ""}</p>}
       {tab === "reyestr" && (
         <>

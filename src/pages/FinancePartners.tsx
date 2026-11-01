@@ -6,6 +6,7 @@ import { hit, money, moneyShort } from "../format"
 import { usePrefs } from "../i18n"
 import { useStore } from "../store"
 import { Columns, Empty, PageHead, Tabs, useTitle } from "../ui"
+import { SupplierPaymentPanel } from "./SupplierPaymentPanel"
 
 export default function FinancePartners() {
   const { t } = usePrefs()
@@ -78,6 +79,7 @@ export default function FinancePartners() {
         </DataTable>
         {rows.length === 0 && <Empty title="Tərəf yoxdur" text="Açıq borc tapılmadı." />}
       </TableContainer>
+      {tab === "kreditor" && ["director", "accountant"].includes(state.actor.role) && <SupplierPaymentPanel />}
     </>
   )
 }

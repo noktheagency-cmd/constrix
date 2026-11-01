@@ -1,0 +1,14 @@
+{
+  "passed": true,
+  "checks": [
+    "warehouse-to-custodian handover requires the designated recipient signature and creates a 10-unit custody balance",
+    "consumption request is idempotent, reserves custody without changing stock, and rejects self/unauthorized approval",
+    "designated reviewer approval atomically decreases Stock, Material, FIFO StockLot, records movement, and reduces custody balance",
+    "approved return releases custody only; rejected action requires reason and changes neither stock nor custody balance"
+  ],
+  "checkedAt": "2026-11-01T20:14:24.283Z",
+  "migrations": [
+    "202611010008_material_handovers",
+    "202611010009_material_custody_actions"
+  ]
+}

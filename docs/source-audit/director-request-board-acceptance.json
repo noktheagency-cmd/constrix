@@ -1,0 +1,14 @@
+{
+  "passed": true,
+  "checks": [
+    "director board free stock subtracts reservations, pending transfers, custody and supplier-return holds",
+    "mixed bulk approves valid row only, keeps invalid row pending with a reason, reserves edited allocation and does not move stock",
+    "bulk replay never creates duplicate reservations",
+    "a conflicting later allocation rolls back earlier reservation for the same request",
+    "director can repair quantity/note/urgency/due date; selected reservation and uncovered procurement remain separate with before/after audit",
+    "stale rows and unauthorized decisions fail; donor-project stock requires its own approved signed transfer",
+    "return for correction leaves stock/reservations unchanged"
+  ],
+  "checkedAt": "2026-11-01T21:49:37.102Z",
+  "isolated": true
+}
