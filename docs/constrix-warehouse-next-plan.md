@@ -32,6 +32,7 @@ Bu plan anbarlararası transferi, material məsuluna təhvili, sərfiyyatı, pod
 - Snapshot preflight-ın yığcam nəticəsi [warehouse-snapshot-preflight-2026-10-29.json](./source-audit/warehouse-snapshot-preflight-2026-10-29.json) faylında saxlanır. Mənbə backup-ın restore yoxlaması 166 cədvəl və 26,409 sətir üzrə əvvəlcədən uğurlu olub.
 - Təkrar command üçün body hash/idempotency, audit və qəbul tarixçəsi endpoint-i mövcuddur.
 - UI qismən qəbul və qalan sifariş miqdarını göstərir.
+- Anbar modulunda ayrıca `Mədaxil` və `Məxaric` tabları əlavə edilib; mövcud movement tarixçəsi istiqamətə görə süzülür və hər tab uyğun yeni hərəkət formasını açır. Bu yalnız mövcud mədaxil/məxaric əməliyyatlarının naviqasiya görünüşüdür; inventarizasiya, faktiki sərfiyyat, poddon və geri qaytarma workflow-larını əvəz etmir.
 - Migration 003–007 lokal `afez_db`-yə tətbiq olunub. Müştəri/test/production mühitləri ayrıca seçilməyib və migration olunmayıb.
 - `backend/scripts/project-transfer-acceptance.ts` təsadüfi PostgreSQL schema-sında göndərən/qəbul edən səlahiyyətini, ikinci imza qaydasını, tenant ayrılığını, deaktiv təyinatı və stok/lot/movement nəticələrini 5/5 yoxlayır; sonda schema-nı silir.
 - Project transfer UAT nəticəsi təkrarlana bilən audit üçün [project-transfer-acceptance.json](./source-audit/project-transfer-acceptance.json) faylında saxlanır.

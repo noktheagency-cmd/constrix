@@ -13,7 +13,7 @@ import { Badge, Drawer, Empty, Field, Modal, PageHead, Select, StockBar, Tabs, u
 import { patch, uid, useWorkspace } from "../workspace"
 import { PassportPage } from "./platform"
 
-type Tab = "qaliq" | "kritik" | "pasport" | "transfer" | "hereket" | "anbarlar" | "partiyalar" | "uzlasdirma" | "rezerv"
+type Tab = "qaliq" | "kritik" | "pasport" | "transfer" | "hereket" | "medaxil" | "mexaric" | "anbarlar" | "partiyalar" | "uzlasdirma" | "rezerv"
 type Read =
   | { kind: "material"; id: string }
   | { kind: "move"; id: string }
@@ -27,7 +27,7 @@ const KIND: Record<string, string> = { merkez: "Mərkəz", zavod: "Zavod", sex: 
 const KINDS = Object.keys(KIND) as LocationKind[]
 const emptyMove = { materialId: "", type: "mexaric", qty: "", project: "", locationId: "LOC-MERKEZ", smetaLineId: "", note: "" }
 
-const WAREHOUSE_TABS: Tab[] = ["qaliq", "kritik", "pasport", "transfer", "hereket", "anbarlar", "partiyalar", "uzlasdirma", "rezerv"]
+const WAREHOUSE_TABS: Tab[] = ["qaliq", "kritik", "pasport", "transfer", "medaxil", "mexaric", "hereket", "anbarlar", "partiyalar", "uzlasdirma", "rezerv"]
 
 type ReconciliationReport = {
   generatedAt: string
@@ -229,9 +229,16 @@ export default function Warehouse() {
     : (routeCard.status === "waiting_sender" && routeCard.canDispatch === true) || (routeCard.status === "sent" && routeCard.canReceive === true)
     : false
   const placeCard = reading?.kind === "place" ? houses.find((item) => item.id === reading.id) : undefined
+  const visibleMovements = tab === "medaxil"
+    ? moves.filter((item) => ["medaxil", "qebul", "qaytarma"].includes(String(item.type)))
+    : tab === "mexaric"
+      ? moves.filter((item) => ["mexaric", "cixis", "buraxilis", "itki"].includes(String(item.type)))
+      : moves
   const hint =
     tab === "partiyalar" ? `${serverLots.filter((item) => Number(item.qty) > 0).length} partiya` :
     tab === "transfer" ? `${routes.filter((item) => item.step < item.stops.length - 1).length} sənəd yoldadır` :
+    tab === "medaxil" ? `${visibleMovements.length} mədaxil` :
+    tab === "mexaric" ? `${visibleMovements.length} məxaric` :
     tab === "anbarlar" ? `${houses.length} anbar` :
     tab === "hereket" ? `${moves.length} hərəkət` :
     tab === "uzlasdirma" ? (reconciliation ? `${reconciliation.summary.mismatchCount} uyğunsuz material` : "Uzlaşdırma hesabatı") :
@@ -247,6 +254,10 @@ export default function Warehouse() {
           <Button type="button" onClick={() => openHouse()}><Icon name="plus" /> Anbar</Button>
         ) : tab === "partiyalar" ? (
           <Button onClick={() => {setLotNote(""); setLotOpen(true)}}><Icon name="plus" />Partiya hərəkəti</Button>
+        ) : tab === "medaxil" ? (
+          <Button type="button" onClick={() => openIntake(materials[0]?.id || "", "LOC-MERKEZ", "medaxil")}><Icon name="plus" /> Mədaxil</Button>
+        ) : tab === "mexaric" ? (
+          <Button type="button" onClick={() => openIntake(materials[0]?.id || "", "LOC-MERKEZ", "mexaric")}><Icon name="plus" /> Məxaric</Button>
         ) : tab === "pasport" || tab === "uzlasdirma" || tab === "rezerv" ? null : (
           <Button type="button" onClick={() => openIntake()}><Icon name="plus" /> Hərəkət</Button>
         )}
@@ -261,6 +272,8 @@ export default function Warehouse() {
             { id: "partiyalar", label: "Partiyalar" },
             { id: "pasport", label: "Pasport" },
             { id: "transfer", label: "Transfer" },
+            { id: "medaxil", label: "Mədaxil" },
+            { id: "mexaric", label: "Məxaric" },
             { id: "hereket", label: "Hərəkət" },
             { id: "anbarlar", label: "Anbarlar" },
             { id: "uzlasdirma", label: "Uzlaşdırma" },
@@ -406,7 +419,7 @@ export default function Warehouse() {
         </TableContainer>
       )}
 
-      {tab === "hereket" && (
+      {(tab === "hereket" || tab === "medaxil" || tab === "mexaric") && (
         <TableContainer>
           <DataTable>
             <thead>
@@ -419,7 +432,7 @@ export default function Warehouse() {
               </tr>
             </thead>
             <tbody>
-              {moves.map((item) => (
+              {visibleMovements.map((item) => (
                 <tr key={item.id} className="click" onClick={() => setReading({ kind: "move", id: item.id })}>
                   <td>
                     <div className="name-cell">
@@ -439,7 +452,7 @@ export default function Warehouse() {
               ))}
             </tbody>
           </DataTable>
-          {moves.length === 0 && <Empty title="Hərəkət yoxdur" text="Axtarışa uyğun anbar hərəkəti tapılmadı." />}
+          {visibleMovements.length === 0 && <Empty title={tab === "medaxil" ? "Mədaxil yoxdur" : tab === "mexaric" ? "Məxaric yoxdur" : "Hərəkət yoxdur"} text={tab === "medaxil" ? "Qəbul qeydə alınanda mədaxil burada görünəcək." : tab === "mexaric" ? "Material çıxışı qeydə alınanda məxaric burada görünəcək." : "Axtarışa uyğun anbar hərəkəti tapılmadı."} />}
         </TableContainer>
       )}
 
